@@ -18,5 +18,5 @@ fs.readdirSync(lib)
         var npmCmd = os.platform().startsWith('win') ? 'npm.cmd' : 'npm'
 
         // install folder
-        cp.spawn(npmCmd, ['ci'], { env: process.env, cwd: modPath, stdio: 'inherit' })
+        cp.spawn(npmCmd, ['i'], { env: process.env, cwd: modPath, stdio: 'inherit' })
     })
