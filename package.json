@@ -1,12 +1,12 @@
 {
   "name": "smooch-lambdas",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {},
   "scripts": {
-    "build": "node install.js && zip -r smoochLambdas.zip .",
+    "build": "node install.js && zip -r smooch-lambdas.zip .",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [],
