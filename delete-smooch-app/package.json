@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.542.0",
     "smooch-core": "^8.7.3"
   }
 }
