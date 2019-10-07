@@ -14,7 +14,7 @@ AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event) => {
-    const { tenantId } = event;
+    const { 'tenant-id': tenantId } = event.params;
     const webhookUrl = `https://${process.env.DOMAIN}-smooch-gateway.cxengagelabs.net/tenants/${tenantId}/smooch`;
 
     console.log('create-smooch-app' + JSON.stringify(event));
