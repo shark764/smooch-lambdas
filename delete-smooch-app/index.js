@@ -14,7 +14,7 @@ AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event) => {
-    const { tenantId, appId } = event;
+    const { 'tenant-id': tenantId, id: appId } = event.params;
     const params = {
         TableName: 'us-east-1-dev-smooch',
         Key: {
