@@ -10,8 +10,9 @@ const smooch = new SmoochCore({
     scope: 'account'
 });
 
-AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
+AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
+const secretsClient = new AWS.SecretsManager();
 
 exports.handler = async (event) => {
     const { 'tenant-id': tenantId } = event.params;
@@ -19,13 +20,27 @@ exports.handler = async (event) => {
 
     console.log('create-smooch-app' + JSON.stringify(event));
     console.log('create-smooch-app' + JSON.stringify(process.env));
+ 
+    let secrets;
+    try {
+        secrets = await secretsClient.getSecretValue({
+            SecretId: `${process.env.AWS_REGION}/${process.env.ENVIRONMENT}/cxengage/smooch/app-key-secrets`
+        }).promise();
+    } catch (error) {
+        console.error(JSON.stringify(error));
+        return {
+            statusCode: 500,
+            body: { message: `An Error has occurred trying to retrieve digital chanels credentials` }
+        };
+    }
+
+    console.log('~~!!~~', typeof secrets, secrets); // XXX just for testing/debugging. remove when we can see it.
 
     let newApp;
     try {
         newApp = await smooch.apps.create({ name: tenantId });
     } catch (error) {
         console.error(JSON.stringify(error));
-
         return {
             statusCode: 500,
             body: { message: `An Error has occurred trying to create an App for tenant ${tenantId}` }
@@ -44,7 +59,7 @@ exports.handler = async (event) => {
     }
 
     const params = {
-        TableName: 'us-east-1-dev-smooch',
+        TableName: `${process.env.DOMAIN}-smooch`,
         Item: {
             'tenant-id': tenantId,
             id: newApp.app._id,
@@ -57,7 +72,6 @@ exports.handler = async (event) => {
        await docClient.put(params).promise();
     } catch (error) {
         console.error(JSON.stringify(error));
-
         return {
             statusCode: 500,
             body: { message: `An Error has occurred trying to save a record in DynamoDB for tenant ${tenantId}` }
