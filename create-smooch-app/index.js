@@ -21,7 +21,7 @@ exports.handler = async (event) => {
     let secrets;
     try {
         secrets = await secretsClient.getSecretValue({
-            SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app-key-secrets`
+            SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/account`
         }).promise();
     } catch (error) {
         console.error(JSON.stringify(error));

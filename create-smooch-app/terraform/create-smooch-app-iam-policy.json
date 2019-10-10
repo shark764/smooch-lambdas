@@ -7,10 +7,13 @@
             "logs:PutLogEvents",
             "ec2:CreateNetworkInterface",
             "ec2:DescribeNetworkInterfaces",
-            "ec2:DeleteNetworkInterface",
-            "secretsmanager:GetSecretValue"
+            "ec2:DeleteNetworkInterface"
         ],
         "Effect": "Allow",
         "Resource": "*"
+    }, {
+        "Action": "secretsmanager:GetSecretValue",
+        "Effect": "Allow",
+        "Resource": "arn:aws:secretsmanager:${var.region}:${var.account_id}:secret:${var.region}/${var.environment}/cxengage/smooch/account-??????"
     }]
 }
