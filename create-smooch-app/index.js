@@ -24,7 +24,8 @@ exports.handler = async (event) => {
     let secrets;
     try {
         secrets = await secretsClient.getSecretValue({
-            SecretId: `${process.env.AWS_REGION}/${process.env.ENVIRONMENT}/cxengage/smooch/app-key-secrets`
+            // TODO use ${process.env.ENVIRONMENT} when we have it
+            SecretId: `${process.env.AWS_REGION}/dev/cxengage/smooch/app-key-secrets`
         }).promise();
     } catch (error) {
         console.error(JSON.stringify(error));
@@ -59,7 +60,8 @@ exports.handler = async (event) => {
     }
 
     const params = {
-        TableName: `${process.env.DOMAIN}-smooch`,
+        // TODO use ${process.env.DOMAIN} when we have it
+        TableName: `us-east-1-dev-smooch`,
         Item: {
             'tenant-id': tenantId,
             id: newApp.app._id,
