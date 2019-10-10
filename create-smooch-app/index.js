@@ -4,38 +4,53 @@
 
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
-const smooch = new SmoochCore({
-    keyId: 'act_5d0bde67cc95250010636aac',
-    secret: 'eVgMHuwGm_ysETik3KiPNKFJ0XOG0wTVkepouUGJ2s_c721Nophtqu6Mf36bc1ffkl52OgmF93AJyysOLuVCwg',
-    scope: 'account'
-});
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
 
 exports.handler = async (event) => {
-    const { 'tenant-id': tenantId } = event.params;
-    const webhookUrl = `https://${process.env.DOMAIN}-smooch-gateway.cxengagelabs.net/tenants/${tenantId}/smooch`;
-
     console.log('create-smooch-app' + JSON.stringify(event));
     console.log('create-smooch-app' + JSON.stringify(process.env));
- 
+
+    const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
+    const { 'tenant-id': tenantId } = event.params;
+
+    const webhookUrl = `https://${AWS_REGION}-${ENVIRONMENT}-smooch-gateway.${DOMAIN}/tenants/${tenantId}/smooch`;
+
     let secrets;
     try {
         secrets = await secretsClient.getSecretValue({
-            // TODO use ${process.env.ENVIRONMENT} when we have it
-            SecretId: `${process.env.AWS_REGION}/dev/cxengage/smooch/app-key-secrets`
+            SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app-key-secrets`
         }).promise();
     } catch (error) {
         console.error(JSON.stringify(error));
         return {
             statusCode: 500,
-            body: { message: `An Error has occurred trying to retrieve digital chanels credentials` }
+            body: { message: 'An Error has occurred trying to retrieve digital channels credentials' }
         };
     }
+    
+    // XXX just for testing/debugging. remove when we can see it.
+    console.log('~~!!~~', typeof secrets, secrets);
 
-    console.log('~~!!~~', typeof secrets, secrets); // XXX just for testing/debugging. remove when we can see it.
+    let smooch;
+    try {
+        const keys = JSON.parse(secrets.SecretString);
+        // XXX just for testing/debugging. remove when we can see it.
+        console.log('~~!!~~2', keys['platform-key-id'], keys['platform-secret']);
+        smooch = new SmoochCore({
+            keyId: keys['platform-key-id'],
+            secret: keys['platform-secret'],
+            scope: 'account'
+        });
+    } catch (error) {
+        console.error(JSON.stringify(error))
+        return {
+            statusCode: 500,
+            body: { message: `An Error has occurred trying to validate digital channels credentials` }
+        };
+    }
 
     let newApp;
     try {
@@ -60,8 +75,7 @@ exports.handler = async (event) => {
     }
 
     const params = {
-        // TODO use ${process.env.DOMAIN} when we have it
-        TableName: `us-east-1-dev-smooch`,
+        TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
         Item: {
             'tenant-id': tenantId,
             id: newApp.app._id,
