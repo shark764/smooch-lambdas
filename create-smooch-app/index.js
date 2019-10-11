@@ -31,14 +31,9 @@ exports.handler = async (event) => {
         };
     }
     
-    // XXX just for testing/debugging. remove when we can see it.
-    console.log('~~!!~~', JSON.stringify(accountSecrets));
-
     let smooch;
     try {
         const accountKeys = JSON.parse(accountSecrets.SecretString);
-        // XXX just for testing/debugging. remove when we can see it.
-        console.log('~~!!~~2', accountKeys['id'], accountKeys['secret']);
         smooch = new SmoochCore({
             keyId: accountKeys['id'],
             secret: accountKeys['secret'],
@@ -63,9 +58,9 @@ exports.handler = async (event) => {
         };
     }
 
-    let appKeys;
+    let smoochAppKeys;
     try {
-        appKeys = await smooch.apps.keys.create(newApp.app._id, tenantId);
+        smoochAppKeys = await smooch.apps.keys.create(newApp.app._id, tenantId);
     } catch (error) {
         console.error(JSON.stringify(error));
         return {
@@ -74,18 +69,24 @@ exports.handler = async (event) => {
         };
     }
 
-    // XXX just for testing/debugging. remove when we can see it.
-    console.log('~~!!~~3 ', JSON.stringify(appKeys));
-
+    let appSecrets;
     try {
-        const appSecrets = await secretsClient.getSecretValue({
+        appSecrets = await secretsClient.getSecretValue({
             SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`
         }).promise();
-        // XXX just for testing/debugging. remove when we can see it.
-        console.log('~~!!~~4', JSON.stringify(appSecrets));
-        const appKeys = JSON.parse(accountSecrets.SecretString);
-        appKeys[`${tenant-id}-id`] = appKeys.key._id;
-        appKeys[`${tenant-id}-secret`] = appKeys.key.secret;
+    } catch (error) {
+        console.error(JSON.stringify(error));
+        return {
+            statusCode: 500,
+            body: { message: `An Error has occurred (1) trying to save App credentials for ${tenantId}` }
+        };
+    }
+
+    const appKeys = JSON.parse(appSecrets.SecretString);
+    appKeys[`${tenantId}-id`] = smoochAppKeys.key._id;
+    appKeys[`${tenantId}-secret`] = smoochAppKeys.key.secret;
+
+    try {
         await secretsClient.putSecretValue({
             SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`,
             SecretString: JSON.stringify(appKeys)
@@ -94,7 +95,7 @@ exports.handler = async (event) => {
         console.error(JSON.stringify(error));
         return {
             statusCode: 500,
-            body: { message: `An Error has occurred trying to save App credentials for ${tenantId}` }
+            body: { message: `An Error has occurred (2) trying to save App credentials for ${tenantId}` }
         };
     }
 
