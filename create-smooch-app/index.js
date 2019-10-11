@@ -36,12 +36,12 @@ exports.handler = async (event) => {
 
     let smooch;
     try {
-        const keys = JSON.parse(accountSecrets.SecretString);
+        const accountKeys = JSON.parse(accountSecrets.SecretString);
         // XXX just for testing/debugging. remove when we can see it.
-        console.log('~~!!~~2', keys['id'], keys['secret']);
+        console.log('~~!!~~2', accountKeys['id'], accountKeys['secret']);
         smooch = new SmoochCore({
-            keyId: keys['id'],
-            secret: keys['secret'],
+            keyId: accountKeys['id'],
+            secret: accountKeys['secret'],
             scope: 'account'
         });
     } catch (error) {
@@ -82,9 +82,20 @@ exports.handler = async (event) => {
             SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`
         }).promise();
         // XXX just for testing/debugging. remove when we can see it.
-        console.log('~~!!~~4', JSON.stringify(appSecrets))
+        console.log('~~!!~~4', JSON.stringify(appSecrets));
+        const appKeys = JSON.parse(accountSecrets.SecretString);
+        appKeys[`${tenant-id}-id`] = appKeys.key._id;
+        appKeys[`${tenant-id}-secret`] = appKeys.key.secret;
+        await secretsClient.putSecretValue({
+            SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`,
+            SecretString: JSON.stringify(appKeys)
+        }).promise();
     } catch (error) {
         console.error(JSON.stringify(error));
+        return {
+            statusCode: 500,
+            body: { message: `An Error has occurred trying to save App credentials for ${tenantId}` }
+        };
     }
 
     let webhook;
