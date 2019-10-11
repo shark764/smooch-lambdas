@@ -1,6 +1,6 @@
 {
     "Statement": [{
-        "Sid": "terraform",
+        "Sid": "Lambda",
         "Action": [
             "logs:CreateLogGroup",
             "logs:CreateLogStream",
@@ -12,8 +12,22 @@
         "Effect": "Allow",
         "Resource": "*"
     }, {
+        "Sid": "PutDynamoTable",
+        "Action": "dynamodb:PutItem",
+        "Effect": "Allow",
+        "Resource": "arn:aws:dynamodb:*:*:table/*-smooch"
+    }, {
+        "Sid": "GetSecrets",
         "Action": "secretsmanager:GetSecretValue",
         "Effect": "Allow",
-        "Resource": "arn:aws:secretsmanager:*:*:secret:*/*/cxengage/smooch/account-??????"
+        "Resource": [
+            "arn:aws:secretsmanager:*:*:secret:*/*/cxengage/smooch/account-??????",
+            "arn:aws:secretsmanager:*:*:secret:*/*/cxengage/smooch/app-??????"
+        ]
+    }, {
+        "Sid": "PutSecret",
+        "Action": "secretsmanager:PutSecretValue",
+        "Effect": "Allow",
+        "Resource": "arn:aws:secretsmanager:*:*:secret:*/*/cxengage/smooch/app-??????"
     }]
 }

@@ -18,9 +18,9 @@ exports.handler = async (event) => {
 
     const webhookUrl = `https://${AWS_REGION}-${ENVIRONMENT}-smooch-gateway.${DOMAIN}/tenants/${tenantId}/smooch`;
 
-    let secrets;
+    let accountSecrets;
     try {
-        secrets = await secretsClient.getSecretValue({
+        accountSecrets = await secretsClient.getSecretValue({
             SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/account`
         }).promise();
     } catch (error) {
@@ -32,11 +32,11 @@ exports.handler = async (event) => {
     }
     
     // XXX just for testing/debugging. remove when we can see it.
-    console.log('~~!!~~', typeof secrets, secrets);
+    console.log('~~!!~~', JSON.stringify(accountSecrets));
 
     let smooch;
     try {
-        const keys = JSON.parse(secrets.SecretString);
+        const keys = JSON.parse(accountSecrets.SecretString);
         // XXX just for testing/debugging. remove when we can see it.
         console.log('~~!!~~2', keys['id'], keys['secret']);
         smooch = new SmoochCore({
@@ -61,6 +61,30 @@ exports.handler = async (event) => {
             statusCode: 500,
             body: { message: `An Error has occurred trying to create an App for tenant ${tenantId}` }
         };
+    }
+
+    let appKeys;
+    try {
+        appKeys = await smooch.apps.create(newApp.app._id, tenantId);
+    } catch (error) {
+        console.error(JSON.stringify(error));
+        return {
+            statusCode: 500,
+            body: { message: `An Error has occurred trying to create App credentials for tenant ${tenantId}` }
+        };
+    }
+
+    // XXX just for testing/debugging. remove when we can see it.
+    console.log('~~!!~~3 ', JSON.stringify(appKeys));
+
+    try {
+        const appSecrets = await secretsClient.getSecretValue({
+            SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`
+        }).promise();
+        // XXX just for testing/debugging. remove when we can see it.
+        console.log('~~!!~~4', JSON.stringify(appSecrets))
+    } catch (error) {
+        console.error(JSON.stringify(error));
     }
 
     let webhook;
