@@ -65,7 +65,7 @@ exports.handler = async (event) => {
 
     let appKeys;
     try {
-        appKeys = await smooch.apps.create(newApp.app._id, tenantId);
+        appKeys = await smooch.apps.keys.create(newApp.app._id, tenantId);
     } catch (error) {
         console.error(JSON.stringify(error));
         return {
