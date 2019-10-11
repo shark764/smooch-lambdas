@@ -1,9 +1,9 @@
 {
   "name": "smooch-lambdas",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "dependencies": {},
   "scripts": {
-    "build": "node install.js && zip -r smooch-lambdas.zip .",
+    "build": "node install.js && node zip.js",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "author": "SerenovaLLC",
