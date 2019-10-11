@@ -1,0 +1,8 @@
+timeout = 30
+memory_size = 128
+zip_path="create-smooch-web-integration/create-smooch-web-integration.zip"
+handler = "index.handler"
+environmentVars = {
+  "ENVIRONMENT" = "${ENVIRONMENT}"
+  "DOMAIN" = "${DOMAIN}"
+}

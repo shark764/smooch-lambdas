@@ -1,0 +1,9 @@
+{
+  "name": "delete-smooch-web-integration",
+  "version": "1.0.0",
+  "dependencies": {
+    "@hapi/joi": "^16.1.7",
+    "aws-sdk": "^2.544.0",
+    "smooch-core": "^8.7.3"
+  }
+}
