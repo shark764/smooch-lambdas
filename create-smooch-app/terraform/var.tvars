@@ -1,6 +1,7 @@
 timeout = 30
 memory_size = 128
-handler = "${LAMBDA_NAME}/index.handler"
+zip_path="create-smooch-app/create-smooch-app.zip"
+handler = "index.handler"
 environmentVars = {
   "ENVIRONMENT" = "${ENVIRONMENT}"
   "DOMAIN" = "${DOMAIN}"

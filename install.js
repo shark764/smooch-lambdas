@@ -10,7 +10,6 @@ console.log(lib);
 fs.readdirSync(lib)
     .forEach(function (mod) {
         var modPath = join(lib, mod)
-        console.log(modPath)
         // ensure path has package.json
         if (!fs.existsSync(join(modPath, 'package.json'))) return
 

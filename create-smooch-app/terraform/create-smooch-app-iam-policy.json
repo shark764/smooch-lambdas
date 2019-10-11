@@ -14,6 +14,6 @@
     }, {
         "Action": "secretsmanager:GetSecretValue",
         "Effect": "Allow",
-        "Resource": "arn:aws:secretsmanager:${var.region}:${var.account_id}:secret:${var.region}/${var.environment}/cxengage/smooch/account-??????"
+        "Resource": "*"
     }]
 }

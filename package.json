@@ -1,15 +1,11 @@
 {
   "name": "smooch-lambdas",
-  "version": "0.1.6",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.7",
   "dependencies": {},
-  "devDependencies": {},
   "scripts": {
     "build": "node install.js && zip -r smooch-lambdas.zip .",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "author": "SerenovaLLC",
+  "license": "UNLICENSED"
 }
