@@ -38,10 +38,10 @@ exports.handler = async (event) => {
     try {
         const keys = JSON.parse(secrets.SecretString);
         // XXX just for testing/debugging. remove when we can see it.
-        console.log('~~!!~~2', keys['platform-key-id'], keys['platform-secret']);
+        console.log('~~!!~~2', keys['id'], keys['secret']);
         smooch = new SmoochCore({
-            keyId: keys['platform-key-id'],
-            secret: keys['platform-secret'],
+            keyId: keys['id'],
+            secret: keys['secret'],
             scope: 'account'
         });
     } catch (error) {
