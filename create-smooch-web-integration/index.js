@@ -3,6 +3,7 @@
  **/
 
 const SmoochCore = require('smooch-core');
+const AWS = require('aws-sdk');
 const smooch = new SmoochCore({
     keyId: 'act_5da0b5671c42610010a7f245',
     secret: '6-cyVcqWS185_zvDFGITUPAz1gM1IggG286IKSoEQFZNuDRonU7SZDOv3wOWiFzeMLUUQOijZXeD2BxGY7hhFw',
@@ -15,7 +16,6 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 const bodySchema = Joi.object({
     appId: Joi.string()
         .required(),
-
     prechatCapture: Joi.string()
         .required()
         .valid('name', 'email'),
@@ -52,7 +52,9 @@ const bodySchema = Joi.object({
     buttonIconUrl: Joi.string()
 });
 const paramsSchema = Joi.object({
-    'tenant-id': Joi.string.guid()
+    'tenant-id': Joi.string().guid(),
+    'user-id': Joi.any(),
+    'remote-addr': Joi.any(),
 });
 
 exports.handler = async (event) => {
@@ -136,13 +138,14 @@ exports.handler = async (event) => {
 
     } catch (error) {
         console.error(JSON.stringify(error));
+
         return {
-            statusCode: error.response.status || 500,
+            statusCode: 500,
             body: { message: `An Error has occurred trying to create a web integration for tenant ${tenantId}`, error }
         };
     }
 
-    const params = {
+    const createParams = {
         TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
         Item: {
             'tenant-id': tenantId,
@@ -154,7 +157,7 @@ exports.handler = async (event) => {
         }
     };
     try {
-        await docClient.put(params).promise();
+        await docClient.put(createParams).promise();
     } catch (error) {
         console.error(JSON.stringify(error));
 
@@ -164,7 +167,7 @@ exports.handler = async (event) => {
         };
     }
 
-    return {
+   return {
         statusCode: 201,
         body: { integration }
     };
