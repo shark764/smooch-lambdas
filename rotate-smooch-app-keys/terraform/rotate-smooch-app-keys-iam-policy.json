@@ -1,0 +1,28 @@
+{
+    "Statement": [{
+        "Sid": "Lambda",
+        "Action": [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents",
+            "ec2:CreateNetworkInterface",
+            "ec2:DescribeNetworkInterfaces",
+            "ec2:DeleteNetworkInterface"
+        ],
+        "Effect": "Allow",
+        "Resource": "*"
+    }, {
+        "Sid": "QueryDynamoTable",
+        "Action": "dynamodb:Query",
+        "Effect": "Allow",
+        "Resource": "arn:aws:dynamodb:*:*:table/*-smooch"
+    }, {
+        "Sid": "GetPutAppSecrets",
+        "Action": [
+            "secretsmanager:GetSecretValue",
+            "secretsmanager:PutSecretValue"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:secretsmanager:*:*:secret:*/*/cxengage/smooch/app-??????"
+    }]
+}
