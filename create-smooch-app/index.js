@@ -26,7 +26,7 @@ exports.handler = async (event) => {
     } catch (error) {
         console.error(JSON.stringify(error));
         return {
-            statusCode: 500,
+            status: 500,
             body: { message: 'An Error has occurred trying to retrieve digital channels credentials' }
         };
     }
@@ -42,7 +42,7 @@ exports.handler = async (event) => {
     } catch (error) {
         console.error(JSON.stringify(error))
         return {
-            statusCode: 500,
+            status: 500,
             body: { message: `An Error has occurred trying to validate digital channels credentials` }
         };
     }
@@ -53,7 +53,7 @@ exports.handler = async (event) => {
     } catch (error) {
         console.error(JSON.stringify(error));
         return {
-            statusCode: 500,
+            status: 500,
             body: { message: `An Error has occurred trying to create an App for tenant ${tenantId}` }
         };
     }
@@ -64,7 +64,7 @@ exports.handler = async (event) => {
     } catch (error) {
         console.error(JSON.stringify(error));
         return {
-            statusCode: 500,
+            status: 500,
             body: { message: `An Error has occurred trying to create App credentials for tenant ${tenantId}` }
         };
     }
@@ -77,7 +77,7 @@ exports.handler = async (event) => {
     } catch (error) {
         console.error(JSON.stringify(error));
         return {
-            statusCode: 500,
+            status: 500,
             body: { message: `An Error has occurred (1) trying to save App credentials for ${tenantId}` }
         };
     }
@@ -94,7 +94,7 @@ exports.handler = async (event) => {
     } catch (error) {
         console.error(JSON.stringify(error));
         return {
-            statusCode: 500,
+            status: 500,
             body: { message: `An Error has occurred (2) trying to save App credentials for ${tenantId}` }
         };
     }
@@ -105,7 +105,7 @@ exports.handler = async (event) => {
     } catch (error) {
         console.error(JSON.stringify(error));
         return {
-            statusCode: 500,
+            status: 500,
             body: { message: `An Error has occurred trying to create webhooks for tenant ${tenantId}` }
         };
     }
@@ -125,13 +125,13 @@ exports.handler = async (event) => {
     } catch (error) {
         console.error(JSON.stringify(error));
         return {
-            statusCode: 500,
+            status: 500,
             body: { message: `An Error has occurred trying to save a record in DynamoDB for tenant ${tenantId}` }
         };
     }
 
     return {
-        statusCode: 200,
+        status: 200,
         body: {
             app: newApp.app,
             webhook
