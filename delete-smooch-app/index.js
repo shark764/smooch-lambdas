@@ -32,7 +32,7 @@ exports.handler = async (event) => {
         console.error(JSON.stringify(error));
 
         return {
-            statusCode: 500,
+            status: 500,
             body: { message: `An Error has occurred trying to delete a record in DynamoDB for tenant ${tenantId} and appId ${appId}`, deleted: false }
         };
     }
@@ -43,13 +43,13 @@ exports.handler = async (event) => {
         console.error(JSON.stringify(error));
 
         return {
-            statusCode: 500,
+            status: 500,
             body: { message: `An Error has occurred trying to delete an app for tenant ${tenantId} and appId ${appId}`, deleted: false }
         };
     }
 
     return {
-        statusCode: 200,
+        status: 200,
         body: { message: `The app with for tenant ${tenantId} and appId ${appId} has been deleted successfully`, deleted: true }
     };
    

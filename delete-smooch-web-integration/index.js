@@ -34,7 +34,7 @@ exports.handler = async (event) => {
         console.error('Error: invalid params value ' + error.details[0].message);
         
         return {
-            statusCode: 400,
+            status: 400,
             body: { message: 'Error: invalid params value ' + error.details[0].message}
         };
     }
@@ -62,7 +62,7 @@ exports.handler = async (event) => {
             console.error(`An Error has occurred trying to fetch an app for tenant ${tenantId} and integrationId ${integrationId}`);
             
             return {
-                statusCode: 400,
+                status: 400,
                 body: { message: `An Error has occurred trying to fetch an app for tenant ${tenantId} and integrationId ${integrationId}`, deleted: false}
             };
         }
@@ -70,7 +70,7 @@ exports.handler = async (event) => {
         console.error(JSON.stringify(error));
 
         return {
-            statusCode: error.statusCode || 500,
+            status: 500,
             body: { message: `An Error has occurred trying to fetch an app in DynamoDB for tenant ${tenantId} and integrationId ${integrationId}`, deleted: false, error}
         };
     }
@@ -81,7 +81,7 @@ exports.handler = async (event) => {
         console.error(JSON.stringify(error));
 
         return {
-            statusCode: error.response.status || 500,
+            status: 500,
             body: { message: `An Error has occurred trying to delete an web integration for tenant ${tenantId} and integrationId ${integrationId}`, deleted: false, error }
         };
     }
@@ -100,13 +100,13 @@ exports.handler = async (event) => {
         console.error(JSON.stringify(error));
 
         return {
-            statusCode: error.statusCode || 500,
+            status: 500,
             body: { message: `An Error has occurred trying to delete a record in DynamoDB for tenant ${tenantId} and integrationId ${integrationId}`, deleted: false, error}
         };
     }
 
     return {
-        statusCode: 200,
+        status: 200,
         body: { message: `The web integration with for tenant ${tenantId} and integrationId ${integrationId} has been deleted successfully`, deleted: true }
     };
    

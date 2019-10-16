@@ -68,7 +68,7 @@ exports.handler = async (event) => {
         console.error('Error: invalid body value ' + error.details[0].message);
 
         return {
-            statusCode: 400,
+            status: 400,
             body: { message: 'Error: invalid body value ' + error.details[0].message}
         };
     }
@@ -79,7 +79,7 @@ exports.handler = async (event) => {
         console.error('Error: invalid params value ' + error.details[0].message);
         
         return {
-            statusCode: 400,
+            status: 400,
             body: { message: 'Error: invalid params value ' + error.details[0].message}
         };
     }
@@ -108,7 +108,7 @@ exports.handler = async (event) => {
         }];
     } else {
         return {
-            statusCode: 400,
+            status: 400,
             body: { message: `Bad request: body.prechatCapture invalid value ${body.prechatCapture}` }
         }
     }
@@ -140,7 +140,7 @@ exports.handler = async (event) => {
         console.error(JSON.stringify(error));
 
         return {
-            statusCode: 500,
+            status: 500,
             body: { message: `An Error has occurred trying to create a web integration for tenant ${tenantId}`, error }
         };
     }
@@ -162,13 +162,13 @@ exports.handler = async (event) => {
         console.error(JSON.stringify(error));
 
         return {
-            statusCode: error.statusCode || 500,
+            status: 500,
             body: { message: `An Error has occurred trying to save a record in DynamoDB for tenant ${tenantId}`, error }
         };
     }
 
    return {
-        statusCode: 201,
+        status: 201,
         body: { integration }
     };
 };
