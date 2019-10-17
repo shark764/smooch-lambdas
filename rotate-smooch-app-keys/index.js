@@ -15,37 +15,46 @@ exports.handler = async (event) => {
 
     const { AWS_REGION, ENVIRONMENT } = process.env;
 
+    const accountSecrets = await secretsClient.getSecretValue({
+        SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/account`
+    }).promise();
+    const accountKeys = JSON.parse(accountSecrets.SecretString);
+    const smooch = new SmoochCore({
+        keyId: accountKeys['id'],
+        secret: accountKeys['secret'],
+        scope: 'account'
+    });
+
     const params = {
         TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
         IndexName: 'TypeIndex',
-        KeyConditionExpression: "type = :v1",
+        KeyConditionExpression: "#type = :type",
+        ExpressionAttributeNames: {
+            "#type": "type"
+        },
         ExpressionAttributeValues: {
-            ":v1": {
-                S: "app"
-            }
+            ":type":  "app"
         }
     };
 
     const appsResult = await docClient.query(params).promise();
 
-    console.log('appsResult ', JSON.stringify(appsResult));
-
     const appSecretName = `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`;
 
+    let hasErrored = false;
     for (const app of appsResult.Items) {
+        const { id: appId, 'tenant-id': tenantId } = app;
         try {
-            const { id: appId, 'tenant-id': tenantId } = app;
             const appSecrets = await secretsClient.getSecretValue({
                 SecretId: appSecretName
             }).promise();
             const appKeys = JSON.parse(appSecrets.SecretString);
-            const smooch = new SmoochCore({
-                keyId: appKeys[`${tenantId}-id`],
-                secret: appKeys[`${tenantId}-secret`],
-                scope: 'app'
-            });
             const { key: newSmoochAppKeys } = await smooch.apps.keys.create(appId, tenantId);
-            await smooch.apps.keys.delete(appId, appKeys[`${tenantId}-id-old`]);
+            if (appKeys[`${tenantId}-id-old`]) {
+                await smooch.apps.keys.delete(appId, appKeys[`${tenantId}-id-old`]);
+            } else {
+                console.log(`App does not have old appKeys. tenant ${tenantId} app ${appId}`);
+            }
             appKeys[`${tenantId}-id-old`] = appKeys[`${tenantId}-id`];
             appKeys[`${tenantId}-secret-old`] = appKeys[`${tenantId}-secret`]
             appKeys[`${tenantId}-id`] = newSmoochAppKeys._id;
@@ -55,8 +64,13 @@ exports.handler = async (event) => {
                 SecretString: JSON.stringify(appKeys)
             }).promise();
         } catch (error) {
-            console.error(`An error occurred trying to update app credentials for tenant ${tenantId} app ${id} `, JSON.stringify(error));
+            hasErrored = true;
+            console.error(`An error occurred trying to update app credentials for tenant ${tenantId} app ${appId} `, JSON.stringify(error, Object.getOwnPropertyNames(error)));
         }
     };
+
+    if (hasErrored) {
+        throw new Error('At least one of the apps was unable to rotate app keys. See logs for details.');
+    }
 
 };
