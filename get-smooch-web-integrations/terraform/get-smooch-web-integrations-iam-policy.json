@@ -1,0 +1,21 @@
+{
+    "Statement": [{
+        "Sid": "terraform",
+        "Action": [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents",
+            "ec2:CreateNetworkInterface",
+            "ec2:DescribeNetworkInterfaces",
+            "ec2:DeleteNetworkInterface"
+        ],
+        "Effect": "Allow",
+        "Resource": "*"
+    },
+    {
+        "Sid": "Query",
+        "Action": "dynamodb:Query",
+        "Effect": "Allow",
+        "Resource": "arn:aws:dynamodb:*:*:table/*-smooch"
+    }]
+}
