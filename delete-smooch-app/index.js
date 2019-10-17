@@ -29,7 +29,7 @@ exports.handler = async (event) => {
     try {
         await docClient.delete(params).promise();
     } catch (error) {
-        console.error(JSON.stringify(error));
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
 
         return {
             status: 500,
@@ -40,7 +40,7 @@ exports.handler = async (event) => {
     try {
         await smooch.apps.delete(appId);
     } catch (error) {
-        console.error(JSON.stringify(error));
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
 
         return {
             status: 500,

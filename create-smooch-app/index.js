@@ -24,7 +24,7 @@ exports.handler = async (event) => {
             SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/account`
         }).promise();
     } catch (error) {
-        console.error(JSON.stringify(error));
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
         return {
             status: 500,
             body: { message: 'An Error has occurred trying to retrieve digital channels credentials' }
@@ -40,7 +40,7 @@ exports.handler = async (event) => {
             scope: 'account'
         });
     } catch (error) {
-        console.error(JSON.stringify(error))
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
         return {
             status: 500,
             body: { message: `An Error has occurred trying to validate digital channels credentials` }
@@ -51,7 +51,7 @@ exports.handler = async (event) => {
     try {
         newApp = await smooch.apps.create({ name: tenantId });
     } catch (error) {
-        console.error(JSON.stringify(error));
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
         return {
             status: 500,
             body: { message: `An Error has occurred trying to create an App for tenant ${tenantId}` }
@@ -62,7 +62,7 @@ exports.handler = async (event) => {
     try {
         smoochAppKeys = await smooch.apps.keys.create(newApp.app._id, tenantId);
     } catch (error) {
-        console.error(JSON.stringify(error));
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
         return {
             status: 500,
             body: { message: `An Error has occurred trying to create App credentials for tenant ${tenantId}` }
@@ -75,7 +75,7 @@ exports.handler = async (event) => {
             SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`
         }).promise();
     } catch (error) {
-        console.error(JSON.stringify(error));
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));       
         return {
             status: 500,
             body: { message: `An Error has occurred (1) trying to save App credentials for ${tenantId}` }
@@ -92,7 +92,7 @@ exports.handler = async (event) => {
             SecretString: JSON.stringify(appKeys)
         }).promise();
     } catch (error) {
-        console.error(JSON.stringify(error));
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
         return {
             status: 500,
             body: { message: `An Error has occurred (2) trying to save App credentials for ${tenantId}` }
@@ -103,7 +103,7 @@ exports.handler = async (event) => {
     try {
         webhook = await smooch.webhooks.create(newApp.app._id, { target: webhookUrl, triggers: ['*', 'typing:appUser'], includeClient: true });
     } catch (error) {
-        console.error(JSON.stringify(error));
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
         return {
             status: 500,
             body: { message: `An Error has occurred trying to create webhooks for tenant ${tenantId}` }
@@ -123,7 +123,7 @@ exports.handler = async (event) => {
     try {
        await docClient.put(params).promise();
     } catch (error) {
-        console.error(JSON.stringify(error));
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
         return {
             status: 500,
             body: { message: `An Error has occurred trying to save a record in DynamoDB for tenant ${tenantId}` }

@@ -65,7 +65,7 @@ exports.handler = async (event) => {
     try {
         await bodySchema.validateAsync(body);
     } catch (error) {
-        console.error('Error: invalid body value ' + error.details[0].message);
+        console.warn('Error: invalid body value ' + error.details[0].message);
 
         return {
             status: 400,
@@ -76,7 +76,7 @@ exports.handler = async (event) => {
     try {
        await paramsSchema.validateAsync(params);
     } catch(error){
-        console.error('Error: invalid params value ' + error.details[0].message);
+        console.warn('Error: invalid params value ' + error.details[0].message);
         
         return {
             status: 400,
@@ -137,7 +137,7 @@ exports.handler = async (event) => {
         });
 
     } catch (error) {
-        console.error(JSON.stringify(error));
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
 
         return {
             status: 500,
@@ -159,7 +159,7 @@ exports.handler = async (event) => {
     try {
         await docClient.put(createParams).promise();
     } catch (error) {
-        console.error(JSON.stringify(error));
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
 
         return {
             status: 500,

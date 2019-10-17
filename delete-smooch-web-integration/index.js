@@ -67,7 +67,7 @@ exports.handler = async (event) => {
             };
         }
     } catch (error) {
-        console.error(JSON.stringify(error));
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
 
         return {
             status: 500,
@@ -78,7 +78,7 @@ exports.handler = async (event) => {
     try {
         await smooch.integrations.delete(appId, integrationId);
     } catch (error) {
-        console.error(JSON.stringify(error));
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
 
         return {
             status: 500,
@@ -97,7 +97,7 @@ exports.handler = async (event) => {
     try {
         await docClient.delete(deleteParams).promise();
     } catch (error) {
-        console.error(JSON.stringify(error));
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
 
         return {
             status: 500,
