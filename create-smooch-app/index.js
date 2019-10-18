@@ -4,21 +4,38 @@
 
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
+const Joi = require('@hapi/joi');
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
 
+const paramsSchema = Joi.object({
+    'tenant-id': Joi.string().guid(),
+    'user-id': Joi.any(),
+    'remote-addr': Joi.any(),
+});
+
 exports.handler = async (event) => {
-    console.log('create-smooch-app' + JSON.stringify(event));
-    console.log('create-smooch-app' + JSON.stringify(process.env));
+    console.log('create-smooch-app', JSON.stringify(event));
+    console.log('create-smooch-app', JSON.stringify(process.env));
 
     const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
-    const { 'tenant-id': tenantId } = event.params;
+    const { params } = event;
 
-    const webhookUrl = `https://${AWS_REGION}-${ENVIRONMENT}-smooch-gateway.${DOMAIN}/tenants/${tenantId}/smooch`;
+    try {
+        await paramsSchema.validateAsync(params);
+     } catch(error){
+         console.error('Error: invalid params value ' + error.details[0].message);
+         
+         return {
+             status: 400,
+             body: { message: 'Error: invalid params value ' + error.details[0].message}
+         };
+     }
 
     let accountSecrets;
+    
     try {
         accountSecrets = await secretsClient.getSecretValue({
             SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/account`
@@ -47,6 +64,7 @@ exports.handler = async (event) => {
         };
     }
 
+    const { 'tenant-id': tenantId } = params;
     let newApp;
     try {
         newApp = await smooch.apps.create({ name: tenantId });
@@ -99,6 +117,7 @@ exports.handler = async (event) => {
         };
     }
 
+    const webhookUrl = `https://${AWS_REGION}-${ENVIRONMENT}-smooch-gateway.${DOMAIN}/tenants/${tenantId}/smooch`;
     let webhook;
     try {
         webhook = await smooch.webhooks.create(newApp.app._id, { target: webhookUrl, triggers: ['*', 'typing:appUser'], includeClient: true });
