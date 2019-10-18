@@ -61,7 +61,7 @@ exports.handler = async (event) => {
     console.log('create-smooch-web-integration' , JSON.stringify(event));
     console.log('create-smooch-web-integration' , JSON.stringify(process.env));
 
-    const { body, params } = event;
+    const { body, params, identity } = event;
     try {
         await bodySchema.validateAsync(body);
     } catch (error) {
@@ -153,7 +153,11 @@ exports.handler = async (event) => {
             'app-id': appId,
             type: 'web',
             name: body.name,
-            description: body.description
+            description: body.description,
+            'created-by': identity['user-id'],
+            'updated-by': identity['user-id'],
+            created: (new Date()).toISOString(),
+            updated: (new Date()).toISOString()
         }
     };
     try {

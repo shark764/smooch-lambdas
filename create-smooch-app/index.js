@@ -21,7 +21,7 @@ exports.handler = async (event) => {
     console.log('create-smooch-app', JSON.stringify(process.env));
 
     const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
-    const { params } = event;
+    const { params, identity } = event;
 
     try {
         await paramsSchema.validateAsync(params);
@@ -135,7 +135,11 @@ exports.handler = async (event) => {
             'tenant-id': tenantId,
             id: newApp.app._id,
             type: 'app',
-            'webhook-id': webhook.webhook._id
+            'webhook-id': webhook.webhook._id,
+            'created-by': identity['user-id'],
+            'updated-by': identity['user-id'],
+            created: (new Date()).toISOString(),
+            updated: (new Date()).toISOString()
         }
     };
 
