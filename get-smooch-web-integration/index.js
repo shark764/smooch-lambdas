@@ -19,6 +19,7 @@ exports.handler = async (event) => {
     console.log('get-smooch-web-integration' , JSON.stringify(event));
     console.log('get-smooch-web-integration' , JSON.stringify(process.env));
     
+    const { AWS_REGION, ENVIRONMENT } = process.env;
     const { params } = event;
 
      try {

@@ -4,15 +4,11 @@
 
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
-const smooch = new SmoochCore({
-    keyId: 'act_5da0b5671c42610010a7f245',
-    secret: '6-cyVcqWS185_zvDFGITUPAz1gM1IggG286IKSoEQFZNuDRonU7SZDOv3wOWiFzeMLUUQOijZXeD2BxGY7hhFw',
-    scope: 'account'
-});
 const Joi = require('@hapi/joi');
 
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
+const secretsClient = new AWS.SecretsManager();
 const bodySchema = Joi.object({
     appId: Joi.string()
         .required(),
@@ -60,7 +56,8 @@ const paramsSchema = Joi.object({
 exports.handler = async (event) => {
     console.log('create-smooch-web-integration' , JSON.stringify(event));
     console.log('create-smooch-web-integration' , JSON.stringify(process.env));
-
+    
+    const { AWS_REGION, ENVIRONMENT } = process.env;
     const { body, params, identity } = event;
     try {
         await bodySchema.validateAsync(body);
@@ -111,6 +108,37 @@ exports.handler = async (event) => {
             status: 400,
             body: { message: `Bad request: body.prechatCapture invalid value ${body.prechatCapture}` }
         }
+    }
+
+    let appSecrets;
+    try {
+        appSecrets = await secretsClient.getSecretValue({
+            SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`
+        }).promise();
+    } catch (error) {
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+        
+        return {
+            status: 500,
+            body: { message: 'An Error has occurred trying to retrieve digital channels credentials' }
+        };
+    }
+    
+    let smooch;
+    try {
+        const appKeys = JSON.parse(appSecrets.SecretString);
+        smooch = new SmoochCore({
+            keyId: appKeys[`${tenantId}-id`],
+            secret: appKeys[`${tenantId}-secret`],
+            scope: 'app'
+        });
+    } catch (error) {
+        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+        
+        return {
+            status: 500,
+            body: { message: `An Error has occurred trying to validate digital channels credentials` }
+        };
     }
 
     let integration;
