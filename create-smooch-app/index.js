@@ -5,6 +5,7 @@
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
+const axios = require ('axios');
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -33,6 +34,27 @@ exports.handler = async (event) => {
              status: 400,
              body: { message: 'Error: invalid params value ' + error.details[0].message}
          };
+     }
+
+     const apiUrl = `https://${ENVIRONMENT}-api.${DOMAIN}/v1/tenants/${tenantId}`;
+     const { 'tenant-id': tenantId, auth } = params;
+     try {
+        const response = await axios.get(apiUrl, {headers: {Authorization: auth}});
+        if(!(response && response.data && response.data.result && response.data.result.active)){
+            console.warn(`Error tenant not found or inactive ${tenantId}`);
+            
+            return {
+                status: 400,
+                body: { message:`Error tenant not found or inactive ${tenantId}` }
+            }
+        } 
+     } catch(error) {
+        console.error(`Unexpected error occurred retrieving tenant ${tenantId}`);
+
+        return {
+            status: error.response.status === 404 ? 400 : 500,
+            body: { message: error.response.status === 404 ? `Tenant ${tenantId} not found` : `Unexpected error occurred retrieving tenant ${tenantId}` }
+        }
      }
 
     let accountSecrets;
@@ -65,7 +87,6 @@ exports.handler = async (event) => {
         };
     }
 
-    const { 'tenant-id': tenantId } = params;
     let newApp;
     try {
         newApp = await smooch.apps.create({ name: tenantId });
