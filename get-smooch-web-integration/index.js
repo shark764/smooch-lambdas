@@ -11,6 +11,7 @@ const paramsSchema = Joi.object({
     'id': Joi.string().required(),
     'user-id': Joi.any(),
     'remote-addr': Joi.any(),
+    'auth': Joi.any()
 });
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});

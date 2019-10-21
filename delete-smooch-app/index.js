@@ -14,6 +14,7 @@ const paramsSchema = Joi.object({
     'id': Joi.string().required(),
     'user-id': Joi.any(),
     'remote-addr': Joi.any(),
+    'auth': Joi.any()
 });
 
 exports.handler = async (event) => {

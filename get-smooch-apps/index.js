@@ -8,6 +8,7 @@ const paramsSchema = Joi.object({
     'tenant-id': Joi.string().guid(),
     'user-id': Joi.any(),
     'remote-addr': Joi.any(),
+    'auth': Joi.any()
 });
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();

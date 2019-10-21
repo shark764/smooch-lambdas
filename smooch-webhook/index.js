@@ -14,23 +14,28 @@ exports.handler = async (event) => {
   console.debug('smooch-webhook', JSON.stringify(event));
   console.debug('smooch-webhook', JSON.stringify(process.env));
 
-  const { smoochParams } = event.body;
+  if (event.Records.length !== 1) {
+    console.error('Did not receive exactly one record from SQS. Handling the first.', event.Records);
+  }
+  const record = JSON.parse(event.Records[0]);
+  const body = { record };
+  const { params: smoochParams } = body;
   const { appUser, messages, app, client, trigger } = smoochParams;
   const { id: appId } = app;
   const { properties, id: userId } = appUser;
   const { interactionId, tenantId } = properties;
-  const logContext = { ...properties, ...smoochParams };
+  const logContext = { interactionId, tenantId, appId, userId };
 
-  console.info('Received event from Smooch', JSON.stringify(logContext));
+  console.info('Received event from Smooch', JSON.stringify({ ...logContext, smoochParams }));
 
   if (!client) {
-    console.error('No client information on Smooch payload', JSON.stringify(logContext));
+    console.error('No client on Smooch params', JSON.stringify({ ...logContext, smoochParams }));
     return;
   }
   const { platform, integrationId } = client;
 
   if (!messages || messages.length !== 1) {
-    console.warn('Did not receive exactly one message. Handling the first.', JSON.stringify(logContext));
+    console.error('Did not receive exactly one message from Smooch. Handling the first.', JSON.stringify({ ...logContext, messages}));
   }
   const message = messages[0];
   const { type } = message;
@@ -49,7 +54,7 @@ exports.handler = async (event) => {
               break;
             }
             default: {
-              console.warn('Unsupported web type from Smooch', JSON.stringify(logContext));
+              console.warn('Unsupported web type from Smooch', JSON.stringify({ ...logContext, type }));
               break;
             }
           }
@@ -58,7 +63,7 @@ exports.handler = async (event) => {
         // case 'whatsapp':
         // case 'messenger':
         default: {
-          console.warn('Unsupported platform from Smooch', JSON.stringify(logContext));
+          console.warn('Unsupported platform from Smooch', JSON.stringify({ ...logContext, platform }));
           break;
         }
       }
@@ -72,7 +77,7 @@ exports.handler = async (event) => {
       break;
     }
     default: {
-      console.warn('Unsupported trigger from Smooch', JSON.stringify(logContext));
+      console.warn('Unsupported trigger from Smooch', JSON.stringify({ ...logContext, trigger }));
       break;
     }
   }
@@ -80,10 +85,10 @@ exports.handler = async (event) => {
 
 const handleFormResponse = async ({ appId, userId, integrationId, tenantId, interactionId, form, logContext }) => {
   if (!interactionId) {
-    if (!form || !form.fields || !form.fields[0] || !form.fields[0].text) {
-      console.warn('Prechat form submitted with no customer identifier', logContext);
-    }
     const customer = form && form.fields && form.fields[0] && form.fields[0].text;
+    if (!customer) {
+      console.warn('Prechat form submitted with no customer identifier (form.field[0].text)', JSON.stringify({ ...logContext, form }));
+    }
     const { AWS_REGION, ENVIRONMENT } = process.env;
     let webIntegration;
     try {
@@ -128,7 +133,7 @@ const createInteraction = async ({ appId, userId, tenantId, source, contactPoint
       participants: []
     }
   };
-  console.log('Creating interaction', JSON.stringify({ ...logContext, interactionId, interaction }));
+  console.log('Creating interaction', JSON.stringify({ ...logContext, interaction }));
   // TODO here
   // POST https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions
   //   Authorization	Basic dGl0YW4tZ2F0ZXdheXNAbGl2ZW9wcy5jb206YkNzVzUzbW80NVdXc3VaNQ==
