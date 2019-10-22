@@ -2,9 +2,9 @@
  * Lambda that creates an smooch web integration
  **/
 
-const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
+const axios = require('axios');
 
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -55,9 +55,9 @@ const paramsSchema = Joi.object({
 });
 
 exports.handler = async (event) => {
-    console.log('create-smooch-web-integration' , JSON.stringify(event));
-    console.log('create-smooch-web-integration' , JSON.stringify(process.env));
-    
+    console.log('create-smooch-web-integration', JSON.stringify(event));
+    console.log('create-smooch-web-integration', JSON.stringify(process.env));
+
     const { AWS_REGION, ENVIRONMENT } = process.env;
     const { body, params, identity } = event;
     try {
@@ -67,18 +67,18 @@ exports.handler = async (event) => {
 
         return {
             status: 400,
-            body: { message: 'Error: invalid body value ' + error.details[0].message}
+            body: { message: 'Error: invalid body value ' + error.details[0].message }
         };
     }
 
     try {
-       await paramsSchema.validateAsync(params);
-    } catch(error){
+        await paramsSchema.validateAsync(params);
+    } catch (error) {
         console.warn('Error: invalid params value ' + error.details[0].message);
-        
+
         return {
             status: 400,
-            body: { message: 'Error: invalid params value ' + error.details[0].message}
+            body: { message: 'Error: invalid params value ' + error.details[0].message }
         };
     }
 
@@ -118,53 +118,41 @@ exports.handler = async (event) => {
         }).promise();
     } catch (error) {
         console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
-        
+
         return {
             status: 500,
             body: { message: 'An Error has occurred trying to retrieve digital channels credentials' }
         };
     }
-    
-    let smooch;
-    try {
-        const appKeys = JSON.parse(appSecrets.SecretString);
-        smooch = new SmoochCore({
-            keyId: appKeys[`${tenantId}-id`],
-            secret: appKeys[`${tenantId}-secret`],
-            scope: 'app'
-        });
-    } catch (error) {
-        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
-        
-        return {
-            status: 500,
-            body: { message: `An Error has occurred trying to validate digital channels credentials` }
-        };
-    }
 
+    const appKeys = JSON.parse(appSecrets.SecretString);
+    const smoochApiUrl = `https://api.smooch.io/v1.1/apps/${appId}/integrations`;
     let integration;
     try {
-        integration = await smooch.integrations.create({
-            appId,
-            props: {
-                type: 'web',
-                brandColor: body.brandColor,
-                originWhiteList: body.originWhiteList,
-                businessName: body.businessName,
-                businessIconUrl: body.businessIconUrl,
-                fixedIntroPane: body.fixedIntroPane,
-                integrationOrder: [],
-                prechatCapture: { enabled: true, fields: defaultPrechatCapture },
-                conversationColor: body.conversationColor,
-                backgroundImageUrl: body.backgroundImageUrl,
-                actionColor: body.actionColor,
-                displayStyle: body.displayStyle,
-                buttonWidth: body.buttonWidth,
-                buttonHeight: body.buttonHeight,
-                buttonIconUrl: body.buttonIconUrl
+        let res = await axios.post(smoochApiUrl, {
+            type: 'web',
+            brandColor: body.brandColor,
+            originWhiteList: body.originWhiteList,
+            businessName: body.businessName,
+            businessIconUrl: body.businessIconUrl,
+            fixedIntroPane: body.fixedIntroPane,
+            integrationOrder: [],
+            prechatCapture: { enabled: true, fields: defaultPrechatCapture },
+            conversationColor: body.conversationColor,
+            backgroundImageUrl: body.backgroundImageUrl,
+            actionColor: body.actionColor,
+            displayStyle: body.displayStyle,
+            buttonWidth: body.buttonWidth,
+            buttonHeight: body.buttonHeight,
+            buttonIconUrl: body.buttonIconUrl
+        },
+        {
+            headers: {
+                Authorization: 'Basic' + Buffer.from(appKeys[`${tenantId}-id`] + ':' + appKeys[`${tenantId}-secret`]).toString('base64'),
+                'Content-Type': 'application/json'
             }
         });
-
+        integration = res.data;
     } catch (error) {
         console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
 
@@ -200,8 +188,8 @@ exports.handler = async (event) => {
         };
     }
 
-   return {
+    return {
         status: 201,
-        body: { integration }
+        body: integration
     };
 };
