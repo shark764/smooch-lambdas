@@ -2,6 +2,8 @@
   "name": "update-smooch-web-integration",
   "version": "1.0.0",
   "dependencies": {
-    "smooch-core": "^8.7.3"
+    "@hapi/joi": "^16.1.7",
+    "aws-sdk": "^2.554.0",
+    "axios": "^0.19.0"
   }
 }

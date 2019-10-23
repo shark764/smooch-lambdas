@@ -11,5 +11,21 @@
         ],
         "Effect": "Allow",
         "Resource": "*"
+    },{
+        "Sid": "GetUpdateItem",
+        "Action": [
+            "dynamodb:GetItem",
+            "dynamodb:UpdateItem"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:dynamodb:*:*:table/*-smooch"
+    },
+    {
+        "Sid": "GetSecrets",
+        "Action": "secretsmanager:GetSecretValue",
+        "Effect": "Allow",
+        "Resource": [
+            "arn:aws:secretsmanager:*:*:secret:*/*/cxengage/smooch/app-??????"
+        ]
     }]
 }
