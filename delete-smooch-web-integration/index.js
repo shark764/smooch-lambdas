@@ -2,14 +2,13 @@
  * Lambda that deletes an smooch web integration
  **/
 
-const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
 const secretsClient = new AWS.SecretsManager();
 const Joi = require('@hapi/joi');
+const axios = require('axios');
 
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
-const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 const paramsSchema = Joi.object({
     'tenant-id': Joi.string()
         .required()
@@ -53,41 +52,24 @@ exports.handler = async (event) => {
             body: { message: 'An Error has occurred trying to retrieve digital channels credentials' }
         };
     }
-    
+
     const { 'tenant-id': tenantId, id: integrationId } = params;
-    let smooch;
-
-    try {
-        const appKeys = JSON.parse(appSecrets.SecretString);
-        smooch = new SmoochCore({
-            keyId: appKeys[`${tenantId}-id`],
-            secret: appKeys[`${tenantId}-secret`],
-            scope: 'app'
-        });
-    } catch (error) {
-        console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
-        
-        return {
-            status: 500,
-            body: { message: 'An Error has occurred trying to validate digital channels credentials' }
-        };
-    }
-
+    const appKeys = JSON.parse(appSecrets.SecretString);
     const queryParams = {
         Key: {
          'tenant-id': {
-           S: tenantId
+            tenantId
           }, 
          'id': {
-           S: integrationId
-        }, 
-        TableName:  `${AWS_REGION}-${ENVIRONMENT}-smooch`
-       }
+           integrationId
+        } 
+       },
+       TableName:  `${AWS_REGION}-${ENVIRONMENT}-smooch`
     }
     let appId;
-
+  
     try {
-       const queryResponse = await ddb.getItem(queryParams).promise();
+       const queryResponse = await docClient.get(queryParams).promise();
         if(queryResponse.Item){
             appId = queryResponse.Item['app-id'];
         } else {
@@ -106,9 +88,16 @@ exports.handler = async (event) => {
             body: { message: `An Error has occurred trying to fetch an app in DynamoDB for tenant ${tenantId} and integrationId ${integrationId}`, deleted: false, error}
         };
     }
-
+    
+    const smoochApiUrl = `https://api.smooch.io/v1.1/apps/${appId}/integrations/${integrationId}`;
+    
     try {
-        await smooch.integrations.delete(appId, integrationId);
+        await axios.delete(smoochApiUrl,  {
+            headers: {
+                Authorization: 'Basic ' + Buffer.from(appKeys[`${tenantId}-id`]+ ':' + appKeys[`${tenantId}-secret`]).toString('base64'),
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
         console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
 
