@@ -1,6 +1,9 @@
 {
   "name": "update-smooch-web-integration",
   "version": "1.0.0",
+  "description": "API to update Smooch web chat customizations",
+  "repository": {},
+  "license": "UNLICENSED",
   "dependencies": {
     "@hapi/joi": "^16.1.7",
     "aws-sdk": "^2.554.0",

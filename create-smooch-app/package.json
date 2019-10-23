@@ -1,6 +1,9 @@
 {
   "name": "create-smooch-app",
   "version": "1.0.0",
+  "description": "API to provision Smooch apps and API keys",
+  "repository": {},
+  "license": "UNLICENSED",
   "dependencies": {
     "@hapi/joi": "^16.1.7",
     "aws-sdk": "^2.540.0",

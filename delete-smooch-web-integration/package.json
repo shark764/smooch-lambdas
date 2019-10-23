@@ -1,6 +1,9 @@
 {
   "name": "delete-smooch-web-integration",
   "version": "1.0.0",
+  "description": "API to delete web chat integrations from Smooch",
+  "repository": {},
+  "license": "UNLICENSED",
   "dependencies": {
     "@hapi/joi": "^16.1.7",
     "aws-sdk": "^2.544.0",

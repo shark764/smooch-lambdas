@@ -12,36 +12,36 @@ const secretsClient = new AWS.SecretsManager();
 
 exports.handler = async (event) => {
   console.debug('smooch-webhook', JSON.stringify(event));
-  console.debug('smooch-webhook', JSON.stringify(process.env));
 
   if (event.Records.length !== 1) {
     console.error('Did not receive exactly one record from SQS. Handling the first.', event.Records);
   }
-  const record = JSON.parse(event.Records[0]);
-  const body = { record };
-  const { params: smoochParams } = body;
-  const { appUser, messages, app, client, trigger } = smoochParams;
+  const body = JSON.parse(event.Records[0].body);
+  const { appUser, messages, app, client, trigger } = body;
   const { id: appId } = app;
   const { properties, id: userId } = appUser;
   const { interactionId, tenantId } = properties;
   const logContext = { interactionId, tenantId, appId, userId };
 
-  console.info('Received event from Smooch', JSON.stringify({ ...logContext, smoochParams }));
+  console.info('Received event from Smooch', JSON.stringify({ ...logContext, body }));
 
   if (!client) {
-    console.error('No client on Smooch params', JSON.stringify({ ...logContext, smoochParams }));
+    console.error('No client on Smooch params', JSON.stringify({ ...logContext, body }));
     return;
   }
-  const { platform, integrationId } = client;
-
-  if (!messages || messages.length !== 1) {
-    console.error('Did not receive exactly one message from Smooch. Handling the first.', JSON.stringify({ ...logContext, messages}));
-  }
-  const message = messages[0];
-  const { type } = message;
-
+  const { platform } = client;
+  
   switch (trigger) {
     case 'message:appUser': {
+
+      if (!messages || messages.length !== 1) {
+        console.error('Did not receive exactly one message from Smooch. Handling the first.', JSON.stringify({ ...logContext, messages}));
+      }
+      const message = messages[0];
+      const { type } = message;
+
+      const { integrationId } = client;
+
       switch (platform) {
         case 'web': {
           switch (type) {
@@ -70,10 +70,12 @@ exports.handler = async (event) => {
     }
     case 'conversation:read': {
       // TODO
+      console.log('TODO conversation:read');
       break;
     }
     case 'typing:appUser': {
       // TODO
+      console.log('TODO typing:appUser');
       break;
     }
     default: {
@@ -92,11 +94,11 @@ const handleFormResponse = async ({ appId, userId, integrationId, tenantId, inte
     const { AWS_REGION, ENVIRONMENT } = process.env;
     let webIntegration;
     try {
-      webIntegration = await docClient.getItem({
+      webIntegration = await docClient.get({
         TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
         Key: {
-          'tenant-id': { S: tenantId },
-          id: { S: integrationId }
+          'tenant-id': tenantId,
+          id: integrationId
         }
       });
     } catch (error) {
@@ -105,9 +107,10 @@ const handleFormResponse = async ({ appId, userId, integrationId, tenantId, inte
       return;
     }
     const { contactPoint } = webIntegration;
-    createInteraction({ appId, userId, tenantId, source, contactPoint, customer, logContext });
+    createInteraction({ appId, userId, tenantId, source: 'web', contactPoint, customer, logContext });
   } else {
     // TODO
+    console.log('TODO handleFormResponse')
   }
 };
 

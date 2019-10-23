@@ -1,6 +1,9 @@
 {
   "name": "delete-smooch-app",
   "version": "1.0.0",
+  "description": "API to delete provisioned apps and API keys from smooch",
+  "repository": {},
+  "license": "UNLICENSED",
   "dependencies": {
     "@hapi/joi": "^16.1.7",
     "aws-sdk": "^2.542.0",

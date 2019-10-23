@@ -1,6 +1,9 @@
 {
   "name": "get-smooch-web-integrations",
   "version": "1.0.0",
+  "description": "API to get all web chat integrations for a tenant",
+  "repository": {},
+  "license": "UNLICENSED",
   "dependencies": {
     "@hapi/joi": "^16.1.7",
     "aws-sdk": "^2.540.0"
