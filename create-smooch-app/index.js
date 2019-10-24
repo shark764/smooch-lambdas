@@ -19,8 +19,8 @@ const paramsSchema = Joi.object({
 });
 
 exports.handler = async (event) => {
-    console.log('create-smooch-app', JSON.stringify(event));
-    console.log('create-smooch-app', JSON.stringify(process.env));
+    console.log('create-smooch-app ', JSON.stringify(event));
+    console.log('create-smooch-app ', JSON.stringify(process.env));
 
     const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
     const { params, identity } = event;
