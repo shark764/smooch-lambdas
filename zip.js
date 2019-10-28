@@ -1,19 +1,16 @@
-var fs = require('fs');
-var resolve = require('path').resolve;
-var join = require('path').join;
-var cp = require('child_process');
-var os = require('os');
-
+const fs = require('fs');
+const { resolve } = require('path');
+const { join } = require('path');
+const cp = require('child_process');
 
 // get library path
-var lib = resolve(__dirname);
+const lib = resolve(__dirname);
 fs.readdirSync(lib)
-    .forEach(function (mod) {
+  .forEach((mod) => {
+    const modPath = join(lib, mod);
+    // ensure path has package.json
+    if (!fs.existsSync(join(modPath, 'package.json'))) return;
 
-        var modPath = join(lib, mod);
-        // ensure path has package.json
-        if (!fs.existsSync(join(modPath, 'package.json'))) return;
-                
-        // install folder
-        cp.execSync(`zip -r ${mod} *`, { cwd: modPath });
-    });
+    // install folder
+    cp.execSync(`zip -r ${mod} *`, { cwd: modPath });
+  });
