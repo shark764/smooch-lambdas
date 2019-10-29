@@ -36,11 +36,11 @@ exports.handler = async (event) => {
     };
   }
 
-  let appSecrets;
+  let accountSecrets;
 
   try {
-    appSecrets = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`,
+    accountSecrets = await secretsClient.getSecretValue({
+      SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/account`,
     }).promise();
   } catch (error) {
     console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
@@ -53,13 +53,12 @@ exports.handler = async (event) => {
 
   const { 'tenant-id': tenantId, id: appId } = params;
   let smooch;
-
   try {
-    const appKeys = JSON.parse(appSecrets.SecretString);
+    const accountKeys = JSON.parse(accountSecrets.SecretString);
     smooch = new SmoochCore({
-      keyId: appKeys[`${tenantId}-id`],
-      secret: appKeys[`${tenantId}-secret`],
-      scope: 'app',
+      keyId: accountKeys.id,
+      secret: accountKeys.secret,
+      scope: 'account',
     });
   } catch (error) {
     console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));

@@ -94,12 +94,8 @@ exports.handler = async (event) => {
   const { 'tenant-id': tenantId, id: integrationId } = params;
   const queryParams = {
     Key: {
-      'tenant-id': {
-        tenantId,
-      },
-      id: {
-        integrationId,
-      },
+      'tenant-id': tenantId,
+      id: integrationId,
     },
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
   };
@@ -126,7 +122,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const smoochApiUrl = `https://api.smooch.io/v1.1/apps/${appId}/integrations`;
+  const smoochApiUrl = `https://api.smooch.io/v1.1/apps/${appId}/integrations/${integrationId}`;
   let integration;
   try {
     const res = await axios.put(smoochApiUrl, {
@@ -162,7 +158,7 @@ exports.handler = async (event) => {
   let updateExpression = '';
   const expressionAttribute = {};
   if (body.name) {
-    updateExpression += 'set name = :n';
+    updateExpression += 'set #name = :n';
     expressionAttribute[':n'] = body.name;
   }
   if (body.description) {
@@ -179,6 +175,9 @@ exports.handler = async (event) => {
       Key: {
         'tenant-id': tenantId,
         id: integrationId,
+      },
+      ExpressionAttributeNames: {
+        '#name': 'name',
       },
       UpdateExpression: updateExpression,
       ExpressionAttributeValues: expressionAttribute,
