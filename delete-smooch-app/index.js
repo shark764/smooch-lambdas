@@ -99,6 +99,33 @@ exports.handler = async (event) => {
     };
   }
 
+  const appSecretName = `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`;
+  try {
+    const appSecrets = await secretsClient.getSecretValue({
+      SecretId: appSecretName,
+    }).promise();
+    const appKeys = JSON.parse(appSecrets);
+
+    if (appKeys[`${appId}-id`]) {
+      delete appKeys[`${appId}-id`];
+      delete appKeys[`${appId}-id-old`];
+      delete appKeys[`${appId}-secret-old`];
+      delete appKeys[`${appId}-secret`];
+
+      await secretsClient.putSecretValue({
+        SecretId: appSecretName,
+        SecretString: JSON.stringify(appKeys),
+      }).promise();
+    }
+  } catch (error) {
+    console.error(`An Error has occurred trying to delete app keys for ${tenantId} and appId ${appId}`, JSON.stringify(error, Object.getOwnPropertyNames(error)));
+
+    return {
+      status: 500,
+      body: { message: `An Error has occurred trying to delete app keys for ${tenantId} and appId ${appId}` },
+    };
+  }
+
   return {
     status: 200,
     body: { message: `The app with for tenant ${tenantId} and appId ${appId} has been deleted successfully`, deleted: true },
