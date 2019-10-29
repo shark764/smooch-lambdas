@@ -27,7 +27,7 @@ exports.handler = async (event) => {
 
   const params = {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
-    IndexName: 'TypeIndex',
+    IndexName: 'type-index', // TODO: unnecessary index now. All app ids are available in secret keys.
     KeyConditionExpression: '#type = :type',
     ExpressionAttributeNames: {
       '#type': 'type',
