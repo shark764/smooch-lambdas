@@ -97,9 +97,10 @@ exports.handler = async (event) => {
     };
   }
 
+  const newAppId = newApp.app._id;
   let smoochAppKeys;
   try {
-    smoochAppKeys = await smooch.apps.keys.create(newApp.app._id, tenantId);
+    smoochAppKeys = await smooch.apps.keys.create(newAppId, newAppId);
   } catch (error) {
     console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
     return {
@@ -122,8 +123,8 @@ exports.handler = async (event) => {
   }
 
   const appKeys = JSON.parse(appSecrets.SecretString);
-  appKeys[`${tenantId}-id`] = smoochAppKeys.key._id;
-  appKeys[`${tenantId}-secret`] = smoochAppKeys.key.secret;
+  appKeys[`${newAppId}-id`] = smoochAppKeys.key._id;
+  appKeys[`${newAppId}-secret`] = smoochAppKeys.key.secret;
 
   try {
     await secretsClient.putSecretValue({
@@ -141,7 +142,7 @@ exports.handler = async (event) => {
   const webhookUrl = `https://${AWS_REGION}-${ENVIRONMENT}-smooch-gateway.${DOMAIN}/tenants/${tenantId}/smooch`;
   let webhook;
   try {
-    webhook = await smooch.webhooks.create(newApp.app._id, { target: webhookUrl, triggers: ['*', 'typing:appUser'], includeClient: true });
+    webhook = await smooch.webhooks.create(newAppId, { target: webhookUrl, triggers: ['*', 'typing:appUser'], includeClient: true });
   } catch (error) {
     console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
     return {
@@ -154,7 +155,7 @@ exports.handler = async (event) => {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
     Item: {
       'tenant-id': tenantId,
-      id: newApp.app._id,
+      id: newAppId,
       type: 'app',
       'webhook-id': webhook.webhook._id,
       'created-by': identity['user-id'],

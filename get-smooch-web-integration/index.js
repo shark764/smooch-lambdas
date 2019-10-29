@@ -89,8 +89,8 @@ exports.handler = async (event) => {
   try {
     const appKeys = JSON.parse(appSecrets.SecretString);
     smooch = new SmoochCore({
-      keyId: appKeys[`${tenantId}-id`],
-      secret: appKeys[`${tenantId}-secret`],
+      keyId: appKeys[`${appId}-id`],
+      secret: appKeys[`${appId}-secret`],
       scope: 'app',
     });
   } catch (error) {

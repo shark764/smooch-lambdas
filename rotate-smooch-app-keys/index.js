@@ -49,16 +49,16 @@ exports.handler = async (event) => {
         SecretId: appSecretName,
       }).promise();
       const appKeys = JSON.parse(appSecrets.SecretString);
-      const { key: newSmoochAppKeys } = await smooch.apps.keys.create(appId, tenantId);
-      if (appKeys[`${tenantId}-id-old`]) {
-        await smooch.apps.keys.delete(appId, appKeys[`${tenantId}-id-old`]);
+      const { key: newSmoochAppKeys } = await smooch.apps.keys.create(appId, appId);
+      if (appKeys[`${appId}-id-old`]) {
+        await smooch.apps.keys.delete(appId, appKeys[`${appId}-id-old`]);
       } else {
         console.log(`App does not have old appKeys. tenant ${tenantId} app ${appId}`);
       }
-      appKeys[`${tenantId}-id-old`] = appKeys[`${tenantId}-id`];
-      appKeys[`${tenantId}-secret-old`] = appKeys[`${tenantId}-secret`];
-      appKeys[`${tenantId}-id`] = newSmoochAppKeys._id;
-      appKeys[`${tenantId}-secret`] = newSmoochAppKeys.secret;
+      appKeys[`${appId}-id-old`] = appKeys[`${appId}-id`];
+      appKeys[`${appId}-secret-old`] = appKeys[`${appId}-secret`];
+      appKeys[`${appId}-id`] = newSmoochAppKeys._id;
+      appKeys[`${appId}-secret`] = newSmoochAppKeys.secret;
       await secretsClient.putSecretValue({
         SecretId: appSecretName,
         SecretString: JSON.stringify(appKeys),

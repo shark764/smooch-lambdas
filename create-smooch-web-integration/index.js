@@ -148,7 +148,7 @@ exports.handler = async (event) => {
     },
     {
       headers: {
-        Authorization: `Basic ${Buffer.from(`${appKeys[`${tenantId}-id`]}:${appKeys[`${tenantId}-secret`]}`).toString('base64')}`,
+        Authorization: `Basic ${Buffer.from(`${appKeys[`${appId}-id`]}:${appKeys[`${appId}-secret`]}`).toString('base64')}`,
         'Content-Type': 'application/json',
       },
     });
