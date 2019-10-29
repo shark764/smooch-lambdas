@@ -109,8 +109,8 @@ exports.handler = async (event) => {
     if (appKeys[`${appId}-id`]) {
       delete appKeys[`${appId}-id`];
       delete appKeys[`${appId}-id-old`];
-      delete appKeys[`${appId}-secret-old`];
-      delete appKeys[`${appId}-secret`];
+      if (appKeys[`${appId}-secret-old`]) delete appKeys[`${appId}-secret-old`];
+      if (appKeys[`${appId}-secret`]) delete appKeys[`${appId}-secret`];
 
       await secretsClient.putSecretValue({
         SecretId: appSecretName,
