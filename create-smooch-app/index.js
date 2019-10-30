@@ -6,6 +6,7 @@ const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
 const axios = require('axios');
+const log = require('serenova-js-utils/lambda/log');
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -19,16 +20,16 @@ const paramsSchema = Joi.object({
 });
 
 exports.handler = async (event) => {
-  console.log('create-smooch-app ', JSON.stringify(event));
-  console.log('create-smooch-app ', JSON.stringify(process.env));
-
   const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
   const { params, identity } = event;
+  const logContext = { tenantId: params['tenant-id'], userId: identity['user-id'] };
+
+  log.info('create-smooch-app was called', logContext);
 
   try {
     await paramsSchema.validateAsync(params);
   } catch (error) {
-    console.error('Error: invalid params value ', error.details[0].message);
+    log.error('Error: invalid params value', { ...logContext, validationMessage: error.details[0].message }, error);
 
     return {
       status: 400,
@@ -41,15 +42,17 @@ exports.handler = async (event) => {
   try {
     const response = await axios.get(apiUrl, { headers: { Authorization: auth } });
     if (!(response && response.data && response.data.result && response.data.result.active)) {
-      console.warn(`Error tenant not found or inactive ${tenantId}`);
+      const errMsg = 'Error tenant not found or inactive';
+
+      log.warn(errMsg, logContext);
 
       return {
         status: 400,
-        body: { message: `Error tenant not found or inactive ${tenantId}` },
+        body: { message: errMsg },
       };
     }
   } catch (error) {
-    console.error(`Unexpected error occurred retrieving tenant ${tenantId}`);
+    log.error('Unexpected error occurred retrieving tenant', logContext, error);
 
     return {
       status: error.response.status === 404 ? 400 : 500,
@@ -63,10 +66,13 @@ exports.handler = async (event) => {
       SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/account`,
     }).promise();
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
+
+    log.error(errMsg, logContext, error);
+
     return {
       status: 500,
-      body: { message: 'An Error has occurred trying to retrieve digital channels credentials' },
+      body: { message: errMsg },
     };
   }
 
@@ -79,10 +85,13 @@ exports.handler = async (event) => {
       scope: 'account',
     });
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
+
+    log.error(errMsg, logContext, error);
+
     return {
       status: 500,
-      body: { message: 'An Error has occurred trying to validate digital channels credentials' },
+      body: { message: errMsg },
     };
   }
 
@@ -90,22 +99,31 @@ exports.handler = async (event) => {
   try {
     newApp = await smooch.apps.create({ name: tenantId });
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to create an App';
+
+    log.error(errMsg, logContext, error);
+
     return {
       status: 500,
-      body: { message: `An Error has occurred trying to create an App for tenant ${tenantId}` },
+      body: { message: errMsg },
     };
   }
 
   const newAppId = newApp.app._id;
   let smoochAppKeys;
+
+  logContext.smoochAppId = newAppId;
+
   try {
     smoochAppKeys = await smooch.apps.keys.create(newAppId, newAppId);
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to create App credentials';
+
+    log.error(errMsg, logContext, error);
+
     return {
       status: 500,
-      body: { message: `An Error has occurred trying to create App credentials for tenant ${tenantId}` },
+      body: { message: errMsg },
     };
   }
 
@@ -115,10 +133,13 @@ exports.handler = async (event) => {
       SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`,
     }).promise();
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred (1) trying to save App credentials';
+
+    log.error(errMsg, logContext, error);
+
     return {
       status: 500,
-      body: { message: `An Error has occurred (1) trying to save App credentials for ${tenantId}` },
+      body: { message: errMsg },
     };
   }
 
@@ -132,10 +153,13 @@ exports.handler = async (event) => {
       SecretString: JSON.stringify(appKeys),
     }).promise();
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred (2) trying to save App credentials';
+
+    log.error(errMsg, logContext, error);
+
     return {
       status: 500,
-      body: { message: `An Error has occurred (2) trying to save App credentials for ${tenantId}` },
+      body: { message: errMsg },
     };
   }
 
@@ -144,10 +168,13 @@ exports.handler = async (event) => {
   try {
     webhook = await smooch.webhooks.create(newAppId, { target: webhookUrl, triggers: ['*', 'typing:appUser'], includeClient: true });
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to create webhooks';
+
+    log.error(errMsg, logContext, error);
+
     return {
       status: 500,
-      body: { message: `An Error has occurred trying to create webhooks for tenant ${tenantId}` },
+      body: { message: errMsg },
     };
   }
 
@@ -168,12 +195,17 @@ exports.handler = async (event) => {
   try {
     await docClient.put(smoochParams).promise();
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to save a record in DynamoDB';
+
+    log.error(errMsg, logContext, error);
+
     return {
       status: 500,
-      body: { message: `An Error has occurred trying to save a record in DynamoDB for tenant ${tenantId}` },
+      body: { message: errMsg },
     };
   }
+
+  log.info('create-smooch-app complete', { ...logContext, webhook, app: newApp });
 
   return {
     status: 200,
