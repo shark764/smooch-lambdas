@@ -1,0 +1,10 @@
+{
+  "name": "smooch-action-send-message",
+  "version": "1.0.0",
+  "description": "Action handler for send-message",
+  "repository": {},
+  "license": "UNLICENSED",
+  "dependencies": {
+    "serenova-js-utils": "1.7.1"
+  }
+}
