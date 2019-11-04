@@ -4,6 +4,7 @@
 
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
+const log = require('serenova-js-utils/lambda/log');
 
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid().required(),
@@ -15,16 +16,15 @@ AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event) => {
-  console.log('get-smooch-web-integrations', JSON.stringify(event));
-  console.log('get-smooch-web-integrations', JSON.stringify(process.env));
-
   const { AWS_REGION, ENVIRONMENT } = process.env;
-  const { params } = event;
+  const { params, identity } = event;
+  const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
 
+  log.info('get-smooch-web-integrations was called', logContext);
   try {
     await paramsSchema.validateAsync(params);
   } catch (error) {
-    console.warn(`Error: invalid params value ${error.details[0].message}`);
+    log.warn('Error: invalid params value ', logContext, error);
 
     return {
       status: 400,
@@ -53,13 +53,17 @@ exports.handler = async (event) => {
     const queryResponse = await docClient.query(queryParams).promise();
     smoochIntegrations = queryResponse.Items;
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to fetch integrations in DynamoDB for tenant';
+
+    log.error(errMsg, logContext, error);
 
     return {
       status: 500,
-      body: { message: `An Error has occurred trying to fetch integrations in DynamoDB for tenant ${tenantId}` },
+      body: { message: errMsg },
     };
   }
+
+  log.info('get-smooch-web-integrations complete', logContext);
 
   return {
     status: 200,
