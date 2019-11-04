@@ -5,6 +5,7 @@
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
 const axios = require('axios');
+const log = require('serenova-js-utils/lambda/log');
 
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -55,30 +56,35 @@ const paramsSchema = Joi.object({
 });
 
 exports.handler = async (event) => {
-  console.log('create-smooch-web-integration', JSON.stringify(event));
-  console.log('create-smooch-web-integration', JSON.stringify(process.env));
-
   const { AWS_REGION, ENVIRONMENT } = process.env;
   const { body, params, identity } = event;
+  const logContext = { tenantId: params['tenant-id'], userId: identity['user-id'] };
+
+  log.info('create-smooch-web-integration was called', logContext);
+
   try {
     await bodySchema.validateAsync(body);
   } catch (error) {
-    console.warn(`Error: invalid body value ${error.details[0].message}`);
+    const errMsg = 'Error: invalid body value';
+
+    log.warn(errMsg, { ...logContext, validationMessage: error.details[0].message }, error);
 
     return {
       status: 400,
-      body: { message: `Error: invalid body value ${error.details[0].message}` },
+      body: { message: errMsg },
     };
   }
 
   try {
     await paramsSchema.validateAsync(params);
   } catch (error) {
-    console.warn(`Error: invalid params value ${error.details[0].message}`);
+    const errMsg = 'Error: invalid params';
+
+    log.warn(errMsg, { ...logContext, validationMessage: error.details[0].message }, error);
 
     return {
       status: 400,
-      body: { message: `Error: invalid params value ${error.details[0].message}` },
+      body: { message: errMsg },
     };
   }
 
@@ -105,9 +111,13 @@ exports.handler = async (event) => {
       maxSize: 128,
     }];
   } else {
+    const errMsg = 'Bad request: body.prechatCapture invalid value';
+
+    log.warn(errMsg, logContext);
+
     return {
       status: 400,
-      body: { message: `Bad request: body.prechatCapture invalid value ${body.prechatCapture}` },
+      body: { message: errMsg },
     };
   }
 
@@ -117,11 +127,13 @@ exports.handler = async (event) => {
       SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`,
     }).promise();
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
+
+    log.error(errMsg, logContext, error);
 
     return {
       status: 500,
-      body: { message: 'An Error has occurred trying to retrieve digital channels credentials' },
+      body: { message: errMsg },
     };
   }
 
@@ -154,11 +166,13 @@ exports.handler = async (event) => {
     });
     integration = res.data;
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to create a web integration for tenant';
+
+    log.error(errMsg, logContext, error);
 
     return {
       status: 500,
-      body: { message: `An Error has occurred trying to create a web integration for tenant ${tenantId}`, error },
+      body: { message: errMsg, error },
     };
   }
 
@@ -180,13 +194,17 @@ exports.handler = async (event) => {
   try {
     await docClient.put(createParams).promise();
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to save a record in DynamoDB for tenant';
+
+    log.error(errMsg, logContext, error);
 
     return {
       status: 500,
-      body: { message: `An Error has occurred trying to save a record in DynamoDB for tenant ${tenantId}`, error },
+      body: { message: errMsg, error },
     };
   }
+
+  log.info('create-smooch-web-integration complete', logContext);
 
   return {
     status: 201,

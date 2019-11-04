@@ -7,6 +7,7 @@ const AWS = require('aws-sdk');
 
 const secretsClient = new AWS.SecretsManager();
 const Joi = require('@hapi/joi');
+const log = require('serenova-js-utils/lambda/log');
 
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -19,16 +20,16 @@ const paramsSchema = Joi.object({
 });
 
 exports.handler = async (event) => {
-  console.log(`delete-smooch-app${JSON.stringify(event)}`);
-  console.log(`delete-smooch-app${JSON.stringify(process.env)}`);
-
   const { AWS_REGION, ENVIRONMENT } = process.env;
-  const { params } = event;
+  const { params, identity } = event;
+  const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
+
+  log.info('delete-smooch-app was called', logContext);
 
   try {
     await paramsSchema.validateAsync(params);
   } catch (error) {
-    console.warn(`Error: invalid params value ${error.details[0].message}`);
+    log.warn('Error: invalid params value', { ...logContext, validationMessage: error.details[0].message });
 
     return {
       status: 400,
@@ -36,22 +37,25 @@ exports.handler = async (event) => {
     };
   }
 
+  const { 'tenant-id': tenantId, id: appId } = params;
   let accountSecrets;
 
+  logContext.smoochAppId = appId;
   try {
     accountSecrets = await secretsClient.getSecretValue({
       SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/account`,
     }).promise();
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
+
+    log.error(errMsg, logContext, error);
 
     return {
       status: 500,
-      body: { message: 'An Error has occurred trying to retrieve digital channels credentials' },
+      body: { message: errMsg },
     };
   }
 
-  const { 'tenant-id': tenantId, id: appId } = params;
   let smooch;
   try {
     const accountKeys = JSON.parse(accountSecrets.SecretString);
@@ -61,11 +65,13 @@ exports.handler = async (event) => {
       scope: 'account',
     });
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to validate digital channels credentials';
+
+    log.error(errMsg, logContext, error);
 
     return {
       status: 500,
-      body: { message: 'An Error has occurred trying to validate digital channels credentials' },
+      body: { message: errMsg },
     };
   }
 
@@ -80,22 +86,26 @@ exports.handler = async (event) => {
   try {
     await docClient.delete(deleteParams).promise();
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to delete a record in DynamoDB';
+
+    log.error(errMsg, logContext, error);
 
     return {
       status: 500,
-      body: { message: `An Error has occurred trying to delete a record in DynamoDB for tenant ${tenantId} and appId ${appId}`, deleted: false },
+      body: { message: errMsg, deleted: false },
     };
   }
 
   try {
     await smooch.apps.delete(appId);
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to delete an app';
+
+    log.error(errMsg, logContext, error);
 
     return {
       status: 500,
-      body: { message: `An Error has occurred trying to delete an app for tenant ${tenantId} and appId ${appId}`, deleted: false },
+      body: { message: errMsg },
     };
   }
 
@@ -118,13 +128,17 @@ exports.handler = async (event) => {
       }).promise();
     }
   } catch (error) {
-    console.error(`An Error has occurred trying to delete app keys for ${tenantId} and appId ${appId}`, JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to delete app keys';
+
+    log.error(errMsg, logContext, error);
 
     return {
       status: 500,
-      body: { message: `An Error has occurred trying to delete app keys for ${tenantId} and appId ${appId}` },
+      body: { message: errMsg },
     };
   }
+
+  log.info('delete-smooch-app complete', logContext);
 
   return {
     status: 200,

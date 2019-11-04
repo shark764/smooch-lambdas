@@ -7,6 +7,7 @@ const AWS = require('aws-sdk');
 const secretsClient = new AWS.SecretsManager();
 const Joi = require('@hapi/joi');
 const axios = require('axios');
+const log = require('serenova-js-utils/lambda/log');
 
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -22,16 +23,16 @@ const paramsSchema = Joi.object({
 });
 
 exports.handler = async (event) => {
-  console.log('delete-smooch-web-integration', JSON.stringify(event));
-  console.log('delete-smooch-web-integration', JSON.stringify(process.env));
-
   const { AWS_REGION, ENVIRONMENT } = process.env;
-  const { params } = event;
+  const { params, identity } = event;
+  const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
+
+  log.info('delete-smooch-web-integration was called', logContext);
 
   try {
     await paramsSchema.validateAsync(params);
   } catch (error) {
-    console.error(`Error: invalid params value ${error.details[0].message}`);
+    log.error('Error: invalid params value', logContext, error);
 
     return {
       status: 400,
@@ -46,11 +47,13 @@ exports.handler = async (event) => {
       SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`,
     }).promise();
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
+
+    log.error(errMsg, logContext, error);
 
     return {
       status: 500,
-      body: { message: 'An Error has occurred trying to retrieve digital channels credentials' },
+      body: { message: errMsg },
     };
   }
 
@@ -58,12 +61,8 @@ exports.handler = async (event) => {
   const appKeys = JSON.parse(appSecrets.SecretString);
   const queryParams = {
     Key: {
-      'tenant-id': {
-        tenantId,
-      },
-      id: {
-        integrationId,
-      },
+      'tenant-id': tenantId,
+      id: integrationId,
     },
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
   };
@@ -74,24 +73,29 @@ exports.handler = async (event) => {
     if (queryResponse.Item) {
       appId = queryResponse.Item['app-id'];
     } else {
-      console.error(`An Error has occurred trying to fetch an app for tenant ${tenantId} and integrationId ${integrationId}`);
+      const errMsg = 'An Error has occurred trying to fetch an app';
+
+      log.error(errMsg, logContext);
 
       return {
         status: 400,
-        body: { message: `An Error has occurred trying to fetch an app for tenant ${tenantId} and integrationId ${integrationId}`, deleted: false },
+        body: { message: errMsg },
       };
     }
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to fetch an app in DynamoDB';
+
+    log.error(errMsg, logContext, error);
 
     return {
       status: 500,
-      body: { message: `An Error has occurred trying to fetch an app in DynamoDB for tenant ${tenantId} and integrationId ${integrationId}`, deleted: false, error },
+      body: { message: errMsg },
     };
   }
 
   const smoochApiUrl = `https://api.smooch.io/v1.1/apps/${appId}/integrations/${integrationId}`;
 
+  logContext.smoochAppId = appId;
   try {
     await axios.delete(smoochApiUrl, {
       headers: {
@@ -100,11 +104,13 @@ exports.handler = async (event) => {
       },
     });
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to delete an web integration';
+
+    log.error(errMsg, logContext, error);
 
     return {
       status: 500,
-      body: { message: `An Error has occurred trying to delete an web integration for tenant ${tenantId} and integrationId ${integrationId}`, deleted: false, error },
+      body: { message: errMsg },
     };
   }
 
@@ -119,13 +125,17 @@ exports.handler = async (event) => {
   try {
     await docClient.delete(deleteParams).promise();
   } catch (error) {
-    console.error(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    const errMsg = 'An Error has occurred trying to delete a record in DynamoDB';
+
+    log.error(errMsg, logContext, error);
 
     return {
       status: 500,
-      body: { message: `An Error has occurred trying to delete a record in DynamoDB for tenant ${tenantId} and integrationId ${integrationId}`, deleted: false, error },
+      body: { message: errMsg },
     };
   }
+
+  log.info('delete-smooch-web-integration complete', logContext);
 
   return {
     status: 200,
