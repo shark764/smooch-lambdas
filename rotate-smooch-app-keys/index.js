@@ -4,15 +4,13 @@
 
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
+const log = require('serenova-js-utils/lambda/log');
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
 
-exports.handler = async (event) => {
-  console.log('rotate-smooch-app-keys ', JSON.stringify(event));
-  console.log('rotate-smooch-app-keys ', JSON.stringify(process.env));
-
+exports.handler = async () => {
   const { AWS_REGION, ENVIRONMENT } = process.env;
 
   const accountSecrets = await secretsClient.getSecretValue({
@@ -44,6 +42,7 @@ exports.handler = async (event) => {
   let hasErrored = false;
   for (const app of appsResult.Items) { // eslint-disable-line no-restricted-syntax
     const { id: appId, 'tenant-id': tenantId } = app;
+    const logContext = { tenantId, smoochAppId: appId };
     try {
       const appSecrets = await secretsClient.getSecretValue({
         SecretId: appSecretName,
@@ -53,7 +52,7 @@ exports.handler = async (event) => {
       if (appKeys[`${appId}-id-old`]) {
         await smooch.apps.keys.delete(appId, appKeys[`${appId}-id-old`]);
       } else {
-        console.log(`App does not have old appKeys. tenant ${tenantId} app ${appId}`);
+        log.debug('App does not have old appKeys.', logContext);
       }
       appKeys[`${appId}-id-old`] = appKeys[`${appId}-id`];
       appKeys[`${appId}-secret-old`] = appKeys[`${appId}-secret`];
@@ -65,7 +64,7 @@ exports.handler = async (event) => {
       }).promise();
     } catch (error) {
       hasErrored = true;
-      console.error(`An error occurred trying to update app credentials for tenant ${tenantId} app ${appId} `, JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      log.error('An error occurred trying to update app credentials', logContext, error);
     }
   }
 

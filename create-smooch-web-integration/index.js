@@ -58,7 +58,7 @@ const paramsSchema = Joi.object({
 exports.handler = async (event) => {
   const { AWS_REGION, ENVIRONMENT } = process.env;
   const { body, params, identity } = event;
-  const logContext = { tenantId: params['tenant-id'], userId: identity['user-id'] };
+  const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
 
   log.info('create-smooch-web-integration was called', logContext);
 
@@ -204,7 +204,7 @@ exports.handler = async (event) => {
     };
   }
 
-  log.info('create-smooch-web-integration complete', logContext);
+  log.info('create-smooch-web-integration complete', { ...logContext, integration });
 
   return {
     status: 201,
