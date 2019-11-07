@@ -13,13 +13,13 @@ const secretsClient = new AWS.SecretsManager();
 const bodySchema = Joi.object({
   appId: Joi.string()
     .required(),
+  contactPoint: Joi.string()
+    .required(),
   prechatCapture: Joi.string()
     .required()
     .valid('name', 'email'),
-
   name: Joi.string()
     .required(),
-
   description: Joi.string(),
 
   brandColor: Joi.string(),
@@ -89,7 +89,7 @@ exports.handler = async (event) => {
   }
 
   const { 'tenant-id': tenantId } = params;
-  const { appId } = body;
+  const { appId, contactPoint } = body;
   let defaultPrechatCapture;
 
   if (body.prechatCapture === 'name') {
@@ -182,6 +182,7 @@ exports.handler = async (event) => {
       'tenant-id': tenantId,
       id: integration.integration._id,
       'app-id': appId,
+      'contact-point': contactPoint,
       type: 'web',
       name: body.name,
       description: body.description,

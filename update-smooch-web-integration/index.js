@@ -13,6 +13,8 @@ const secretsClient = new AWS.SecretsManager();
 const bodySchema = Joi.object({
   name: Joi.string(),
 
+  contactPoint: Joi.string(),
+
   description: Joi.string(),
 
   brandColor: Joi.string(),
@@ -155,7 +157,7 @@ exports.handler = async (event) => {
     });
     integration = res.data;
   } catch (error) {
-    const errMsg = 'An Error has occurred trying to create a web integration';
+    const errMsg = 'An Error has occurred trying to upadate a web integration';
 
     log.error(errMsg, logContext, error);
 
@@ -176,10 +178,15 @@ exports.handler = async (event) => {
     updateExpression += 'description = :d';
     expressionAttribute[':d'] = body.description;
   }
+  if (body.contactPoint) {
+    if (body.name || body.description) updateExpression += ',';
+    updateExpression += '#contactPoint = :c';
+    expressionAttribute[':c'] = body.contactPoint;
+  }
 
   let dynamoValue = {};
 
-  if (body.name || body.description) {
+  if (body.name || body.description || body.contactPoint) {
     const updateParams = {
       TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
       Key: {
@@ -188,6 +195,7 @@ exports.handler = async (event) => {
       },
       ExpressionAttributeNames: {
         '#name': 'name',
+        '#contactPoint': 'contact-point',
       },
       UpdateExpression: updateExpression,
       ExpressionAttributeValues: expressionAttribute,
