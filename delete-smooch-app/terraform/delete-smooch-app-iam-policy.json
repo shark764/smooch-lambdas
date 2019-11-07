@@ -26,5 +26,11 @@
             "arn:aws:secretsmanager:*:*:secret:*/*/cxengage/smooch/account-??????",
             "arn:aws:secretsmanager:*:*:secret:*/*/cxengage/smooch/app-??????"
         ]
+    },
+    {
+        "Sid": "PutSecret",
+        "Action": "secretsmanager:PutSecretValue",
+        "Effect": "Allow",
+        "Resource": "arn:aws:secretsmanager:*:*:secret:*/*/cxengage/smooch/app-??????"
     }]
 }

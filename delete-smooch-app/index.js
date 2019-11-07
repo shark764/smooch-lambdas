@@ -114,7 +114,8 @@ exports.handler = async (event) => {
     const appSecrets = await secretsClient.getSecretValue({
       SecretId: appSecretName,
     }).promise();
-    const appKeys = JSON.parse(appSecrets);
+  
+    const appKeys = JSON.parse(appSecrets.SecretString);
 
     if (appKeys[`${appId}-id`]) {
       delete appKeys[`${appId}-id`];
