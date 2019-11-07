@@ -128,7 +128,8 @@ async function handleFormResponse({
   appId, userId, integrationId, tenantId, interactionId, form, logContext,
 }) {
   if (!interactionId) {
-    const customer = form && form.fields && form.fields[0] && form.fields[0].text;
+    const customer = form && form.fields && form.fields[0]
+      && (form.fields[0].text || form.fields[0].email);
     if (!customer) {
       log.warn('Prechat form submitted with no customer identifier (form.field[0].text)', { ...logContext, form });
       return;
