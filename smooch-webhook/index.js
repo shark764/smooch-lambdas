@@ -26,8 +26,8 @@ exports.handler = async (event) => {
   const {
     appUser, messages, app, client, trigger,
   } = body;
-  const { id: appId } = app;
-  const { properties, id: userId } = appUser;
+  const { _id: appId } = app;
+  const { properties, _id: userId } = appUser;
   const { interactionId, tenantId } = properties;
   const logContext = {
     interactionId, tenantId, smoochAppId: appId, smoochUserId: userId, smoochTrigger: trigger,
@@ -66,7 +66,7 @@ exports.handler = async (event) => {
           switch (type) {
             case 'formResponse': {
               log.debug('Web type received: formResponse', logContext);
-              handleFormResponse({
+              await handleFormResponse({
                 appId,
                 userId,
                 integrationId,
@@ -136,18 +136,22 @@ async function handleFormResponse({
     }
 
     let accountSecrets;
-    let smooch;
-    let accountKeys;
+
     try {
       accountSecrets = await secretsClient.getSecretValue({
         SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`,
       }).promise();
+    } catch (error) {
+      log.error('An Error has occurred trying to retrieve digital channels credentials', logContext, error);
+      throw error;
+    }
 
-      accountKeys = JSON.parse(accountSecrets.SecretString);
-
+    const accountKeys = JSON.parse(accountSecrets.SecretString);
+    let smooch;
+    try {
       smooch = new SmoochCore({
-        keyId: accountKeys[`${tenantId}-id`],
-        secret: accountKeys[`${tenantId}-secret`],
+        keyId: accountKeys[`${appId}-id`],
+        secret: accountKeys[`${appId}-secret`],
         scope: 'app',
       });
     } catch (error) {
@@ -156,6 +160,7 @@ async function handleFormResponse({
     }
 
     let webIntegration;
+
     try {
       webIntegration = await docClient.get({
         TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
@@ -163,21 +168,28 @@ async function handleFormResponse({
           'tenant-id': tenantId,
           id: integrationId,
         },
-      });
+      }).promise();
     } catch (error) {
       log.error('Failed to retrieve Smooch integration from DynamoDB', logContext, error);
       throw error;
     }
 
-    const { contactPoint } = webIntegration;
+    const { 'contact-point': contactPoint } = webIntegration.Item;
     const newInteractionId = uuidv4();
-    const interaction = await createInteraction({
-      interactionId: newInteractionId, appId, userId, tenantId, source: 'web', contactPoint, customer, logContext,
-    });
+    let interaction;
 
-    log.info('Created interaction', { ...logContext, interaction });
+    try {
+      const { data } = await createInteraction({
+        interactionId: newInteractionId, appId, userId, tenantId, source: 'web', contactPoint, customer, logContext,
+      });
+      interaction = data;
+      log.debug('Created interaction', { ...logContext, interaction });
+    } catch (error) {
+      log.error('Failed to create an interaction', logContext, error);
+    }
 
     let smoochUser;
+
     try {
       smoochUser = await retry(async () => smooch.appUsers.update({
         appId,
@@ -193,6 +205,7 @@ async function handleFormResponse({
       log.error('Error updating Smooch appUser', logContext, error);
 
       let endedInteraction;
+
       try {
         endedInteraction = await retry(
           async () => endInteraction({ interactionId: newInteractionId, tenantId }), { retries },
@@ -201,15 +214,20 @@ async function handleFormResponse({
       } catch (err) {
         log.fatal('Error ending interaction', logContext, err);
       }
-      smooch.appUsers.sendMessage({
-        appId,
-        userId,
-        message: {
-          role: 'appMaker',
-          type: 'text',
-          text: 'We could not connect you to an agent. Please try again.',
-        },
-      });
+
+      try {
+        smooch.appUsers.sendMessage({
+          appId,
+          userId,
+          message: {
+            role: 'appMaker',
+            type: 'text',
+            text: 'We could not connect you to an agent. Please try again.',
+          },
+        });
+      } catch (msgError) {
+        log.error('Error sending a new message', logContext, msgError);
+      }
 
       return;
     }
@@ -220,7 +238,7 @@ async function handleFormResponse({
   }
 }
 
-function createInteraction({
+async function createInteraction({
   interactionId, appId, userId, tenantId, source, contactPoint, customer, logContext,
 }) {
   const interaction = {
@@ -228,6 +246,7 @@ function createInteraction({
     id: interactionId,
     customer,
     contactPoint,
+    source,
     channelType: 'messaging',
     direction: 'inbound',
     interaction: {
@@ -281,7 +300,7 @@ async function sendCustomerMessageToParticipants({
   log.debug('Sending message to resource', logContext);
 }
 
-function getMetadata({ tenantId, interactionId }) {
+async function getMetadata({ tenantId, interactionId }) {
   return axios({
     method: 'get',
     url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}`,
