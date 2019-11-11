@@ -36,7 +36,7 @@ exports.handler = async (event) => {
 
   const queryParams = {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
-    KeyConditionExpression: '#tenantId = :t, #integrationType = :type',
+    KeyConditionExpression: '#tenantId = :t and #integrationType = :type',
     IndexName: 'tenant-id-type-index',
     ExpressionAttributeNames: {
       '#tenantId': 'tenant-id',
@@ -53,7 +53,7 @@ exports.handler = async (event) => {
     const queryResponse = await docClient.query(queryParams).promise();
     smoochIntegrations = queryResponse.Items;
   } catch (error) {
-    const errMsg = 'An Error has occurred trying to fetch integrations in DynamoDB for tenant';
+    const errMsg = 'An Error has occurred trying to fetch integrations in DynamoDB';
 
     log.error(errMsg, logContext, error);
 

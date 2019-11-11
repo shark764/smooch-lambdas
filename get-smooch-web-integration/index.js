@@ -2,8 +2,8 @@
  * Lambda that gets a web integration from Smooch
  * */
 
-const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
+const axios = require('axios');
 const log = require('serenova-js-utils/lambda/log');
 
 const secretsClient = new AWS.SecretsManager();
@@ -58,8 +58,8 @@ exports.handler = async (event) => {
     Key: {
       'tenant-id': tenantId,
       id: integrationId,
-      TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
     },
+    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
   };
   let appId;
 
@@ -88,31 +88,21 @@ exports.handler = async (event) => {
     };
   }
 
-  let smooch;
-  try {
-    const appKeys = JSON.parse(appSecrets.SecretString);
-    smooch = new SmoochCore({
-      keyId: appKeys[`${appId}-id`],
-      secret: appKeys[`${appId}-secret`],
-      scope: 'app',
-    });
-  } catch (error) {
-    const errMsg = 'An Error has occurred trying to validate digital channels credentials';
-
-    log.error(errMsg, logContext, error);
-
-    return {
-      status: 500,
-      body: { message: errMsg },
-    };
-  }
-
+  const appKeys = JSON.parse(appSecrets.SecretString);
+  const smoochApiUrl = `https://api.smooch.io/v1.1/apps/${appId}/integrations/${integrationId}`;
   let smoochIntegration;
 
   try {
-    smoochIntegration = smooch.integrations.get(appId, integrationId);
+    const { data } = await axios.get(smoochApiUrl, {
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${appKeys[`${appId}-id`]}:${appKeys[`${appId}-secret`]}`).toString('base64')}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    smoochIntegration = data.integration;
   } catch (error) {
-    const errMsg = 'An Error has occurred trying to delete an web integration';
+    const errMsg = 'An Error has occurred trying to fetch a web integration';
 
     log.error(errMsg, logContext, error);
 
