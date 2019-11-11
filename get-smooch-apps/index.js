@@ -36,7 +36,7 @@ exports.handler = async (event) => {
   const { 'tenant-id': tenantId } = params;
   const queryParams = {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
-    KeyConditionExpression: '#tenantId = :t, #integrationType = :type',
+    KeyConditionExpression: '#tenantId = :t and #integrationType = :type',
     IndexName: 'tenant-id-type-index',
     ExpressionAttributeNames: {
       '#tenantId': 'tenant-id',
