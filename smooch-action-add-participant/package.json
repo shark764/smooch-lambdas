@@ -1,0 +1,10 @@
+{
+  "name": "smooch-action-add-participant",
+  "version": "1.0.0",
+  "description": "Action handler for add-participant",
+  "repository": {},
+  "license": "UNLICENSED",
+  "dependencies": {
+    "serenova-js-utils": "1.7.1"
+  }
+}
