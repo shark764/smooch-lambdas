@@ -1,4 +1,4 @@
-include_queue = "include"
+include_queue = "true"
 queue_delay_seconds = 30
 timeout = 30
 memory_size = 128
