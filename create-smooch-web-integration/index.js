@@ -71,7 +71,7 @@ exports.handler = async (event) => {
 
     return {
       status: 400,
-      body: { message: errMsg },
+      body: { message: `${errMsg} ${error.details[0].message}` },
     };
   }
 
@@ -84,7 +84,7 @@ exports.handler = async (event) => {
 
     return {
       status: 400,
-      body: { message: errMsg },
+      body: { message: `${errMsg} ${error.details[0].message}` },
     };
   }
 

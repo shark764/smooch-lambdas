@@ -52,11 +52,17 @@ exports.handler = async (event) => {
       };
     }
   } catch (error) {
+    if (error.response.status === 404) {
+      log.warn('Tenant not found', logContext);
+      return {
+        status: 400,
+        body: { message: `Tenant ${tenantId} not found` },
+      };
+    }
     log.error('Unexpected error occurred retrieving tenant', logContext, error);
-
     return {
-      status: error.response.status === 404 ? 400 : 500,
-      body: { message: error.response.status === 404 ? `Tenant ${tenantId} not found` : `Unexpected error occurred retrieving tenant ${tenantId}` },
+      status: 500,
+      body: `Unexpected error occurred retrieving tenant ${tenantId}`,
     };
   }
 

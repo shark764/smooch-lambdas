@@ -54,7 +54,7 @@ const paramsSchema = Joi.object({
 exports.handler = async (event) => {
   const { AWS_REGION, ENVIRONMENT } = process.env;
   const { body, params, identity } = event;
-  const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'], smoochIntegrationId: params['id'] };
+  const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'], smoochIntegrationId: params.id };
 
   try {
     await bodySchema.validateAsync(body);
