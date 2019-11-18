@@ -4,8 +4,8 @@
 
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
-const axios = require('axios');
 const log = require('serenova-js-utils/lambda/log');
+const SmoochCore = require('smooch-core');
 
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -137,11 +137,28 @@ exports.handler = async (event) => {
     };
   }
 
-  const appKeys = JSON.parse(appSecrets.SecretString);
-  const smoochApiUrl = `https://api.smooch.io/v1.1/apps/${appId}/integrations`;
+  let smooch;
+  try {
+    const appKeys = JSON.parse(appSecrets.SecretString);
+    smooch = new SmoochCore({
+      keyId: appKeys[`${appId}-id`],
+      secret: appKeys[`${appId}-secret`],
+      scope: 'app',
+    });
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to validate digital channels credentials';
+
+    log.error(errMsg, logContext, error);
+
+    return {
+      status: 500,
+      body: { message: errMsg },
+    };
+  }
+
   let integration;
   try {
-    const res = await axios.post(smoochApiUrl, {
+    integration = await smooch.integrations.create(appId, {
       type: 'web',
       brandColor: body.brandColor,
       originWhiteList: body.originWhiteList,
@@ -157,14 +174,7 @@ exports.handler = async (event) => {
       buttonWidth: body.buttonWidth,
       buttonHeight: body.buttonHeight,
       buttonIconUrl: body.buttonIconUrl,
-    },
-    {
-      headers: {
-        Authorization: `Basic ${Buffer.from(`${appKeys[`${appId}-id`]}:${appKeys[`${appId}-secret`]}`).toString('base64')}`,
-        'Content-Type': 'application/json',
-      },
     });
-    integration = res.data;
   } catch (error) {
     const errMsg = 'An Error has occurred trying to create a web integration for tenant';
 

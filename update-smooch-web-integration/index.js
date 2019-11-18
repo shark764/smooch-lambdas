@@ -155,7 +155,7 @@ exports.handler = async (event) => {
         'Content-Type': 'application/json',
       },
     });
-    integration = res.data;
+    integration = res.data.integration;
   } catch (error) {
     const errMsg = 'An Error has occurred trying to upadate a web integration';
 
@@ -169,9 +169,11 @@ exports.handler = async (event) => {
 
   let updateExpression = '';
   const expressionAttribute = {};
+  const expressionAttributeNames = {};
   if (body.name) {
     updateExpression += 'set #name = :n';
     expressionAttribute[':n'] = body.name;
+    expressionAttributeNames['#name'] = 'name';
   }
   if (body.description) {
     if (body.name) updateExpression += ',';
@@ -182,6 +184,7 @@ exports.handler = async (event) => {
     if (body.name || body.description) updateExpression += ',';
     updateExpression += '#contactPoint = :c';
     expressionAttribute[':c'] = body.contactPoint;
+    expressionAttributeNames['#contactPoint'] = 'contact-point';
   }
 
   let dynamoValue = {};
@@ -193,16 +196,14 @@ exports.handler = async (event) => {
         'tenant-id': tenantId,
         id: integrationId,
       },
-      ExpressionAttributeNames: {
-        '#name': 'name',
-        '#contactPoint': 'contact-point',
-      },
+      ExpressionAttributeNames: expressionAttributeNames,
       UpdateExpression: updateExpression,
       ExpressionAttributeValues: expressionAttribute,
       ReturnValues: 'ALL_NEW',
     };
     try {
       dynamoValue = await docClient.update(updateParams).promise();
+      dynamoValue = dynamoValue.Attributes;
     } catch (error) {
       const errMsg = 'An Error has occurred trying to save a record in DynamoDB';
 

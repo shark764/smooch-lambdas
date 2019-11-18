@@ -6,8 +6,8 @@ const AWS = require('aws-sdk');
 
 const secretsClient = new AWS.SecretsManager();
 const Joi = require('@hapi/joi');
-const axios = require('axios');
 const log = require('serenova-js-utils/lambda/log');
+const SmoochCore = require('smooch-core');
 
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -58,7 +58,6 @@ exports.handler = async (event) => {
   }
 
   const { 'tenant-id': tenantId, id: integrationId } = params;
-  const appKeys = JSON.parse(appSecrets.SecretString);
   const queryParams = {
     Key: {
       'tenant-id': tenantId,
@@ -93,16 +92,29 @@ exports.handler = async (event) => {
     };
   }
 
-  const smoochApiUrl = `https://api.smooch.io/v1.1/apps/${appId}/integrations/${integrationId}`;
+  let smooch;
+  try {
+    const appKeys = JSON.parse(appSecrets.SecretString);
+    smooch = new SmoochCore({
+      keyId: appKeys[`${appId}-id`],
+      secret: appKeys[`${appId}-secret`],
+      scope: 'app',
+    });
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to validate digital channels credentials';
+
+    log.error(errMsg, logContext, error);
+
+    return {
+      status: 500,
+      body: { message: errMsg },
+    };
+  }
 
   logContext.smoochAppId = appId;
+
   try {
-    await axios.delete(smoochApiUrl, {
-      headers: {
-        Authorization: `Basic ${Buffer.from(`${appKeys[`${appId}-id`]}:${appKeys[`${appId}-secret`]}`).toString('base64')}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    await smooch.integrations.delete(appId, integrationId);
   } catch (error) {
     const errMsg = 'An Error has occurred trying to delete an web integration';
 
