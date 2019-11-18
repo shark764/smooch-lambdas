@@ -64,10 +64,10 @@ exports.handler = async (event) => {
     };
   }
 
-  log.info('get-smooch-apps complete', logContext);
+  log.info('get-smooch-apps complete', { ...logContext, smoochApps });
 
   return {
     status: 200,
-    body: smoochApps,
+    body: { result: smoochApps },
   };
 };
