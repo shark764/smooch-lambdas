@@ -124,10 +124,10 @@ exports.handler = async (event) => {
     };
   }
 
-  log.info('get-smooch-web-integration complete', logContext);
+  log.info('get-smooch-web-integration complete', { ...logContext, smoochIntegration });
 
   return {
     status: 200,
-    body: smoochIntegration,
+    body: { result: smoochIntegration },
   };
 };
