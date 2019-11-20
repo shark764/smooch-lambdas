@@ -12,8 +12,8 @@
         "Effect": "Allow",
         "Resource": "*"
     }, {
-        "Sid": "UpdateDynamoTable",
-        "Action": "dynamodb:UpdateItem",
+        "Sid": "PutDynamoTable",
+        "Action": "dynamodb:PutItem",
         "Effect": "Allow",
         "Resource": "arn:aws:dynamodb:*:*:table/*-smooch"
     }, {
