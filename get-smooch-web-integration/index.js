@@ -134,6 +134,7 @@ exports.handler = async (event) => {
   delete smoochIntegration._id;
   delete smoochIntegration.displayName;
   delete smoochIntegration.status;
+  delete smoochIntegration.type;
   delete dynamoValue.type;
   smoochIntegration.prechatCapture = smoochIntegration.prechatCapture.fields[0].name;
   Object.keys(dynamoValue).forEach((v) => {
