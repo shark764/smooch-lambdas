@@ -219,6 +219,6 @@ exports.handler = async (event) => {
 
   return {
     status: 201,
-    body: integration,
+    body: { result: integration },
   };
 };
