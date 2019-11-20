@@ -5,6 +5,7 @@
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
 const log = require('serenova-js-utils/lambda/log');
+const string = require('serenova-js-utils/strings');
 const SmoochCore = require('smooch-core');
 
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
@@ -156,9 +157,9 @@ exports.handler = async (event) => {
     };
   }
 
-  let integration;
+  let smoochIntegration;
   try {
-    integration = await smooch.integrations.create(appId, {
+    const { integration } = await smooch.integrations.create(appId, {
       type: 'web',
       brandColor: body.brandColor,
       originWhiteList: body.originWhiteList,
@@ -175,6 +176,8 @@ exports.handler = async (event) => {
       buttonHeight: body.buttonHeight,
       buttonIconUrl: body.buttonIconUrl,
     });
+
+    smoochIntegration = integration;
   } catch (error) {
     const errMsg = 'An Error has occurred trying to create a web integration for tenant';
 
@@ -186,24 +189,39 @@ exports.handler = async (event) => {
     };
   }
 
-  const createParams = {
+  const updateParams = {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
-    Item: {
-      'tenant-id': tenantId,
-      id: integration.integration._id,
-      'app-id': appId,
-      'contact-point': contactPoint,
-      type: 'web',
-      name: body.name,
-      description: body.description,
-      'created-by': identity['user-id'],
-      'updated-by': identity['user-id'],
-      created: (new Date()).toISOString(),
-      updated: (new Date()).toISOString(),
+    Key: { 'tenant-id': tenantId, id: smoochIntegration._id },
+    UpdateExpression: `set #type = :t, #appId = :appId, #contactPoint = :contactPoint,
+    #name = :name, description = :description, #createdBy = :createdBy, #updatedBy = :updatedBy,
+    created = :created, updated = :updated`,
+    ExpressionAttributeNames: {
+      '#type': 'type',
+      '#appId': 'app-id',
+      '#contactPoint': 'contact-point',
+      '#createdBy': 'created-by',
+      '#updatedBy': 'updated-by',
+      '#name': 'name',
     },
+    ExpressionAttributeValues: {
+      ':t': 'web',
+      ':appId': appId,
+      ':contactPoint': contactPoint,
+      ':name': body.name,
+      ':description': body.description,
+      ':createdBy': identity['user-id'],
+      ':updatedBy': identity['user-id'],
+      ':created': (new Date()).toISOString(),
+      ':updated': (new Date()).toISOString(),
+    },
+    ReturnValues: 'ALL_NEW',
   };
+
+  let dynamoValue;
+
   try {
-    await docClient.put(createParams).promise();
+    const { Attributes } = await docClient.update(updateParams).promise();
+    dynamoValue = Attributes;
   } catch (error) {
     const errMsg = 'An Error has occurred trying to save a record in DynamoDB for tenant';
 
@@ -215,10 +233,25 @@ exports.handler = async (event) => {
     };
   }
 
-  log.info('create-smooch-web-integration complete', { ...logContext, integration });
+  const dynamoValueCased = {};
+
+  delete smoochIntegration.integrationOrder;
+  delete smoochIntegration._id;
+  delete dynamoValue.type;
+  smoochIntegration.prechatCapture = smoochIntegration.prechatCapture.fields[0].name;
+  Object.keys(dynamoValue).forEach((v) => {
+    dynamoValueCased[string.kebabCaseToCamelCase(v)] = dynamoValue[v];
+  });
+
+  const result = {
+    ...smoochIntegration,
+    ...dynamoValueCased,
+  };
+
+  log.info('create-smooch-web-integration complete', { ...logContext, result });
 
   return {
     status: 201,
-    body: { result: integration },
+    body: { result },
   };
 };

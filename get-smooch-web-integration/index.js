@@ -5,6 +5,7 @@
 const AWS = require('aws-sdk');
 const log = require('serenova-js-utils/lambda/log');
 const SmoochCore = require('smooch-core');
+const string = require('serenova-js-utils/strings');
 
 const secretsClient = new AWS.SecretsManager();
 const Joi = require('@hapi/joi');
@@ -61,12 +62,15 @@ exports.handler = async (event) => {
     },
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
   };
+
+  let dynamoValue;
   let appId;
 
   try {
-    const queryResponse = await docClient.get(queryParams).promise();
-    if (queryResponse.Item) {
-      appId = queryResponse.Item['app-id'];
+    const { Item } = await docClient.get(queryParams).promise();
+    if (Item) {
+      dynamoValue = Item;
+      appId = dynamoValue['app-id'];
     } else {
       const errMsg = 'An Error has occurred trying to fetch an app';
 
@@ -124,10 +128,26 @@ exports.handler = async (event) => {
     };
   }
 
-  log.info('get-smooch-web-integration complete', { ...logContext, smoochIntegration });
+  const dynamoValueCased = {};
+
+  delete smoochIntegration.integrationOrder;
+  delete smoochIntegration._id;
+  delete smoochIntegration.displayName;
+  delete dynamoValue.type;
+  smoochIntegration.prechatCapture = smoochIntegration.prechatCapture.fields[0].name;
+  Object.keys(dynamoValue).forEach((v) => {
+    dynamoValueCased[string.kebabCaseToCamelCase(v)] = dynamoValue[v];
+  });
+
+  const result = {
+    ...smoochIntegration,
+    ...dynamoValueCased,
+  };
+
+  log.info('get-smooch-web-integration complete', { ...logContext, result });
 
   return {
     status: 200,
-    body: { result: smoochIntegration },
+    body: { result },
   };
 };

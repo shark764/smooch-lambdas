@@ -4,14 +4,19 @@
 
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
-const axios = require('axios');
+const SmoochCore = require('smooch-core');
 const log = require('serenova-js-utils/lambda/log');
+const string = require('serenova-js-utils/strings');
 
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
 const bodySchema = Joi.object({
   name: Joi.string(),
+
+  prechatCapture: Joi.string()
+    .required()
+    .valid('name', 'email'),
 
   contactPoint: Joi.string(),
 
@@ -94,7 +99,6 @@ exports.handler = async (event) => {
     };
   }
 
-  const appKeys = JSON.parse(appSecrets.SecretString);
   const { 'tenant-id': tenantId, id: integrationId } = params;
   const queryParams = {
     Key: {
@@ -130,32 +134,82 @@ exports.handler = async (event) => {
     };
   }
 
-  const smoochApiUrl = `https://api.smooch.io/v1.1/apps/${appId}/integrations/${integrationId}`;
-  let integration;
+  let smooch;
+  try {
+    const appKeys = JSON.parse(appSecrets.SecretString);
+    smooch = new SmoochCore({
+      keyId: appKeys[`${appId}-id`],
+      secret: appKeys[`${appId}-secret`],
+      scope: 'app',
+    });
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to validate digital channels credentials';
+
+    log.error(errMsg, logContext, error);
+
+    return {
+      status: 500,
+      body: { message: errMsg },
+    };
+  }
+
+  let defaultPrechatCapture;
+
+  if (body.prechatCapture === 'name') {
+    defaultPrechatCapture = [{
+      type: 'text',
+      name: 'name',
+      label: 'Name',
+      placeholder: '',
+      minSize: 1,
+      maxSize: 128,
+    }];
+  } else if (body.prechatCapture === 'email') {
+    defaultPrechatCapture = [{
+      type: 'email',
+      name: 'email',
+      label: 'Email',
+      placeholder: '',
+      minSize: 1,
+      maxSize: 128,
+    }];
+  } else {
+    const errMsg = 'Bad request: body.prechatCapture invalid value';
+
+    log.warn(errMsg, logContext);
+
+    return {
+      status: 400,
+      body: { message: errMsg },
+    };
+  }
+
+  let smoochIntegration;
 
   logContext.smoochAppId = appId;
   try {
-    const res = await axios.put(smoochApiUrl, {
-      brandColor: body.brandColor,
-      originWhiteList: body.originWhiteList,
-      businessName: body.businessName,
-      businessIconUrl: body.businessIconUrl,
-      fixedIntroPane: body.fixedIntroPane,
-      conversationColor: body.conversationColor,
-      backgroundImageUrl: body.backgroundImageUrl,
-      actionColor: body.actionColor,
-      displayStyle: body.displayStyle,
-      buttonWidth: body.buttonWidth,
-      buttonHeight: body.buttonHeight,
-      buttonIconUrl: body.buttonIconUrl,
-    },
-    {
-      headers: {
-        Authorization: `Basic ${Buffer.from(`${appKeys[`${appId}-id`]}:${appKeys[`${appId}-secret`]}`).toString('base64')}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    integration = res.data.integration;
+    const { integration } = await smooch.integrations
+      .update({
+        appId,
+        integrationId,
+        props: {
+          brandColor: body.brandColor,
+          originWhiteList: body.originWhiteList,
+          businessName: body.businessName,
+          businessIconUrl: body.businessIconUrl,
+          fixedIntroPane: body.fixedIntroPane,
+          conversationColor: body.conversationColor,
+          backgroundImageUrl: body.backgroundImageUrl,
+          prechatCapture: { enabled: true, fields: defaultPrechatCapture },
+          actionColor: body.actionColor,
+          displayStyle: body.displayStyle,
+          buttonWidth: body.buttonWidth,
+          buttonHeight: body.buttonHeight,
+          buttonIconUrl: body.buttonIconUrl,
+        },
+      });
+
+    smoochIntegration = integration;
   } catch (error) {
     const errMsg = 'An Error has occurred trying to upadate a web integration';
 
@@ -216,13 +270,26 @@ exports.handler = async (event) => {
     }
   }
 
-  log.info('update-smooch-web-integration complete', logContext);
+  const dynamoValueCased = {};
+
+  delete smoochIntegration.integrationOrder;
+  delete smoochIntegration._id;
+  delete dynamoValue.type;
+  delete smoochIntegration.displayName;
+  smoochIntegration.prechatCapture = smoochIntegration.prechatCapture.fields[0].name;
+  Object.keys(dynamoValue).forEach((v) => {
+    dynamoValueCased[string.kebabCaseToCamelCase(v)] = dynamoValue[v];
+  });
+
+  const result = {
+    ...smoochIntegration,
+    ...dynamoValueCased,
+  };
+
+  log.info('get-smooch-web-integration complete', { ...logContext, result });
 
   return {
     status: 201,
-    body: {
-      ...integration,
-      ...dynamoValue,
-    },
+    body: { result },
   };
 };

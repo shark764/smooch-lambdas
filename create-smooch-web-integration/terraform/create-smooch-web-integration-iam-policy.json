@@ -13,12 +13,6 @@
         "Resource": "*"
     },
     {
-        "Sid": "PutItem",
-        "Action": "dynamodb:PutItem",
-        "Effect": "Allow",
-        "Resource": "arn:aws:dynamodb:*:*:table/*-smooch"
-    },
-    {
         "Sid": "UpdateDynamoTable",
         "Action": "dynamodb:UpdateItem",
         "Effect": "Allow",
