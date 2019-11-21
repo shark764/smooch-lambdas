@@ -20,7 +20,7 @@ const bodySchema = Joi.object({
 
   contactPoint: Joi.string(),
 
-  description: Joi.string(),
+  description: Joi.string().allow(''),
 
   brandColor: Joi.string(),
 
@@ -236,7 +236,7 @@ exports.handler = async (event) => {
   if (body.description) {
     if (body.name) updateExpression += ',';
     updateExpression += 'description = :d';
-    expressionAttributeNames[':d'] = body.description;
+    expressionAttribute[':d'] = body.description;
   }
   if (body.contactPoint) {
     if (body.name || body.description) updateExpression += ',';
@@ -280,6 +280,7 @@ exports.handler = async (event) => {
   delete smoochIntegration._id;
   delete smoochIntegration.displayName;
   delete smoochIntegration.status;
+  delete smoochIntegration.type;
   smoochIntegration.prechatCapture = smoochIntegration.prechatCapture.fields[0].name;
   Object.keys(dynamoValue).forEach((v) => {
     dynamoValueCased[string.kebabCaseToCamelCase(v)] = dynamoValue[v];

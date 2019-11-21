@@ -21,7 +21,7 @@ const bodySchema = Joi.object({
     .valid('name', 'email'),
   name: Joi.string()
     .required(),
-  description: Joi.string(),
+  description: Joi.string().allow(''),
 
   brandColor: Joi.string(),
 
@@ -244,11 +244,12 @@ exports.handler = async (event) => {
 
   const dynamoValueCased = {};
 
+  delete dynamoValue.type;
   delete smoochIntegration.integrationOrder;
   delete smoochIntegration._id;
-  delete dynamoValue.type;
   delete smoochIntegration.displayName;
   delete smoochIntegration.status;
+  delete smoochIntegration.type;
   smoochIntegration.prechatCapture = smoochIntegration.prechatCapture.fields[0].name;
   Object.keys(dynamoValue).forEach((v) => {
     dynamoValueCased[string.kebabCaseToCamelCase(v)] = dynamoValue[v];
