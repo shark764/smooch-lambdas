@@ -189,12 +189,30 @@ exports.handler = async (event) => {
     };
   }
 
+  let updateExpression = `set #type = :t, #appId = :appId, #contactPoint = :contactPoint,
+  #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
+  created = :created, updated = :updated`;
+
+  let expressionAttributeValues = {
+    ':t': 'web',
+    ':appId': appId,
+    ':contactPoint': contactPoint,
+    ':name': body.name,
+    ':createdBy': identity['user-id'],
+    ':updatedBy': identity['user-id'],
+    ':created': (new Date()).toISOString(),
+    ':updated': (new Date()).toISOString(),
+  };
+
+  if(body.description) {
+    updateExpression += ', description = :description';
+    expressionAttributeValues[':description'] =  body.description;
+  }
+
   const updateParams = {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
     Key: { 'tenant-id': tenantId, id: smoochIntegration._id },
-    UpdateExpression: `set #type = :t, #appId = :appId, #contactPoint = :contactPoint,
-    #name = :name, description = :description, #createdBy = :createdBy, #updatedBy = :updatedBy,
-    created = :created, updated = :updated`,
+    UpdateExpression: updateExpression,
     ExpressionAttributeNames: {
       '#type': 'type',
       '#appId': 'app-id',
@@ -203,22 +221,13 @@ exports.handler = async (event) => {
       '#updatedBy': 'updated-by',
       '#name': 'name',
     },
-    ExpressionAttributeValues: {
-      ':t': 'web',
-      ':appId': appId,
-      ':contactPoint': contactPoint,
-      ':name': body.name,
-      ':description': body.description,
-      ':createdBy': identity['user-id'],
-      ':updatedBy': identity['user-id'],
-      ':created': (new Date()).toISOString(),
-      ':updated': (new Date()).toISOString(),
-    },
+    ExpressionAttributeValues: expressionAttributeValues,
     ReturnValues: 'ALL_NEW',
   };
 
   let dynamoValue;
-
+  
+  log.debug('Creating record in DynamoDB', { ...logContext, updateParams });
   try {
     const { Attributes } = await docClient.update(updateParams).promise();
     dynamoValue = Attributes;

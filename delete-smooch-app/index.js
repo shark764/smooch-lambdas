@@ -75,6 +75,30 @@ exports.handler = async (event) => {
     };
   }
 
+  try {
+    const { integrations } = await smooch.integrations.list({ appId });
+
+    if (integrations.length > 0) {
+      const errMsg = 'Integrations found for this app';
+
+      log.warn(errMsg, { ...logContext, smoochIntegrations: integrations });
+
+      return {
+        status: 400,
+        body: { message: errMsg },
+      };
+    }
+  } catch (error) {
+    const errMsg = 'An error occured trying to retrieve integrations';
+
+    log.error(errMsg, logContext, error);
+
+    return {
+      status: 400,
+      body: { message: errMsg },
+    };
+  }
+
   const deleteParams = {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
     Key: {
