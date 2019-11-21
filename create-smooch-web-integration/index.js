@@ -61,7 +61,7 @@ exports.handler = async (event) => {
   const { body, params, identity } = event;
   const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
 
-  log.info('create-smooch-web-integration was called', logContext);
+  log.info('create-smooch-web-integration was called', { ...logContext, params });
 
   try {
     await bodySchema.validateAsync(body);

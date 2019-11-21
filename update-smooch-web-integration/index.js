@@ -61,6 +61,8 @@ exports.handler = async (event) => {
   const { body, params, identity } = event;
   const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'], smoochIntegrationId: params.id };
 
+  log.info('update-smooch-web-integration was called', { ...logContext, params });
+
   try {
     await bodySchema.validateAsync(body);
   } catch (error) {
@@ -286,7 +288,7 @@ exports.handler = async (event) => {
     ...dynamoValueCased,
   };
 
-  log.info('get-smooch-web-integration complete', { ...logContext, result });
+  log.info('update-smooch-web-integration complete', { ...logContext, result });
 
   return {
     status: 201,

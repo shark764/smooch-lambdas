@@ -28,7 +28,7 @@ exports.handler = async (event) => {
   const { params, body, identity } = event;
   const logContext = { tenantId: params['tenant-id'], userId: identity['user-id'] };
 
-  log.info('create-smooch-app was called', logContext);
+  log.info('create-smooch-app was called', { ...logContext, params });
 
   try {
     await paramsSchema.validateAsync(params);
