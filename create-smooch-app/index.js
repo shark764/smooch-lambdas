@@ -12,6 +12,10 @@ AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
 
+const bodySchema = Joi.object({
+  name: Joi.string().required(),
+});
+
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid(),
   'user-id': Joi.any(),
@@ -21,7 +25,7 @@ const paramsSchema = Joi.object({
 
 exports.handler = async (event) => {
   const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
-  const { params, identity } = event;
+  const { params, body, identity } = event;
   const logContext = { tenantId: params['tenant-id'], userId: identity['user-id'] };
 
   log.info('create-smooch-app was called', logContext);
@@ -34,6 +38,19 @@ exports.handler = async (event) => {
     return {
       status: 400,
       body: { message: `Error: invalid params value ${error.details[0].message}` },
+    };
+  }
+
+  try {
+    await bodySchema.validateAsync(body);
+  } catch (error) {
+    const errMsg = 'Error: invalid body value';
+
+    log.warn(errMsg, { ...logContext, validationMessage: error.details[0].message }, error);
+
+    return {
+      status: 400,
+      body: { message: `${errMsg} ${error.details[0].message}` },
     };
   }
 
@@ -103,7 +120,7 @@ exports.handler = async (event) => {
 
   let newApp;
   try {
-    newApp = await smooch.apps.create({ name: tenantId });
+    newApp = await smooch.apps.create({ name: body.name });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to create an App';
 
@@ -217,7 +234,7 @@ exports.handler = async (event) => {
     status: 200,
     body: {
       app: newApp.app,
-      webhook,
+      webhook: webhook.webhook,
     },
   };
 };
