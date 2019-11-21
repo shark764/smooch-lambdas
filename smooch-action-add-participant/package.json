@@ -5,6 +5,8 @@
   "repository": {},
   "license": "UNLICENSED",
   "dependencies": {
-    "serenova-js-utils": "1.7.1"
+    "axios": "^0.19.0",
+    "serenova-js-utils": "1.7.1",
+    "uuid": "^3.3.3"
   }
 }
