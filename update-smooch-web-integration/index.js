@@ -234,7 +234,7 @@ exports.handler = async (event) => {
   if (body.description) {
     if (body.name) updateExpression += ',';
     updateExpression += 'description = :d';
-    expressionAttribute[':d'] = body.description;
+    expressionAttributeNames[':d'] = body.description;
   }
   if (body.contactPoint) {
     if (body.name || body.description) updateExpression += ',';

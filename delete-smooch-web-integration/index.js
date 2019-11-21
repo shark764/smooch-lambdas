@@ -114,7 +114,7 @@ exports.handler = async (event) => {
   logContext.smoochAppId = appId;
 
   try {
-    await smooch.integrations.delete(appId, integrationId);
+    await smooch.integrations.delete({ appId, integrationId });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to delete an web integration';
 
