@@ -130,11 +130,20 @@ exports.handler = async (event) => {
 
   const dynamoValueCased = {};
 
+  if (smoochIntegration.brandColor) {
+    smoochIntegration.brandColor = `#${smoochIntegration.brandColor}`;
+  }
+  if (smoochIntegration.conversationColor) {
+    smoochIntegration.conversationColor = `#${smoochIntegration.conversationColor}`;
+  }
+  if (smoochIntegration.actionColor) {
+    smoochIntegration.actionColor = `#${smoochIntegration.actionColor}`;
+  }
+
   delete smoochIntegration.integrationOrder;
   delete smoochIntegration._id;
   delete smoochIntegration.displayName;
   delete smoochIntegration.status;
-  delete smoochIntegration.type;
   delete dynamoValue.type;
   smoochIntegration.prechatCapture = smoochIntegration.prechatCapture.fields[0].name;
   Object.keys(dynamoValue).forEach((v) => {

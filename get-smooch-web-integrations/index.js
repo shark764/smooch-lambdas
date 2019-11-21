@@ -63,6 +63,9 @@ exports.handler = async (event) => {
     };
   }
 
+  // Remove `type` from records
+  smoochIntegrations = smoochIntegrations.map(({ type, ...otherAttrs }) => otherAttrs);
+
   log.info('get-smooch-web-integrations complete', logContext);
 
   return {

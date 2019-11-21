@@ -238,6 +238,8 @@ exports.handler = async (event) => {
   delete smoochIntegration.integrationOrder;
   delete smoochIntegration._id;
   delete dynamoValue.type;
+  delete smoochIntegration.displayName;
+  delete smoochIntegration.status;
   smoochIntegration.prechatCapture = smoochIntegration.prechatCapture.fields[0].name;
   Object.keys(dynamoValue).forEach((v) => {
     dynamoValueCased[string.kebabCaseToCamelCase(v)] = dynamoValue[v];
