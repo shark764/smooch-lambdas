@@ -206,6 +206,7 @@ exports.handler = async (event) => {
     Item: {
       'tenant-id': tenantId,
       id: newAppId,
+      name: body.name,
       type: 'app',
       'webhook-id': webhook.webhook._id,
       'created-by': identity['user-id'],
