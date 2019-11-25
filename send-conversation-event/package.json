@@ -1,0 +1,13 @@
+{
+  "name": "send-conversation-event",
+  "version": "1.0.0",
+  "description": "Send typing and read indicators",
+  "repository": {},
+  "license": "UNLICENSED",
+  "dependencies": {
+    "aws-sdk": "^2.540.0",
+    "axios": "^0.19.0",
+    "serenova-js-utils": "1.7.1",
+    "smooch-core": "^8.7.3"
+  }
+}
