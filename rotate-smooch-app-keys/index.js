@@ -14,7 +14,7 @@ exports.handler = async () => {
   const { AWS_REGION, ENVIRONMENT } = process.env;
 
   const accountSecrets = await secretsClient.getSecretValue({
-    SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/account`,
+    SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-account`,
   }).promise();
   const accountKeys = JSON.parse(accountSecrets.SecretString);
   const smooch = new SmoochCore({
@@ -37,7 +37,7 @@ exports.handler = async () => {
 
   const appsResult = await docClient.query(params).promise();
 
-  const appSecretName = `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`;
+  const appSecretName = `${AWS_REGION}-${ENVIRONMENT}-smooch-app`;
 
   let hasErrored = false;
   for (const app of appsResult.Items) { // eslint-disable-line no-restricted-syntax

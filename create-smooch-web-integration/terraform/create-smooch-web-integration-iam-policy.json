@@ -23,7 +23,7 @@
         "Action": "secretsmanager:GetSecretValue",
         "Effect": "Allow",
         "Resource": [
-            "arn:aws:secretsmanager:*:*:secret:*/*/cxengage/smooch/app-??????"
+            "arn:aws:secretsmanager:*:*:secret:*-smooch-app-??????"
         ]
     }]
 }

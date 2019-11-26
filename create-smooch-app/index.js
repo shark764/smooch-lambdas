@@ -86,7 +86,7 @@ exports.handler = async (event) => {
   let accountSecrets;
   try {
     accountSecrets = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/account`,
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-account`,
     }).promise();
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
@@ -153,7 +153,7 @@ exports.handler = async (event) => {
   let appSecrets;
   try {
     appSecrets = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`,
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
     }).promise();
   } catch (error) {
     const errMsg = 'An Error has occurred (1) trying to save App credentials';
@@ -172,7 +172,7 @@ exports.handler = async (event) => {
 
   try {
     await secretsClient.putSecretValue({
-      SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`,
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
       SecretString: JSON.stringify(appKeys),
     }).promise();
   } catch (error) {

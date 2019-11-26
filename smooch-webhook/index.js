@@ -139,7 +139,7 @@ async function handleFormResponse({
 
     try {
       accountSecrets = await secretsClient.getSecretValue({
-        SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`,
+        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
       }).promise();
     } catch (error) {
       log.error('An Error has occurred trying to retrieve digital channels credentials', logContext, error);

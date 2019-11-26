@@ -41,7 +41,7 @@ exports.handler = async (event) => {
   let appSecrets;
   try {
     appSecrets = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}/${ENVIRONMENT}/cxengage/smooch/app`,
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
     }).promise();
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';

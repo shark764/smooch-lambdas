@@ -15,6 +15,6 @@
         "Sid": "GetAppSecrets",
         "Action": "secretsmanager:GetSecretValue",
         "Effect": "Allow",
-        "Resource": "arn:aws:secretsmanager:*:*:secret:*/*/cxengage/smooch/app-??????"
+        "Resource": "arn:aws:secretsmanager:*:*:secret:*-smooch-app-??????"
     }]
 }
