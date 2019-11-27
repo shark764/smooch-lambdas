@@ -13,7 +13,9 @@ const log = require('serenova-js-utils/lambda/log');
 const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
 const retries = 2;
 
+
 AWS.config.update({ region: process.env.AWS_REGION });
+const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
 const auth = {
@@ -288,16 +290,46 @@ function endInteraction({ tenantId, interactionId, logContext }) {
 }
 
 async function sendCustomerMessageToParticipants({
-  tenantId, interactionId, logContext,
+  tenantId, interactionId, message, logContext,
 }) {
   try {
     const { data } = await getMetadata({ tenantId, interactionId });
     log.debug('Got interaction metadata', { ...logContext, interaction: data });
+    const { participants } = data;
+
+    await Promise.all(participants.map(async (participant) => {
+      const { resourceId, sessionId } = participant;
+      const payload = JSON.stringify({
+        tenantId,
+        interactionId,
+        actionId: uuidv1(),
+        subId: uuidv1(),
+        type: 'send-message',
+        resourceId,
+        sessionId,
+        messageType: 'received-message',
+        message: {
+          id: message._id,
+          from: message.from,
+          timestamp: message.received * 1000,
+          type: 'customer',
+          text: message.text,
+        },
+      });
+      const QueueName = `${tenantId}_${resourceId}`;
+      const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+      const sqsMessageAction = {
+        MessageBody: payload,
+        QueueUrl,
+      };
+
+      log.info('Sending message to resource', { ...logContext, payload });
+      await sqs.sendMessage(sqsMessageAction).promise();
+    }));
   } catch (error) {
-    log.error('Error getting interaction metadata', logContext, error);
+    log.error('Error sending message to participants', logContext, error);
     throw error;
   }
-  log.debug('Sending message to resource', logContext);
 }
 
 async function getMetadata({ tenantId, interactionId }) {
