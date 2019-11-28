@@ -134,7 +134,7 @@ exports.handler = async (event) => {
     },
   };
 
-  log.debug('Deleting record in DynamoDB', { ...logContext, deleteParams});
+  log.debug('Deleting record in DynamoDB', { ...logContext, deleteParams });
   try {
     await docClient.delete(deleteParams).promise();
   } catch (error) {

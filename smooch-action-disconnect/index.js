@@ -17,14 +17,14 @@ exports.handler = async (event) => {
   } = JSON.parse(event.Records[0]);
   const { 'app-id': appId, 'user-id': userId, source } = metadata;
   const {
-    'id': resourceId,
+    id: resourceId,
   } = parameters.resource;
   const logContext = {
     tenantId,
     interactionId,
     smoochAppId: appId,
     smoochUserId: userId,
-    resourceId
+    resourceId,
   };
 
   log.info('smooch-action-disconnect was called', { ...logContext, parameters });
@@ -34,7 +34,7 @@ exports.handler = async (event) => {
     const newParticipants = removeParticipant(participants, resourceId);
 
     if (participants === newParticipants) {
-      console.warn('Participant does not exist', { ...logContext, participants, resourceId });
+      log.warn('Participant does not exist', { ...logContext, participants, resourceId });
     } else {
       const newMetadata = { ...metadata, participants: newParticipants };
 
@@ -86,13 +86,11 @@ async function disconnectResource({ tenantId, interactionId, metadata }) {
     url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata?id=${uuidv1()}`,
     data: {
       source: 'smooch',
-      metadata
-    }
-  })
+      metadata,
+    },
+  });
 }
 
 function removeParticipant(participants, resourceId) {
-  return participants.filter(participant => participant.resourceId !== resourceId);
+  return participants.filter((participant) => participant.resourceId !== resourceId);
 }
-
-

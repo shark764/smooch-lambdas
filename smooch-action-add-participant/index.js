@@ -41,7 +41,7 @@ exports.handler = async (event) => {
     metadata,
   };
 
-  const {participants} = metadata;
+  const { participants } = metadata;
   const existingParticipant = participants.filter(
     (participant) => participant.resourceId === resourceId,
   );

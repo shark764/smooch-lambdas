@@ -274,6 +274,16 @@ exports.handler = async (event) => {
     }
   }
 
+  if (smoochIntegration.brandColor) {
+    smoochIntegration.brandColor = `#${smoochIntegration.brandColor}`;
+  }
+  if (smoochIntegration.conversationColor) {
+    smoochIntegration.conversationColor = `#${smoochIntegration.conversationColor}`;
+  }
+  if (smoochIntegration.actionColor) {
+    smoochIntegration.actionColor = `#${smoochIntegration.actionColor}`;
+  }
+
   const dynamoValueCased = {};
 
   delete smoochIntegration.integrationOrder;

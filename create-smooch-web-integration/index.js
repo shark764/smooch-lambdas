@@ -193,7 +193,7 @@ exports.handler = async (event) => {
   #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
   created = :created, updated = :updated`;
 
-  let expressionAttributeValues = {
+  const expressionAttributeValues = {
     ':t': 'web',
     ':appId': appId,
     ':contactPoint': contactPoint,
@@ -204,9 +204,9 @@ exports.handler = async (event) => {
     ':updated': (new Date()).toISOString(),
   };
 
-  if(body.description) {
+  if (body.description) {
     updateExpression += ', description = :description';
-    expressionAttributeValues[':description'] =  body.description;
+    expressionAttributeValues[':description'] = body.description;
   }
 
   const updateParams = {
@@ -226,7 +226,7 @@ exports.handler = async (event) => {
   };
 
   let dynamoValue;
-  
+
   log.debug('Creating record in DynamoDB', { ...logContext, updateParams });
   try {
     const { Attributes } = await docClient.update(updateParams).promise();
@@ -240,6 +240,16 @@ exports.handler = async (event) => {
       status: 500,
       body: { message: errMsg, error },
     };
+  }
+
+  if (smoochIntegration.brandColor) {
+    smoochIntegration.brandColor = `#${smoochIntegration.brandColor}`;
+  }
+  if (smoochIntegration.conversationColor) {
+    smoochIntegration.conversationColor = `#${smoochIntegration.conversationColor}`;
+  }
+  if (smoochIntegration.actionColor) {
+    smoochIntegration.actionColor = `#${smoochIntegration.actionColor}`;
   }
 
   const dynamoValueCased = {};
