@@ -248,7 +248,7 @@ async function createInteraction({
     id: interactionId,
     customer,
     contactPoint,
-    source,
+    source: 'smooch',
     channelType: 'messaging',
     direction: 'inbound',
     interaction: {
