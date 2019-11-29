@@ -335,7 +335,7 @@ async function sendCustomerMessageToParticipants({
 async function getMetadata({ tenantId, interactionId }) {
   return axios({
     method: 'get',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}`,
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
     auth,
   });
 }

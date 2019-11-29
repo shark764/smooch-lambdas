@@ -16,7 +16,7 @@ exports.handler = async (event) => {
     'interaction-id': interactionId,
     metadata,
     parameters,
-  } = JSON.parse(event.Records[0]);
+  } = JSON.parse(event.Records[0].body);
   const { 'app-id': appId, 'user-id': userId } = metadata;
   const logContext = {
     tenantId,
@@ -25,7 +25,10 @@ exports.handler = async (event) => {
     smoochUserId: userId,
   };
 
-  log.info('smooch-action-add-participant was called', { ...logContext, parameters });
+  log.info('smooch-action-add-participant was called', {
+    ...logContext,
+    parameters,
+  });
   const {
     'user-id': resourceId,
     'session-id': sessionId,
@@ -42,11 +45,11 @@ exports.handler = async (event) => {
   };
 
   const { participants } = metadata;
-  const existingParticipant = participants.filter(
+  const existingParticipant = participants.find(
     (participant) => participant.resourceId === resourceId,
   );
 
-  if (existingParticipant.length === 0) {
+  if (!existingParticipant) {
     try {
       const { data } = await joinParticipant(newMetadata);
       log.debug('Added participant to interaction metadata', {
@@ -80,7 +83,7 @@ exports.handler = async (event) => {
     log.error(errMsg, logContext, error);
     throw error;
   }
-  log.info('smooch-action-send-message was successful', logContext);
+  log.info('smooch-action-add-participant was successful', logContext);
 };
 
 async function joinParticipant({
@@ -89,15 +92,14 @@ async function joinParticipant({
   resource,
   metadata,
 }) {
-  const participants = metadata.participants.push(resource);
-  const newMetadata = { ...metadata, participants };
+  metadata.participants.push(resource);
 
   return axios({
     method: 'post',
     url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata?id=${uuidv1()}`,
     data: {
       source: 'smooch',
-      metadata: newMetadata,
+      metadata,
     },
     auth,
   });
