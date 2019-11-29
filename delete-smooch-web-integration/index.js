@@ -8,6 +8,7 @@ const secretsClient = new AWS.SecretsManager();
 const Joi = require('@hapi/joi');
 const log = require('serenova-js-utils/lambda/log');
 const SmoochCore = require('smooch-core');
+const { validateTenantPermissions } = require('serenova-js-utils/lambda/api');
 
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -21,6 +22,7 @@ const paramsSchema = Joi.object({
   'remote-addr': Joi.any(),
   auth: Joi.any(),
 });
+const lambdaPermissions = ['WEB_INTEGRATIONS_APP_UPDATE'];
 
 exports.handler = async (event) => {
   const { AWS_REGION, ENVIRONMENT } = process.env;
@@ -58,6 +60,19 @@ exports.handler = async (event) => {
   }
 
   const { 'tenant-id': tenantId, id: integrationId } = params;
+  const validPermissions = validateTenantPermissions(tenantId, identity, lambdaPermissions);
+
+  if (!validPermissions) {
+    const errMsg = 'Error not enough permissions';
+
+    log.warn(errMsg, logContext);
+
+    return {
+      status: 400,
+      body: { message: errMsg },
+    };
+  }
+
   const queryParams = {
     Key: {
       'tenant-id': tenantId,

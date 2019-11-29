@@ -7,7 +7,7 @@
   "dependencies": {
     "@hapi/joi": "^16.1.7",
     "aws-sdk": "^2.544.0",
-    "serenova-js-utils": "1.7.1",
+    "serenova-js-utils": "1.8.0",
     "smooch-core": "^8.7.4"
   }
 }
