@@ -81,7 +81,7 @@ exports.handler = async (event) => {
             }
             case 'text': {
               log.debug('Web type received: text', logContext);
-              sendCustomerMessageToParticipants({
+              await sendCustomerMessageToParticipants({
                 appId,
                 userId,
                 tenantId,

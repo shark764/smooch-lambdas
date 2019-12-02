@@ -10,7 +10,9 @@ const auth = {
 
 exports.handler = async (event) => {
   const {
+    id,
     'tenant-id': tenantId,
+    'sub-id': subId,
     'interaction-id': interactionId,
     metadata,
     parameters,
