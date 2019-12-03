@@ -7,6 +7,7 @@ const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
 const axios = require('axios');
 const log = require('serenova-js-utils/lambda/log');
+const { validatePlatformPermissions } = require('serenova-js-utils/lambda/api');
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -22,6 +23,8 @@ const paramsSchema = Joi.object({
   'remote-addr': Joi.any(),
   auth: Joi.any(),
 });
+
+const lambdaPermissions = ['PLATFORM_DIGITAL_CHANNELS_APP'];
 
 exports.handler = async (event) => {
   const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
@@ -55,6 +58,18 @@ exports.handler = async (event) => {
   }
 
   const { 'tenant-id': tenantId, auth } = params;
+  const validPermissions = validatePlatformPermissions(identity, lambdaPermissions);
+
+  if (!validPermissions) {
+    const errMsg = 'Error not enough permissions';
+
+    log.warn(errMsg, logContext);
+
+    return {
+      status: 400,
+      body: { message: errMsg },
+    };
+  }
   const apiUrl = `https://${ENVIRONMENT}-api.${DOMAIN}/v1/tenants/${tenantId}`;
   try {
     const response = await axios.get(apiUrl, { headers: { Authorization: auth } });
