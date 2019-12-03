@@ -1,6 +1,6 @@
 {
   "name": "smooch-lambdas",
-  "version": "0.9.8",
+  "version": "0.9.9",
   "dependencies": {},
   "scripts": {
     "build": "node install.js && node zip.js",

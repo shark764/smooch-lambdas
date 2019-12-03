@@ -2,6 +2,7 @@
  * Lambda that sends messages
  */
 
+const SmoochCore = require('smooch-core');
 const log = require('serenova-js-utils/lambda/log');
 const axios = require('axios');
 const AWS = require('aws-sdk');
@@ -50,7 +51,6 @@ exports.handler = async (event) => {
   }
 
   const appKeys = JSON.parse(appSecrets.SecretString);
-
   let interactionMetadata;
   try {
     const { data } = await getMetadata({ tenantId, interactionId });
@@ -69,31 +69,41 @@ exports.handler = async (event) => {
     };
   }
 
-  const { 'app-id': appId } = interactionMetadata;
-  const smoochApiUrl = `https://api.smooch.io/v1.1/apps/${appId}/appusers/${userId}/messages`;
+  const { appId, userId } = interactionMetadata;
   logContext.smoochAppId = appId;
+
+  let smooch;
+  try {
+    smooch = new SmoochCore({
+      keyId: appKeys[`${appId}-id`],
+      secret: appKeys[`${appId}-secret`],
+      scope: 'app',
+    });
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
+    log.error(errMsg, logContext, error);
+    return {
+      status: 500,
+      body: { message: errMsg },
+    };
+  }
 
   let messageSent;
   try {
-    const { data } = await axios.post(smoochApiUrl,
-      {
+    messageSent = await smooch.appUsers.sendMessage({
+      appId,
+      userId,
+      message: {
         text: message,
-        role: 'appMaker',
         type: 'text',
+        role: 'appMaker',
         metadata: {
           type: 'agent',
           from,
           resourceId,
         },
       },
-      {
-        headers: {
-          Authorization: `Basic ${Buffer.from(`${appKeys[`${appId}-id`]}:${appKeys[`${appId}-secret`]}`).toString('base64')}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-    messageSent = data.message;
+    });
   } catch (error) {
     const errMsg = 'An error occurred sending message';
 
@@ -106,12 +116,12 @@ exports.handler = async (event) => {
   }
 
   messageSent = {
-    id: messageSent._id,
-    text: messageSent.text,
+    id: messageSent.message._id,
+    text: messageSent.message.text,
     type: 'agent',
     from,
     resourceId,
-    timestamp: messageSent.received * 1000,
+    timestamp: messageSent.message.received * 1000,
   };
 
   log.info('Sent smooch message successfully', { ...logContext, smoochMessage: messageSent });
@@ -125,7 +135,7 @@ exports.handler = async (event) => {
 async function getMetadata({ tenantId, interactionId }) {
   return axios({
     method: 'get',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}`,
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
     auth,
   });
 }
