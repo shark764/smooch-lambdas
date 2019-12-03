@@ -2,6 +2,7 @@
  * Lambda that retrieve conversation history from an interaction
  */
 
+const SmoochCore = require('smooch-core');
 const log = require('serenova-js-utils/lambda/log');
 const axios = require('axios');
 const AWS = require('aws-sdk');
@@ -38,7 +39,6 @@ exports.handler = async (event) => {
   }
 
   const appKeys = JSON.parse(appSecrets.SecretString);
-
   let interactionMetadata;
   try {
     const { data } = await getMetadata({ tenantId, interactionId });
@@ -57,21 +57,33 @@ exports.handler = async (event) => {
     };
   }
 
-  const { 'app-id': appId, 'user-id': userId, 'customer-name': customerName } = interactionMetadata;
-  const smoochApiUrl = `https://api.smooch.io/v1.1/apps/${appId}/appusers/${userId}/messages`;
-  let messages;
+  const { appId, userId, customer } = interactionMetadata;
   logContext.smoochAppId = appId;
   logContext.smoochUserId = userId;
 
+  let smooch;
   try {
-    const { data } = await axios.get(smoochApiUrl, {
-      headers: {
-        Authorization: `Basic ${Buffer.from(`${appKeys[`${appId}-id`]}:${appKeys[`${appId}-secret`]}`).toString('base64')}`,
-        'Content-Type': 'application/json',
-      },
+    smooch = new SmoochCore({
+      keyId: appKeys[`${appId}-id`],
+      secret: appKeys[`${appId}-secret`],
+      scope: 'app',
     });
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
+    log.error(errMsg, logContext, error);
+    return {
+      status: 500,
+      body: { message: errMsg },
+    };
+  }
 
-    messages = data.messages;
+  let messages;
+
+  try {
+    messages = await smooch.appUsers.getMessages({
+      appId,
+      userId,
+    });
   } catch (error) {
     const errMsg = 'An error occurred fetching interaction messages';
 
@@ -84,12 +96,14 @@ exports.handler = async (event) => {
   }
 
   messages = messages.messages
-    .filter((message) => (message.role === 'appUser' && message.type !== 'customer') || message.metadata)
+    // Keep messages from customer that are not form response.
+    // Keep agent messages (they have metadata for their name and id).
+    .filter((message) => (message.role === 'appUser' && message.type !== 'formResponse') || message.metadata)
     .map((message) => ({
       id: message._id,
       text: message.text,
       type: message.role === 'appMaker' ? message.metadata.type : 'customer',
-      from: message.role === 'appMaker' ? message.metadata.from : customerName,
+      from: message.role === 'appMaker' ? message.metadata.from : customer,
       resourceId: message.role === 'appMaker' ? message.metadata.resourceId : null,
       timestamp: message.received * 1000,
     }));
@@ -98,14 +112,14 @@ exports.handler = async (event) => {
 
   return {
     status: 200,
-    body: { messages },
+    body: { messages, interactionId },
   };
 };
 
 async function getMetadata({ tenantId, interactionId }) {
   return axios({
     method: 'get',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}`,
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
     auth,
   });
 }
