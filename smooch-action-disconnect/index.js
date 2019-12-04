@@ -46,13 +46,13 @@ exports.handler = async (event) => {
   logContext.resourceId = resourceId;
 
   const { participants } = metadata;
-  const resource = participants.findIndex((e) => e['resource-id'] === resourceId);
+  const updatedParticipants = participants.filter((participant) => participant['resource-id'] !== resourceId);
 
-  if (resource < 0) {
+  if (participants.length !== updatedParticipants.length) {
     log.warn('Participant does not exist', { ...logContext, participants, resourceId });
   } else {
     try {
-      delete metadata.participants[resource];
+      metadata.participants = updatedParticipants;
       const { data } = await disconnectResource({ tenantId, interactionId, metadata });
       log.debug('Removed participant from interaction metadata', { ...logContext, metadata, data });
     } catch (error) {

@@ -188,7 +188,14 @@ async function handleFormResponse({
 
     try {
       const { data } = await createInteraction({
-        interactionId: newInteractionId, appId, userId, tenantId, source: 'web', contactPoint, customer, logContext,
+        interactionId: newInteractionId,
+        appId,
+        userId,
+        tenantId,
+        source: 'web',
+        contactPoint,
+        customer,
+        logContext,
       });
       interaction = data;
       log.debug('Created interaction', { ...logContext, interaction });
@@ -203,6 +210,7 @@ async function handleFormResponse({
         appId,
         userId,
         appUser: {
+          givenName: customer,
           properties: {
             interactionId: newInteractionId,
             customer,
@@ -249,6 +257,10 @@ async function handleFormResponse({
 async function createInteraction({
   interactionId, appId, userId, tenantId, source, contactPoint, customer, logContext,
 }) {
+  const customerNames = customer.split(' ');
+  const firstName = customerNames.shift();
+  const lastName = customerNames.join(' ');
+
   const interaction = {
     tenantId,
     id: interactionId,
@@ -260,6 +272,8 @@ async function createInteraction({
     interaction: {
       customerMetadata: {
         id: customer,
+        firstName,
+        lastName,
       },
     },
     metadata: {
@@ -316,7 +330,7 @@ async function sendCustomerMessageToParticipants({
         messageType: 'received-message',
         message: {
           id: message._id,
-          from: message.from,
+          from: message.name,
           timestamp: message.received * 1000,
           type: 'customer',
           text: message.text,

@@ -27,7 +27,8 @@ exports.handler = async (event) => {
     identity,
   } = event;
   const { 'tenant-id': tenantId, 'interaction-id': interactionId } = params;
-  const { 'user-id': resourceId, name: from } = identity;
+  const { 'user-id': resourceId, 'first-name': firstName, 'last-name': lastName } = identity;
+  const from = `${firstName} ${lastName}`;
   const {
     message,
   } = body;
