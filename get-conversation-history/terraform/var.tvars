@@ -1,6 +1,6 @@
 timeout = 30
 memory_size = 128
-zip_path="smooch-webhook/smooch-webhook.zip"
+zip_path="get-conversation-history/get-conversation-history.zip"
 handler = "index.handler"
 environmentVars = {
   "ENVIRONMENT" = "${ENVIRONMENT}",
