@@ -22,11 +22,11 @@ const paramsSchema = Joi.object({
 const lambdaPermissions = ['PLATFORM_DIGITAL_CHANNELS_APP'];
 
 exports.handler = async (event) => {
-  const { AWS_REGION, ENVIRONMENT } = process.env;
+  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
   const { params, identity } = event;
   const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
 
-  log.info('delete-smooch-app was called', { ...logContext, params });
+  log.info('delete-smooch-app was called', { ...logContext, params, smoochApiUrl });
 
   try {
     await paramsSchema.validateAsync(params);
@@ -71,12 +71,14 @@ exports.handler = async (event) => {
   }
 
   let smooch;
+
   try {
     const accountKeys = JSON.parse(accountSecrets.SecretString);
     smooch = new SmoochCore({
       keyId: accountKeys.id,
       secret: accountKeys.secret,
       scope: 'account',
+      serviceUrl: smoochApiUrl,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to validate digital channels credentials';

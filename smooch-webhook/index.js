@@ -10,7 +10,12 @@ const retry = require('async-retry');
 const axios = require('axios');
 const log = require('serenova-js-utils/lambda/log');
 
-const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
+const {
+  AWS_REGION,
+  ENVIRONMENT,
+  DOMAIN,
+  smooch_api_url: smoochApiUrl,
+} = process.env;
 const retries = 2;
 
 
@@ -35,7 +40,7 @@ exports.handler = async (event) => {
     interactionId, tenantId, smoochAppId: appId, smoochUserId: userId, smoochTrigger: trigger,
   };
 
-  log.info('smooch-webhook was called', { ...logContext, body });
+  log.info('smooch-webhook was called', { ...logContext, body, smoochApiUrl });
 
   if (event.Records.length !== 1) {
     log.error('Did not receive exactly one record from SQS. Handling the first.', { ...logContext, records: event.Records });
@@ -155,6 +160,7 @@ async function handleFormResponse({
         keyId: accountKeys[`${appId}-id`],
         secret: accountKeys[`${appId}-secret`],
         scope: 'app',
+        serviceUrl: smoochApiUrl,
       });
     } catch (error) {
       log.error('An Error has occurred trying to retrieve digital channels credentials', logContext, error);

@@ -59,11 +59,11 @@ const paramsSchema = Joi.object({
 const lambdaPermissions = ['WEB_INTEGRATIONS_APP_UPDATE'];
 
 exports.handler = async (event) => {
-  const { AWS_REGION, ENVIRONMENT } = process.env;
+  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
   const { body, params, identity } = event;
   const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
 
-  log.info('create-smooch-web-integration was called', { ...logContext, params });
+  log.info('create-smooch-web-integration was called', { ...logContext, params, smoochApiUrl });
 
   try {
     await bodySchema.validateAsync(body);
@@ -154,12 +154,14 @@ exports.handler = async (event) => {
   }
 
   let smooch;
+
   try {
     const appKeys = JSON.parse(appSecrets.SecretString);
     smooch = new SmoochCore({
       keyId: appKeys[`${appId}-id`],
       secret: appKeys[`${appId}-secret`],
       scope: 'app',
+      serviceUrl: smoochApiUrl,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to validate digital channels credentials';

@@ -12,7 +12,12 @@ const auth = {
   username: 'titan-gateways@liveops.com',
   password: 'bCsW53mo45WWsuZ5',
 };
-const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
+const {
+  AWS_REGION,
+  ENVIRONMENT,
+  DOMAIN,
+  smooch_api_url: smoochApiUrl,
+} = process.env;
 
 
 exports.handler = async (event) => {
@@ -20,7 +25,7 @@ exports.handler = async (event) => {
   const { 'tenant-id': tenantId, 'interaction-id': interactionId } = params;
   const logContext = { tenantId, interactionId };
 
-  log.info('get-conversation-history was called', { ...logContext, params });
+  log.info('get-conversation-history was called', { ...logContext, params, smoochApiUrl });
 
   let appSecrets;
   try {
@@ -67,6 +72,7 @@ exports.handler = async (event) => {
       keyId: appKeys[`${appId}-id`],
       secret: appKeys[`${appId}-secret`],
       scope: 'app',
+      serviceUrl: smoochApiUrl,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';

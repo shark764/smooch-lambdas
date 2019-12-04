@@ -24,11 +24,11 @@ AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event) => {
-  const { AWS_REGION, ENVIRONMENT } = process.env;
+  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
   const { params, identity } = event;
   const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'], smoochIntegrationId: params.id };
 
-  log.info('get-smooch-web-integration was called', { ...logContext, params });
+  log.info('get-smooch-web-integration was called', { ...logContext, params, smoochApiUrl });
 
   try {
     await paramsSchema.validateAsync(params);
@@ -88,7 +88,7 @@ exports.handler = async (event) => {
       dynamoValue = Item;
       appId = dynamoValue['app-id'];
     } else {
-      const errMsg = 'An Error has occurred trying to fetch an app';
+      const errMsg = 'The app does not exist for this tenant';
 
       log.error(errMsg, logContext);
 
@@ -115,6 +115,7 @@ exports.handler = async (event) => {
       keyId: appKeys[`${appId}-id`],
       secret: appKeys[`${appId}-secret`],
       scope: 'app',
+      serviceUrl: smoochApiUrl,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to validate digital channels credentials';

@@ -19,11 +19,15 @@ const lambdaPermissions = ['DIGITAL_CHANNELS_APP_READ'];
 
 
 exports.handler = async (event) => {
-  const { AWS_REGION, ENVIRONMENT } = process.env;
+  const {
+    AWS_REGION,
+    ENVIRONMENT,
+    smooch_api_url: smoochApiUrl,
+  } = process.env;
   const { params, identity } = event;
   const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
 
-  log.info('get-smooch-apps was called', { ...logContext, params });
+  log.info('get-smooch-apps was called', { ...logContext, params, smoochApiUrl });
 
   try {
     await paramsSchema.validateAsync(params);

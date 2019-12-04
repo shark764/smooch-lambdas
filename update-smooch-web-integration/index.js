@@ -61,11 +61,11 @@ const paramsSchema = Joi.object({
 const lambdaPermissions = ['WEB_INTEGRATIONS_APP_UPDATE'];
 
 exports.handler = async (event) => {
-  const { AWS_REGION, ENVIRONMENT } = process.env;
+  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl, } = process.env;
   const { body, params, identity } = event;
   const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'], smoochIntegrationId: params.id };
 
-  log.info('update-smooch-web-integration was called', { ...logContext, params });
+  log.info('update-smooch-web-integration was called', { ...logContext, params, smoochApiUrl });
 
   try {
     await bodySchema.validateAsync(body);
@@ -132,7 +132,7 @@ exports.handler = async (event) => {
     if (queryResponse.Item) {
       appId = queryResponse.Item['app-id'];
     } else {
-      const errMsg = 'An Error has occurred trying to fetch an app';
+      const errMsg = 'The app does not exist for this tenant';
 
       log.error(errMsg, logContext);
 
@@ -159,6 +159,7 @@ exports.handler = async (event) => {
       keyId: appKeys[`${appId}-id`],
       secret: appKeys[`${appId}-secret`],
       scope: 'app',
+      serviceUrl: smoochApiUrl,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to validate digital channels credentials';

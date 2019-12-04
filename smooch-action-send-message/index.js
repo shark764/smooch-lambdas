@@ -2,6 +2,7 @@
  * Lambda that sends system messages from flow
  */
 
+const SmoochCore = require('smooch-core');
 const log = require('serenova-js-utils/lambda/log');
 const axios = require('axios');
 const AWS = require('aws-sdk');
@@ -14,7 +15,12 @@ const auth = {
 };
 
 const secretsClient = new AWS.SecretsManager();
-const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
+const {
+  AWS_REGION,
+  ENVIRONMENT,
+  DOMAIN,
+  smooch_api_url: smoochApiUrl,
+} = process.env;
 const cxApiUrl = `https://${ENVIRONMENT}-api.${DOMAIN}`;
 
 exports.handler = async (event) => {
@@ -43,7 +49,7 @@ exports.handler = async (event) => {
     smoochUserId: userId,
   };
 
-  log.info('smooch-action-send-message was called', { ...logContext, parameters: event.parameters });
+  log.info('smooch-action-send-message was called', { ...logContext, parameters: event.parameters, smoochApiUrl });
 
   let appSecrets;
   try {
@@ -55,28 +61,44 @@ exports.handler = async (event) => {
     log.error(errMsg, logContext, error);
     throw error;
   }
-  const appKeys = JSON.parse(appSecrets.SecretString);
 
-  const smoochApiUrl = `https://api.smooch.io/v1.1/apps/${appId}/appusers/${userId}/messages`;
+  let smooch;
+
+  try {
+    const appKeys = JSON.parse(appSecrets.SecretString);
+    smooch = new SmoochCore({
+      keyId: appKeys[`${appId}-id`],
+      secret: appKeys[`${appId}-secret`],
+      scope: 'app',
+      serviceUrl: smoochApiUrl,
+    });
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to validate digital channels credentials';
+
+    log.error(errMsg, logContext, error);
+
+    return {
+      status: 500,
+      body: { message: errMsg },
+    };
+  }
   /* const errResponseUrl =
    `${cxApiUrl}/v1/tenants/${tenantId}/interactions/${interactionId}/
    actions/${id}/errors?id=${uuidv1()}`; */
   try {
-    await axios.post(smoochApiUrl,
-      {
+    await smooch.appUsers.sendMessage({
+      appId,
+      userId,
+      message: {
         text,
         role: 'appMaker',
+        type: 'text',
         metadata: {
           type: 'system',
           from,
         },
       },
-      {
-        headers: {
-          Authorization: `Basic ${Buffer.from(`${appKeys[`${appId}-id`]}:${appKeys[`${appId}-secret`]}`).toString('base64')}`,
-          'Content-Type': 'application/json',
-        },
-      });
+    });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to send smooch message to customer';
     log.warn(errMsg, logContext, error);

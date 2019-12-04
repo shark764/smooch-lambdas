@@ -12,7 +12,12 @@ const auth = {
   username: 'titan-gateways@liveops.com',
   password: 'bCsW53mo45WWsuZ5',
 };
-const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
+const {
+  AWS_REGION,
+  ENVIRONMENT,
+  DOMAIN,
+  serviceUrl: smoochApiUrl,
+} = process.env;
 
 
 exports.handler = async (event) => {
@@ -31,6 +36,7 @@ exports.handler = async (event) => {
     userEvent,
     from,
     params,
+    smoochApiUrl,
   });
 
   let appSecrets;
@@ -78,6 +84,7 @@ exports.handler = async (event) => {
       keyId: appKeys[`${appId}-id`],
       secret: appKeys[`${appId}-secret`],
       scope: 'app',
+      serviceUrl: smoochApiUrl,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to validate digital channels credentials';

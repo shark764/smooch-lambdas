@@ -11,7 +11,7 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
 
 exports.handler = async () => {
-  const { AWS_REGION, ENVIRONMENT } = process.env;
+  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
 
   const accountSecrets = await secretsClient.getSecretValue({
     SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-account`,
@@ -21,6 +21,7 @@ exports.handler = async () => {
     keyId: accountKeys.id,
     secret: accountKeys.secret,
     scope: 'account',
+    serviceUrl: smoochApiUrl,
   });
 
   const params = {
