@@ -16,59 +16,19 @@ exports.handler = async (event) => {
     'interaction-id': interactionId,
     metadata,
     parameters,
-  } = JSON.parse(event.Records[0]);
+  } = JSON.parse(event.Records[0].body);
   const { 'app-id': appId, 'user-id': userId, source } = metadata;
-  const {
-    id: resourceId,
-  } = parameters.resource;
+
   const logContext = {
     tenantId,
     interactionId,
     smoochAppId: appId,
     smoochUserId: userId,
-    resourceId,
   };
 
-  log.info('smooch-action-disconnect was called', { ...logContext, parameters });
+  log.info('smooch-action-disconnect was called', { ...logContext });
 
-  if (resourceId) {
-    const { participants } = metadata;
-    const newParticipants = removeParticipant(participants, resourceId);
-
-    if (participants === newParticipants) {
-      log.warn('Participant does not exist', { ...logContext, participants, resourceId });
-    } else {
-      const newMetadata = { ...metadata, participants: newParticipants };
-
-      try {
-        const { data } = await disconnectResource({ tenantId, interactionId, newMetadata });
-        log.debug('Removed participant from interaction metadata', { ...logContext, metadata: data });
-      } catch (error) {
-        log.error('Error updating interaction metadata', logContext, error);
-        throw error;
-      }
-    }
-
-
-    try {
-      await axios({
-        method: 'post',
-        url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${id}?id=${uuidv1()}`,
-        data: {
-          source: 'smooch',
-          subId,
-          metadata: {},
-          update: {},
-        },
-        auth,
-      });
-    } catch (error) {
-      const errMsg = 'An Error has occurred trying to send action response';
-      log.error(errMsg, logContext, error);
-      throw error;
-    }
-  } else {
-    log.info('Resource ID not found on disconnect action', logContext);
+  if (!parameters.resource || !parameters.resource.id) {
     switch (source) {
       case 'web':
         log.info('Web messaging interaction ended by resource', logContext);
@@ -77,6 +37,65 @@ exports.handler = async (event) => {
         log.warn('Ignoring customer disconnect action - Source is not valid', { ...logContext, source });
         break;
     }
+    return;
+  }
+
+  const {
+    id: resourceId,
+  } = parameters.resource;
+  logContext.resourceId = resourceId;
+
+  const { participants } = metadata;
+  const resource = participants.findIndex((e) => e['resource-id'] === resourceId);
+
+  if (resource < 0) {
+    log.warn('Participant does not exist', { ...logContext, participants, resourceId });
+  } else {
+    try {
+      delete metadata.participants[resource];
+      const { data } = await disconnectResource({ tenantId, interactionId, metadata });
+      log.debug('Removed participant from interaction metadata', { ...logContext, metadata, data });
+    } catch (error) {
+      log.error('Error updating interaction metadata', logContext, error);
+      throw error;
+    }
+  }
+
+  // Flow Action Response
+  try {
+    await axios({
+      method: 'post',
+      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${id}?id=${uuidv1()}`,
+      data: {
+        source: 'smooch',
+        subId,
+        metadata: {},
+        update: {},
+      },
+      auth,
+    });
+  } catch (error) {
+    log.error('An Error has occurred trying to send action response', logContext, error);
+    throw error;
+  }
+
+  // Perform Resource Interrupt
+  try {
+    await axios({
+      method: 'post',
+      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts?id=${uuidv1()}`,
+      data: {
+        source: 'smooch',
+        interruptType: 'resource-disconnect',
+        interrupt: {
+          resourceId,
+        },
+      },
+      auth,
+    });
+  } catch (error) {
+    log.error('An Error has occurred trying to send resource interrupt', logContext, error);
+    throw error;
   }
 
   log.info('smooch-action-disconnect was successful', logContext);
@@ -90,9 +109,6 @@ async function disconnectResource({ tenantId, interactionId, metadata }) {
       source: 'smooch',
       metadata,
     },
+    auth,
   });
-}
-
-function removeParticipant(participants, resourceId) {
-  return participants.filter((participant) => participant.resourceId !== resourceId);
 }

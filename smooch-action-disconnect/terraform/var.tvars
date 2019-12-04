@@ -1,5 +1,4 @@
 include_queue = "true"
-queue_delay_seconds = 30
 timeout = 30
 memory_size = 128
 zip_path="smooch-action-disconnect/smooch-action-disconnect.zip"
