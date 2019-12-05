@@ -114,7 +114,7 @@ exports.handler = async (event) => {
     }
     case 'conversation:read': {
       log.debug('Trigger received: conversation:read', logContext);
-      sendConversationEvent({
+      await sendConversationEvent({
         tenantId,
         interactionId,
         conversationEvent: 'conversation-read',
@@ -126,7 +126,7 @@ exports.handler = async (event) => {
     case 'typing:appUser': {
       log.debug('Trigger received: typing:appUser', logContext);
       const currentEvent = activity.type === 'typing:start' ? 'typing-start' : 'typing-stop';
-      sendConversationEvent({
+      await sendConversationEvent({
         tenantId,
         interactionId,
         conversationEvent: currentEvent,
