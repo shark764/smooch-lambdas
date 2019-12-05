@@ -42,7 +42,7 @@ exports.handler = async (event) => {
 
   const { 'tenant-id': tenantId } = params;
 
-  const validPermissions = validateTenantPermissions(identity, lambdaPermissions);
+  const validPermissions = validateTenantPermissions(tenantId, identity, lambdaPermissions);
 
   if (!validPermissions) {
     const errMsg = 'Error not enough permissions';
