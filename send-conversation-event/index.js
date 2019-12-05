@@ -16,14 +16,15 @@ const {
   AWS_REGION,
   ENVIRONMENT,
   DOMAIN,
-  serviceUrl: smoochApiUrl,
+  smooch_api_url: smoochApiUrl,
 } = process.env;
 
 
 exports.handler = async (event) => {
-  const { params, identity } = event;
-  const { 'tenant-id': tenantId, 'interaction-id': interactionId, event: userEvent } = params;
+  const { params, identity, body } = event;
+  const { 'tenant-id': tenantId, 'interaction-id': interactionId } = params;
   const { 'user-id': resourceId, name: from } = identity;
+  const { event: userEvent } = body;
   const logContext = {
     tenantId,
     interactionId,
@@ -73,7 +74,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const { 'app-id': appId, 'user-id': smoochUserId } = interactionMetadata;
+  const { appId, userId: smoochUserId } = interactionMetadata;
   logContext.smoochAppId = appId;
   logContext.smoochUserId = smoochUserId;
 
@@ -97,21 +98,21 @@ exports.handler = async (event) => {
     };
   }
   let smoochEvent = null;
-  const body = {
+  const bodyResult = {
     resourceId,
   };
   switch (userEvent) {
     case 'conversation-read':
       smoochEvent = 'conversation:read';
-      body.event = userEvent;
+      bodyResult.event = userEvent;
       break;
     case 'typing-start':
       smoochEvent = 'typing:start';
-      body.isTyping = true;
+      bodyResult.isTyping = true;
       break;
     case 'typing-stop':
       smoochEvent = 'typing:stop';
-      body.isTyping = false;
+      bodyResult.isTyping = false;
       break;
     default:
       log.warn('the provided event is not supported', logContext);
@@ -124,7 +125,7 @@ exports.handler = async (event) => {
   try {
     smooch.appUsers.conversationActivity({
       appId,
-      smoochUserId,
+      userId: smoochUserId,
       activityProps: {
         role: 'appMaker',
         type: smoochEvent,
@@ -146,14 +147,14 @@ exports.handler = async (event) => {
 
   return {
     status: 200,
-    body,
+    body: bodyResult,
   };
 };
 
 async function getMetadata({ tenantId, interactionId }) {
   return axios({
     method: 'get',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}`,
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
     auth,
   });
 }

@@ -31,7 +31,7 @@ const auth = {
 exports.handler = async (event) => {
   const body = JSON.parse(event.Records[0].body);
   const {
-    appUser, messages, app, client, trigger,
+    appUser, messages, app, client, trigger, timestamp, activity,
   } = body;
   const { _id: appId } = app;
   const { properties, _id: userId } = appUser;
@@ -114,15 +114,26 @@ exports.handler = async (event) => {
     }
     case 'conversation:read': {
       log.debug('Trigger received: conversation:read', logContext);
-      // TODO
-      log.debug('TODO conversation:read', logContext);
-      break;
+      sendConversationEvent({
+        tenantId,
+        interactionId,
+        conversationEvent: 'conversation-read',
+        timestamp,
+        logContext,
+      });
+      return;
     }
     case 'typing:appUser': {
       log.debug('Trigger received: typing:appUser', logContext);
-      // TODO
-      log.debug('TODO typing:appUser', logContext);
-      break;
+      const currentEvent = activity.type === 'typing:start' ? 'typing-start' : 'typing-stop';
+      sendConversationEvent({
+        tenantId,
+        interactionId,
+        conversationEvent: currentEvent,
+        timestamp,
+        logContext,
+      });
+      return;
     }
     default: {
       log.warn('Unsupported trigger from Smooch', { ...logContext, trigger });
@@ -348,6 +359,46 @@ async function sendCustomerMessageToParticipants({
     }));
   } catch (error) {
     log.error('Error sending message to participants', logContext, error);
+    throw error;
+  }
+}
+
+
+async function sendConversationEvent({
+  tenantId, interactionId, conversationEvent, timestamp, logContext,
+}) {
+  try {
+    const { data } = await getMetadata({ tenantId, interactionId });
+    log.debug('Got interaction metadata', { ...logContext, interaction: data });
+    const { participants } = data;
+
+    await Promise.all(participants.map(async (participant) => {
+      const { resourceId, sessionId } = participant;
+      const payload = JSON.stringify({
+        tenantId,
+        interactionId,
+        actionId: uuidv1(),
+        subId: uuidv1(),
+        type: 'send-message',
+        resourceId,
+        sessionId,
+        messageType: conversationEvent,
+        message: {
+          timestamp: timestamp * 1000,
+        },
+      });
+      const QueueName = `${tenantId}_${resourceId}`;
+      const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+      const sqsMessageAction = {
+        MessageBody: payload,
+        QueueUrl,
+      };
+
+      log.info('Sending conversation event to resource', { ...logContext, payload });
+      await sqs.sendMessage(sqsMessageAction).promise();
+    }));
+  } catch (error) {
+    log.error('Error sending conversation event to participants', logContext, error);
     throw error;
   }
 }
