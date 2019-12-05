@@ -260,8 +260,87 @@ async function handleFormResponse({
     }
     log.debug('Updated Smooch appUser', { ...logContext, smoochUser });
   } else {
-    // TODO: Add handling for form messages / collect-message-response
-    log.debug('TODO handleFormResponse', logContext);
+    const { name } = form.fields[0]; // Form name/type
+    switch (name) {
+      case 'collect-message':
+        handleCollectMessageResponse({
+          tenantId, interactionId, form, logContext,
+        });
+        break;
+      default:
+        log.warn('Received an unsupported formResponse', { ...logContext, form });
+        break;
+    }
+  }
+}
+
+async function handleCollectMessageResponse({
+  tenantId, interactionId, form, logContext,
+}) {
+  const { data: metadata } = await getMetadata({ tenantId, interactionId });
+  const { 'collect-actions': pendingActions } = metadata;
+  const { actionId, subId } = form.quotedMessage.content.metadata;
+
+  if (!pendingActions) {
+    log.error(
+      'There are no pending collect-message actions', {
+        ...logContext,
+        actionId,
+      },
+    );
+    throw new Error('There are no pending actions');
+  }
+
+  // Create updated-metadata by removing incoming collect-action from the interaction metadata
+  const updatedActions = metadata['collect-actions'].filter((action) => action['action-id'] !== actionId);
+  metadata['collect-actions'] = updatedActions;
+  // If the updated actions length is different from the old one
+  // that means the collect-message response was pending and has been removed
+
+  if (pendingActions.length === updatedActions.length) {
+    log.error('Action cannot be found in pending-actions', { ...logContext, pendingActions, incomingAction: actionId });
+    throw new Error('Action could not be found in pending-actions');
+  }
+
+  // Update flow
+  try {
+    await axios({
+      method: 'post',
+      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${actionId}?id=${uuidv1()}`,
+      data: {
+        source: 'smooch',
+        subId,
+        metadata: {},
+        update: { response: form.fields[0].text },
+      },
+      auth,
+    });
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to send an action response';
+    log.error(errMsg, logContext, error);
+    throw error;
+  }
+
+  // Send response to resources
+  const message = form.textFallback;
+  try {
+    sendCustomerMessageToParticipants({
+      tenantId, interactionId, logContext, message,
+    });
+    log.debug('Sent collect-message response to participants', { ...logContext, message });
+  } catch (error) {
+    log.error('Error sending collect-message response to participants', logContext, error);
+    throw error;
+  }
+  // Remove action from pending actions
+  try {
+    const deletedActionMetadata = await updateInteractionMetadata(
+      tenantId, interactionId, metadata,
+    );
+    log.info('Removed collect-message action from metadata', { ...logContext, deletedActionMetadata });
+  } catch (error) {
+    log.fatal('Error removing pending collect-message action from metadata', logContext, error);
+    throw error;
   }
 }
 
@@ -407,6 +486,20 @@ async function getMetadata({ tenantId, interactionId }) {
   return axios({
     method: 'get',
     url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
+    auth,
+  });
+}
+
+async function updateInteractionMetadata({
+  tenantId, interactionId, metadata,
+}) {
+  return axios({
+    method: 'post',
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata?id=${uuidv1()}`,
+    data: {
+      source: 'smooch',
+      metadata,
+    },
     auth,
   });
 }
