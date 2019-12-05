@@ -5,7 +5,7 @@
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
 const log = require('serenova-js-utils/lambda/log');
-const { validatePlatformPermissions } = require('serenova-js-utils/lambda/api');
+const { validateTenantPermissions } = require('serenova-js-utils/lambda/api');
 
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid(),
@@ -42,7 +42,7 @@ exports.handler = async (event) => {
 
   const { 'tenant-id': tenantId } = params;
 
-  const validPermissions = validatePlatformPermissions(identity, lambdaPermissions);
+  const validPermissions = validateTenantPermissions(identity, lambdaPermissions);
 
   if (!validPermissions) {
     const errMsg = 'Error not enough permissions';
