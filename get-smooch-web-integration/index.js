@@ -162,6 +162,8 @@ exports.handler = async (event) => {
   delete smoochIntegration.displayName;
   delete smoochIntegration.status;
   delete smoochIntegration.type;
+  smoochIntegration.whitelistedUrls = smoochIntegration.originWhitelist;
+  delete smoochIntegration.originWhitelist;
   delete dynamoValue.type;
   smoochIntegration.prechatCapture = smoochIntegration.prechatCapture.fields[0].name;
   Object.keys(dynamoValue).forEach((v) => {

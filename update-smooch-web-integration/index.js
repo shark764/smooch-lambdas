@@ -25,7 +25,7 @@ const bodySchema = Joi.object({
 
   brandColor: Joi.string(),
 
-  originWhiteList: Joi.array()
+  whitelistedUrls: Joi.array()
     .items(Joi.string()),
 
   businessName: Joi.string(),
@@ -61,7 +61,7 @@ const paramsSchema = Joi.object({
 const lambdaPermissions = ['WEB_INTEGRATIONS_APP_UPDATE'];
 
 exports.handler = async (event) => {
-  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl, } = process.env;
+  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
   const { body, params, identity } = event;
   const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'], smoochIntegrationId: params.id };
 
@@ -213,7 +213,7 @@ exports.handler = async (event) => {
         integrationId,
         props: {
           brandColor: body.brandColor,
-          originWhiteList: body.originWhiteList,
+          originWhiteList: body.whitelistedUrls,
           businessName: body.businessName,
           businessIconUrl: body.businessIconUrl,
           fixedIntroPane: body.fixedIntroPane,
@@ -306,6 +306,8 @@ exports.handler = async (event) => {
   delete smoochIntegration.displayName;
   delete smoochIntegration.status;
   delete smoochIntegration.type;
+  smoochIntegration.whitelistedUrls = smoochIntegration.originWhitelist;
+  delete smoochIntegration.originWhitelist;
   smoochIntegration.prechatCapture = smoochIntegration.prechatCapture.fields[0].name;
   Object.keys(dynamoValue).forEach((v) => {
     dynamoValueCased[string.kebabCaseToCamelCase(v)] = dynamoValue[v];

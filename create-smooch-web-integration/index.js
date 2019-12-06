@@ -26,7 +26,7 @@ const bodySchema = Joi.object({
 
   brandColor: Joi.string(),
 
-  originWhiteList: Joi.array()
+  whitelistedUrls: Joi.array()
     .items(Joi.string()),
 
   businessName: Joi.string(),
@@ -179,7 +179,7 @@ exports.handler = async (event) => {
     const { integration } = await smooch.integrations.create(appId, {
       type: 'web',
       brandColor: body.brandColor,
-      originWhiteList: body.originWhiteList,
+      originWhiteList: body.whitelistedUrls,
       businessName: body.businessName,
       businessIconUrl: body.businessIconUrl,
       fixedIntroPane: body.fixedIntroPane,
