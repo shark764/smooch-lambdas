@@ -1,12 +1,11 @@
 const log = require('serenova-js-utils/lambda/log');
 const axios = require('axios');
 const uuidv1 = require('uuid/v1');
+const AWS = require('aws-sdk');
+
+const secretsClient = new AWS.SecretsManager();
 
 const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
-const auth = {
-  username: 'titan-gateways@liveops.com',
-  password: 'bCsW53mo45WWsuZ5',
-};
 
 exports.handler = async (event) => {
   const {
@@ -49,9 +48,22 @@ exports.handler = async (event) => {
     (participant) => participant.resourceId === resourceId,
   );
 
+  let cxAuthSecret;
+  try {
+    cxAuthSecret = await secretsClient.getSecretValue({
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+    }).promise();
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to retrieve cx credentials';
+    log.error(errMsg, logContext, error);
+    throw error;
+  }
+
+  const cxAuth = JSON.parse(cxAuthSecret.SecretString);
+
   if (!existingParticipant) {
     try {
-      const { data } = await joinParticipant(newMetadata);
+      const { data } = await joinParticipant(newMetadata, cxAuth);
       log.debug('Added participant to interaction metadata', {
         ...logContext,
         metadata: data,
@@ -76,7 +88,7 @@ exports.handler = async (event) => {
         metadata: {},
         update: {},
       },
-      auth,
+      auth: cxAuth,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to send action response';
@@ -91,7 +103,7 @@ async function joinParticipant({
   interactionId,
   resource,
   metadata,
-}) {
+}, auth) {
   metadata.participants.push(resource);
 
   return axios({

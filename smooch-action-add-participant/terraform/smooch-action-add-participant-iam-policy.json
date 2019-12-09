@@ -18,9 +18,12 @@
         "Effect": "Allow",
         "Resource": "*"
     }, {
-        "Sid": "GetAppSecrets",
+        "Sid": "GetSecrets",
         "Action": "secretsmanager:GetSecretValue",
         "Effect": "Allow",
-        "Resource": "arn:aws:secretsmanager:*:*:secret:*-smooch-app-??????"
+        "Resource": [
+            "arn:aws:secretsmanager:*:*:secret:*-smooch-cx-??????",
+            "arn:aws:secretsmanager:*:*:secret:*-smooch-app-??????"
+        ]
     }]
 }

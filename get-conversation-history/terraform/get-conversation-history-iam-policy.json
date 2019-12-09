@@ -12,7 +12,7 @@
         "Effect": "Allow",
         "Resource": "*"
     },{
-        "Sid": "GetAppSecrets",
+        "Sid": "GetSecrets",
         "Action": "secretsmanager:GetSecretValue",
         "Effect": "Allow",
         "Resource": [

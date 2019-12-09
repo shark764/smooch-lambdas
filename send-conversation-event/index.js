@@ -8,17 +8,12 @@ const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
 
 const secretsClient = new AWS.SecretsManager();
-const auth = {
-  username: 'titan-gateways@liveops.com',
-  password: 'bCsW53mo45WWsuZ5',
-};
 const {
   AWS_REGION,
   ENVIRONMENT,
   DOMAIN,
   smooch_api_url: smoochApiUrl,
 } = process.env;
-
 
 exports.handler = async (event) => {
   const { params, identity, body } = event;
@@ -56,9 +51,27 @@ exports.handler = async (event) => {
     };
   }
 
+  let cxAuthSecret;
+  try {
+    cxAuthSecret = await secretsClient.getSecretValue({
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+    }).promise();
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to retrieve cx credentials';
+
+    log.error(errMsg, logContext, error);
+
+    return {
+      status: 500,
+      body: { message: errMsg },
+    };
+  }
+
+  const cxAuth = JSON.parse(cxAuthSecret.SecretString);
+
   let interactionMetadata;
   try {
-    const { data } = await getMetadata({ tenantId, interactionId });
+    const { data } = await getMetadata({ tenantId, interactionId, auth: cxAuth });
 
     log.debug('Got interaction metadata', { ...logContext, interaction: data });
 
@@ -151,7 +164,7 @@ exports.handler = async (event) => {
   };
 };
 
-async function getMetadata({ tenantId, interactionId }) {
+async function getMetadata({ tenantId, interactionId, auth }) {
   return axios({
     method: 'get',
     url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
