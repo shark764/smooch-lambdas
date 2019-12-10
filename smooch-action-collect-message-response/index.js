@@ -20,9 +20,12 @@ exports.handler = async (event) => {
     'interaction-id': interactionId,
     metadata,
     parameters,
+    id: actionId,
+    'sub-id': subId,
   } = JSON.parse(event.Records[0].body);
+
   const { 'app-id': appId, 'user-id': userId } = metadata;
-  const { id: actionId, 'sub-id': subId, message } = parameters.action;
+  const { message, from } = parameters;
   const logContext = {
     tenantId,
     interactionId,
@@ -32,6 +35,9 @@ exports.handler = async (event) => {
 
   log.info('smooch-action-collect-message-response was called', { ...logContext, parameters });
 
+  if (!metadata['collect-actions']) {
+    metadata['collect-actions'] = [];
+  }
   const existingAction = metadata['collect-actions'].find(
     (action) => action['action-id'] === actionId,
   );
@@ -57,7 +63,7 @@ exports.handler = async (event) => {
   const cxAuth = JSON.parse(cxAuthSecret.SecretString);
 
   try {
-    metadata.collectActions.push({ actionId, subId });
+    metadata['collect-actions'].push({ actionId, subId });
     const { data } = await updateMetadata({
       tenantId,
       interactionId,
@@ -101,14 +107,13 @@ exports.handler = async (event) => {
     throw error;
   }
 
-  let collectMessage;
   try {
-    collectMessage = await smooch.appUsers.sendMessage({
+    await smooch.appUsers.sendMessage({
       appId,
       userId,
-      role: 'appMaker',
       message: {
         type: 'form',
+        role: 'appMaker',
         fields: [{
           type: 'text',
           name: 'collect-message',
@@ -118,29 +123,12 @@ exports.handler = async (event) => {
         metadata: {
           subId,
           actionId,
+          from,
         },
       },
     });
   } catch (error) {
-    log.fatal('Error sending collect-message ', { ...logContext, collectMessage }, error);
-    throw error;
-  }
-
-  try {
-    await axios({
-      method: 'post',
-      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${actionId}?id=${uuidv1()}`,
-      data: {
-        source: 'smooch',
-        subId,
-        metadata: {},
-        update: {},
-      },
-      auth: cxAuth,
-    });
-  } catch (error) {
-    const errMsg = 'An Error has occurred trying to send action response';
-    log.error(errMsg, logContext, error);
+    log.fatal('Error sending collect-message ', logContext, error);
     throw error;
   }
 

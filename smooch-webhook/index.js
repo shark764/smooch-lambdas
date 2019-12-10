@@ -6,7 +6,6 @@ const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
 const uuidv4 = require('uuid/v4');
 const uuidv1 = require('uuid/v1');
-const retry = require('async-retry');
 const axios = require('axios');
 const log = require('serenova-js-utils/lambda/log');
 
@@ -16,17 +15,11 @@ const {
   DOMAIN,
   smooch_api_url: smoochApiUrl,
 } = process.env;
-const retries = 2;
-
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
-const auth = {
-  username: 'titan-gateways@liveops.com',
-  password: 'bCsW53mo45WWsuZ5',
-};
 
 exports.handler = async (event) => {
   const body = JSON.parse(event.Records[0].body);
@@ -37,13 +30,20 @@ exports.handler = async (event) => {
   const { properties, _id: userId } = appUser;
   const { interactionId, tenantId } = properties;
   const logContext = {
-    interactionId, tenantId, smoochAppId: appId, smoochUserId: userId, smoochTrigger: trigger,
+    interactionId,
+    tenantId,
+    smoochAppId: appId,
+    smoochUserId: userId,
+    smoochTrigger: trigger,
   };
 
   log.info('smooch-webhook was called', { ...logContext, body, smoochApiUrl });
 
   if (event.Records.length !== 1) {
-    log.error('Did not receive exactly one record from SQS. Handling the first.', { ...logContext, records: event.Records });
+    log.error(
+      'Did not receive exactly one record from SQS. Handling the first.',
+      { ...logContext, records: event.Records },
+    );
   }
 
   if (!client) {
@@ -58,7 +58,10 @@ exports.handler = async (event) => {
     case 'message:appUser': {
       log.debug('Trigger received: message:appUser', logContext);
       if (!messages || messages.length !== 1) {
-        log.error('Did not receive exactly one message from Smooch. Handling the first.', { ...logContext, messages });
+        log.error(
+          'Did not receive exactly one message from Smooch. Handling the first.',
+          { ...logContext, messages },
+        );
       }
       const message = messages[0];
       const { type } = message;
@@ -66,6 +69,21 @@ exports.handler = async (event) => {
       const { integrationId } = client;
       logContext.smoochMessageType = type;
       logContext.smoochIntegrationId = integrationId;
+
+      let cxAuthSecret;
+      try {
+        cxAuthSecret = await secretsClient.getSecretValue({
+          SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+        }).promise();
+      } catch (error) {
+        const errMsg = 'An Error has occurred trying to retrieve cx credentials';
+
+        log.error(errMsg, logContext, error);
+
+        throw error;
+      }
+
+      const auth = JSON.parse(cxAuthSecret.SecretString);
 
       switch (platform) {
         case 'web': {
@@ -80,6 +98,7 @@ exports.handler = async (event) => {
                 tenantId,
                 interactionId,
                 form: message,
+                auth,
                 logContext,
               });
               break;
@@ -92,12 +111,16 @@ exports.handler = async (event) => {
                 tenantId,
                 interactionId,
                 message,
+                auth,
                 logContext,
               });
               break;
             }
             default: {
-              log.warn('Unsupported web type from Smooch', { ...logContext, type });
+              log.warn('Unsupported web type from Smooch', {
+                ...logContext,
+                type,
+              });
               break;
             }
           }
@@ -106,7 +129,10 @@ exports.handler = async (event) => {
         // case 'whatsapp':
         // case 'messenger':
         default: {
-          log.warn('Unsupported platform from Smooch', { ...logContext, platform });
+          log.warn('Unsupported platform from Smooch', {
+            ...logContext,
+            platform,
+          });
           break;
         }
       }
@@ -143,24 +169,42 @@ exports.handler = async (event) => {
 };
 
 async function handleFormResponse({
-  appId, userId, integrationId, tenantId, interactionId, form, logContext,
+  appId,
+  userId,
+  integrationId,
+  tenantId,
+  interactionId,
+  form,
+  auth,
+  logContext,
 }) {
   if (!interactionId) {
-    const customer = form && form.fields && form.fields[0]
+    const customer = form
+      && form.fields
+      && form.fields[0]
       && (form.fields[0].text || form.fields[0].email);
     if (!customer) {
-      log.warn('Prechat form submitted with no customer identifier (form.field[0].text)', { ...logContext, form });
+      log.warn(
+        'Prechat form submitted with no customer identifier (form.field[0].text)',
+        { ...logContext, form },
+      );
       return;
     }
 
     let accountSecrets;
 
     try {
-      accountSecrets = await secretsClient.getSecretValue({
-        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
-      }).promise();
+      accountSecrets = await secretsClient
+        .getSecretValue({
+          SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+        })
+        .promise();
     } catch (error) {
-      log.error('An Error has occurred trying to retrieve digital channels credentials', logContext, error);
+      log.error(
+        'An Error has occurred trying to retrieve digital channels credentials',
+        logContext,
+        error,
+      );
       throw error;
     }
 
@@ -174,22 +218,32 @@ async function handleFormResponse({
         serviceUrl: smoochApiUrl,
       });
     } catch (error) {
-      log.error('An Error has occurred trying to retrieve digital channels credentials', logContext, error);
+      log.error(
+        'An Error has occurred trying to retrieve digital channels credentials',
+        logContext,
+        error,
+      );
       throw error;
     }
 
     let webIntegration;
 
     try {
-      webIntegration = await docClient.get({
-        TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
-        Key: {
-          'tenant-id': tenantId,
-          id: integrationId,
-        },
-      }).promise();
+      webIntegration = await docClient
+        .get({
+          TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+          Key: {
+            'tenant-id': tenantId,
+            id: integrationId,
+          },
+        })
+        .promise();
     } catch (error) {
-      log.error('Failed to retrieve Smooch integration from DynamoDB', logContext, error);
+      log.error(
+        'Failed to retrieve Smooch integration from DynamoDB',
+        logContext,
+        error,
+      );
       throw error;
     }
 
@@ -206,6 +260,7 @@ async function handleFormResponse({
         source: 'web',
         contactPoint,
         customer,
+        auth,
         logContext,
       });
       interaction = data;
@@ -217,7 +272,7 @@ async function handleFormResponse({
     let smoochUser;
 
     try {
-      smoochUser = await retry(async () => smooch.appUsers.update({
+      smoochUser = await smooch.appUsers.update({
         appId,
         userId,
         appUser: {
@@ -227,16 +282,14 @@ async function handleFormResponse({
             customer,
           },
         },
-      }), { retries });
+      });
     } catch (error) {
       log.error('Error updating Smooch appUser', logContext, error);
 
       let endedInteraction;
 
       try {
-        endedInteraction = await retry(
-          async () => endInteraction({ interactionId: newInteractionId, tenantId }), { retries },
-        );
+        endedInteraction = endInteraction({ interactionId: newInteractionId, tenantId, auth });
         log.info('Ended interaction', { ...logContext, endedInteraction });
       } catch (err) {
         log.fatal('Error ending interaction', logContext, err);
@@ -263,42 +316,59 @@ async function handleFormResponse({
     const { name } = form.fields[0]; // Form name/type
     switch (name) {
       case 'collect-message':
-        handleCollectMessageResponse({
-          tenantId, interactionId, form, logContext,
+        await handleCollectMessageResponse({
+          tenantId,
+          interactionId,
+          form,
+          auth,
+          logContext,
         });
         break;
       default:
-        log.warn('Received an unsupported formResponse', { ...logContext, form });
+        log.warn('Received an unsupported formResponse', {
+          ...logContext,
+          form,
+        });
         break;
     }
   }
 }
 
 async function handleCollectMessageResponse({
-  tenantId, interactionId, form, logContext,
+  tenantId,
+  interactionId,
+  form,
+  auth,
+  logContext,
 }) {
   const { data: metadata } = await getMetadata({ tenantId, interactionId });
-  const { 'collect-actions': pendingActions } = metadata;
+  const { collectActions: pendingActions } = metadata;
   const { actionId, subId } = form.quotedMessage.content.metadata;
+  const response = form.fields[0].text;
 
+  log.debug('DEBUG - Interaction metadata', { ...logContext, metadata, form });
   if (!pendingActions) {
-    log.error(
-      'There are no pending collect-message actions', {
-        ...logContext,
-        actionId,
-      },
-    );
+    log.error('There are no pending collect-message actions', {
+      ...logContext,
+      actionId,
+    });
     throw new Error('There are no pending actions');
   }
 
   // Create updated-metadata by removing incoming collect-action from the interaction metadata
-  const updatedActions = metadata['collect-actions'].filter((action) => action['action-id'] !== actionId);
-  metadata['collect-actions'] = updatedActions;
+  const updatedActions = metadata.collectActions.filter(
+    (action) => action.actionId !== actionId,
+  );
+  metadata.collectActions = updatedActions;
   // If the updated actions length is different from the old one
   // that means the collect-message response was pending and has been removed
 
   if (pendingActions.length === updatedActions.length) {
-    log.error('Action cannot be found in pending-actions', { ...logContext, pendingActions, incomingAction: actionId });
+    log.error('Action cannot be found in pending-actions', {
+      ...logContext,
+      pendingActions,
+      incomingAction: actionId,
+    });
     throw new Error('Action could not be found in pending-actions');
   }
 
@@ -311,7 +381,7 @@ async function handleCollectMessageResponse({
         source: 'smooch',
         subId,
         metadata: {},
-        update: { response: form.fields[0].text },
+        update: { response },
       },
       auth,
     });
@@ -322,30 +392,57 @@ async function handleCollectMessageResponse({
   }
 
   // Send response to resources
-  const message = form.textFallback;
   try {
     sendCustomerMessageToParticipants({
-      tenantId, interactionId, logContext, message,
+      tenantId,
+      interactionId,
+      message: response,
+      logContext,
     });
-    log.debug('Sent collect-message response to participants', { ...logContext, message });
+    log.debug('Sent collect-message response to participants', {
+      ...logContext,
+      response,
+    });
   } catch (error) {
-    log.error('Error sending collect-message response to participants', logContext, error);
+    log.error(
+      'Error sending collect-message response to participants',
+      logContext,
+      error,
+    );
     throw error;
   }
   // Remove action from pending actions
   try {
-    const deletedActionMetadata = await updateInteractionMetadata(
-      tenantId, interactionId, metadata,
-    );
-    log.info('Removed collect-message action from metadata', { ...logContext, deletedActionMetadata });
+    const deletedActionMetadata = await updateInteractionMetadata({
+      tenantId,
+      interactionId,
+      metadata,
+      auth,
+    });
+    log.info('Removed collect-message action from metadata', {
+      ...logContext,
+      deletedActionMetadata,
+    });
   } catch (error) {
-    log.fatal('Error removing pending collect-message action from metadata', logContext, error);
+    log.fatal(
+      'Error removing pending collect-message action from metadata',
+      logContext,
+      error,
+    );
     throw error;
   }
 }
 
 async function createInteraction({
-  interactionId, appId, userId, tenantId, source, contactPoint, customer, logContext,
+  interactionId,
+  appId,
+  userId,
+  tenantId,
+  source,
+  contactPoint,
+  customer,
+  logContext,
+  auth,
 }) {
   const customerNames = customer.split(' ');
   const firstName = customerNames.shift();
@@ -384,7 +481,9 @@ async function createInteraction({
   });
 }
 
-function endInteraction({ tenantId, interactionId, logContext }) {
+function endInteraction({
+  tenantId, interactionId, auth, logContext,
+}) {
   log.debug('Ending interaction', { ...logContext, tenantId, interactionId });
 
   return axios({
@@ -400,89 +499,106 @@ function endInteraction({ tenantId, interactionId, logContext }) {
 }
 
 async function sendCustomerMessageToParticipants({
-  tenantId, interactionId, message, logContext,
+  tenantId,
+  interactionId,
+  message,
+  logContext,
 }) {
   try {
     const { data } = await getMetadata({ tenantId, interactionId });
     log.debug('Got interaction metadata', { ...logContext, interaction: data });
     const { participants } = data;
 
-    await Promise.all(participants.map(async (participant) => {
-      const { resourceId, sessionId } = participant;
-      const payload = JSON.stringify({
-        tenantId,
-        interactionId,
-        actionId: uuidv1(),
-        subId: uuidv1(),
-        type: 'send-message',
-        resourceId,
-        sessionId,
-        messageType: 'received-message',
-        message: {
-          id: message._id,
-          from: message.name,
-          timestamp: message.received * 1000,
-          type: 'customer',
-          text: message.text,
-        },
-      });
-      const QueueName = `${tenantId}_${resourceId}`;
-      const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
-      const sqsMessageAction = {
-        MessageBody: payload,
-        QueueUrl,
-      };
+    await Promise.all(
+      participants.map(async (participant) => {
+        const { resourceId, sessionId } = participant;
+        const payload = JSON.stringify({
+          tenantId,
+          interactionId,
+          actionId: uuidv1(),
+          subId: uuidv1(),
+          type: 'send-message',
+          resourceId,
+          sessionId,
+          messageType: 'received-message',
+          message: {
+            id: message._id,
+            from: message.name,
+            timestamp: message.received * 1000,
+            type: 'customer',
+            text: message.text,
+          },
+        });
+        const QueueName = `${tenantId}_${resourceId}`;
+        const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+        const sqsMessageAction = {
+          MessageBody: payload,
+          QueueUrl,
+        };
 
-      log.info('Sending message to resource', { ...logContext, payload });
-      await sqs.sendMessage(sqsMessageAction).promise();
-    }));
+        log.info('Sending message to resource', { ...logContext, payload });
+        await sqs.sendMessage(sqsMessageAction).promise();
+      }),
+    );
   } catch (error) {
     log.error('Error sending message to participants', logContext, error);
     throw error;
   }
 }
 
-
 async function sendConversationEvent({
-  tenantId, interactionId, conversationEvent, timestamp, logContext,
+  tenantId,
+  interactionId,
+  conversationEvent,
+  timestamp,
+  logContext,
 }) {
   try {
     const { data } = await getMetadata({ tenantId, interactionId });
     log.debug('Got interaction metadata', { ...logContext, interaction: data });
     const { participants } = data;
 
-    await Promise.all(participants.map(async (participant) => {
-      const { resourceId, sessionId } = participant;
-      const payload = JSON.stringify({
-        tenantId,
-        interactionId,
-        actionId: uuidv1(),
-        subId: uuidv1(),
-        type: 'send-message',
-        resourceId,
-        sessionId,
-        messageType: conversationEvent,
-        message: {
-          timestamp: timestamp * 1000,
-        },
-      });
-      const QueueName = `${tenantId}_${resourceId}`;
-      const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
-      const sqsMessageAction = {
-        MessageBody: payload,
-        QueueUrl,
-      };
+    await Promise.all(
+      participants.map(async (participant) => {
+        const { resourceId, sessionId } = participant;
+        const payload = JSON.stringify({
+          tenantId,
+          interactionId,
+          actionId: uuidv1(),
+          subId: uuidv1(),
+          type: 'send-message',
+          resourceId,
+          sessionId,
+          messageType: conversationEvent,
+          message: {
+            timestamp: timestamp * 1000,
+          },
+        });
+        const QueueName = `${tenantId}_${resourceId}`;
+        const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+        const sqsMessageAction = {
+          MessageBody: payload,
+          QueueUrl,
+        };
 
-      log.info('Sending conversation event to resource', { ...logContext, payload });
-      await sqs.sendMessage(sqsMessageAction).promise();
-    }));
+        log.info('Sending conversation event to resource', {
+          ...logContext,
+          payload,
+        });
+        await sqs.sendMessage(sqsMessageAction).promise();
+      }),
+    );
   } catch (error) {
-    log.error('Error sending conversation event to participants', logContext, error);
+    log.error(
+      'Error sending conversation event to participants',
+      logContext,
+      error,
+    );
     throw error;
   }
 }
 
-async function getMetadata({ tenantId, interactionId }) {
+async function getMetadata({ tenantId, interactionId, auth }) {
   return axios({
     method: 'get',
     url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
@@ -491,7 +607,10 @@ async function getMetadata({ tenantId, interactionId }) {
 }
 
 async function updateInteractionMetadata({
-  tenantId, interactionId, metadata,
+  tenantId,
+  interactionId,
+  metadata,
+  auth,
 }) {
   return axios({
     method: 'post',
