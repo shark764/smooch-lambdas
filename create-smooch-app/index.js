@@ -75,9 +75,28 @@ exports.handler = async (event) => {
       body: { message: errMsg },
     };
   }
+
+  let cxAuthSecret;
+  try {
+    cxAuthSecret = await secretsClient.getSecretValue({
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+    }).promise();
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to retrieve cx credentials';
+
+    log.error(errMsg, logContext, error);
+
+    throw error;
+  }
+
+  const cxAuth = JSON.parse(cxAuthSecret.SecretString);
   const apiUrl = `https://${ENVIRONMENT}-api.${DOMAIN}/v1/tenants/${tenantId}`;
   try {
-    const response = await axios.get(apiUrl, { headers: { Authorization: auth } });
+    const response = await axios.get({
+      method: 'get',
+      url: apiUrl,
+      auth: cxAuth,
+    });
     if (!(response && response.data && response.data.result && response.data.result.active)) {
       const errMsg = 'Error tenant not found or inactive';
 

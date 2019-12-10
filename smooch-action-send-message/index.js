@@ -8,11 +8,7 @@ const axios = require('axios');
 const AWS = require('aws-sdk');
 const uuidv1 = require('uuid/v1');
 
-// const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
-const auth = {
-  username: 'titan-gateways@liveops.com',
-  password: 'bCsW53mo45WWsuZ5',
-};
+const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 
 const secretsClient = new AWS.SecretsManager();
 const {
@@ -37,7 +33,7 @@ exports.handler = async (event) => {
     'interaction-id': interactionId,
     metadata,
     parameters,
-    // participants,
+    participants,
   } = body;
 
   const { 'app-id': appId, 'user-id': userId } = metadata;
@@ -51,6 +47,20 @@ exports.handler = async (event) => {
 
   log.info('smooch-action-send-message was called', { ...logContext, parameters: event.parameters, smoochApiUrl });
 
+  let cxAuthSecret;
+  try {
+    cxAuthSecret = await secretsClient.getSecretValue({
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+    }).promise();
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to retrieve cx credentials';
+
+    log.error(errMsg, logContext, error);
+
+    throw error;
+  }
+
+  const cxAuth = JSON.parse(cxAuthSecret.SecretString);
   let appSecrets;
   try {
     appSecrets = await secretsClient.getSecretValue({
@@ -77,16 +87,12 @@ exports.handler = async (event) => {
 
     log.error(errMsg, logContext, error);
 
-    return {
-      status: 500,
-      body: { message: errMsg },
-    };
+    throw error;
   }
-  /* const errResponseUrl =
-   `${cxApiUrl}/v1/tenants/${tenantId}/interactions/${interactionId}/
-   actions/${id}/errors?id=${uuidv1()}`; */
+  const errResponseUrl = `${cxApiUrl}/v1/tenants/${tenantId}/interactions/${interactionId}`;
+  let smoochMessage;
   try {
-    await smooch.appUsers.sendMessage({
+    smoochMessage = await smooch.appUsers.sendMessage({
       appId,
       userId,
       message: {
@@ -102,23 +108,28 @@ exports.handler = async (event) => {
   } catch (error) {
     const errMsg = 'An Error has occurred trying to send smooch message to customer';
     log.warn(errMsg, logContext, error);
-    /* try {
-      await axios.post(errResponseUrl, { // send error response
-        source: 'smooch',
-        subId,
-        errorMessage: errMsg,
-        errorCode: 500,
-        metadata: {},
-        update: {},
-      }, auth);
+    try {
+      await axios({
+        method: 'post',
+        url: errResponseUrl,
+        data: { // send error response
+          source: 'smooch',
+          subId,
+          errorMessage: errMsg,
+          errorCode: 500,
+          metadata: {},
+          update: {},
+        },
+        auth: cxAuth,
+      });
     } catch (error2) {
       log.warn('An Error ocurred trying to send an error response', logContext, error2);
-    } */
+    }
 
     throw error;
   }
 
-  /* smoochMessage = {
+  smoochMessage = {
     id: smoochMessage._id,
     from,
     timestamp: smoochMessage.received * 1000,
@@ -142,30 +153,40 @@ exports.handler = async (event) => {
     const errMsg = 'An Error has occurred trying to send message to SQS queue';
     log.error(errMsg, logContext, error);
     try {
-      await axios.post(errResponseUrl, { // send error response
-        source: 'smooch',
-        subId,
-        errorMessage: errMsg,
-        errorCode: 500,
-        metadata: {},
-        update: {},
-      }, auth);
+      await axios({
+        method: 'post',
+        url: errResponseUrl,
+        data: { // send error response
+          source: 'smooch',
+          subId,
+          errorMessage: errMsg,
+          errorCode: 500,
+          metadata: {},
+          update: {},
+        },
+        auth: cxAuth,
+      });
     } catch (error2) {
       log.warn('An Error ocurred trying to send an error response', logContext, error2);
     }
 
     throw error;
-  } */
+  }
 
   const actionResponseUrl = `${cxApiUrl}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${id}?id=${uuidv1()}`;
 
   try { // send action response
-    await axios.post(actionResponseUrl, {
-      source: 'smooch',
-      subId,
-      metadata: {},
-      update: {},
-    }, auth);
+    await axios({
+      method: 'post',
+      url: actionResponseUrl,
+      data: {
+        source: 'smooch',
+        subId,
+        metadata: {},
+        update: {},
+      },
+      auth: cxAuth,
+    });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to send action response';
     log.error(errMsg, logContext, error);
@@ -175,7 +196,7 @@ exports.handler = async (event) => {
   log.info('smooch-action-send-message was successful', logContext);
 };
 
-/* async function sendSqsMessage({
+async function sendSqsMessage({
   interactionId,
   tenantId,
   sessionId,
@@ -230,4 +251,4 @@ exports.handler = async (event) => {
   };
 
   await sqs.sendMessage(sendSQSParams).promise();
-} */
+}
