@@ -13,7 +13,8 @@
             "sqs:ListDeadLetterSourceQueues",
             "sqs:ReceiveMessage",
             "sqs:SendMessage",
-            "sqs:GetQueueAttributes"
+            "sqs:GetQueueAttributes",
+            "sqs:CreateQueue"
         ],
         "Effect": "Allow",
         "Resource": "*"

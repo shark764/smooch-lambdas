@@ -33,10 +33,9 @@ exports.handler = async (event) => {
     'interaction-id': interactionId,
     metadata,
     parameters,
-    participants,
   } = body;
 
-  const { 'app-id': appId, 'user-id': userId } = metadata;
+  const { 'app-id': appId, 'user-id': userId, participants } = metadata;
   const { from, text } = parameters;
   const logContext = {
     tenantId,
