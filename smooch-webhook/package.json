@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "async-retry": "^1.2.3",
-    "aws-sdk": "^2.540.0",
+    "aws-sdk": "^2.585.0",
     "axios": "^0.19.0",
     "serenova-js-utils": "1.7.1",
     "smooch-core": "^8.7.3",

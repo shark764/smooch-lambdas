@@ -5,7 +5,7 @@
   "repository": {},
   "license": "UNLICENSED",
   "dependencies": {
-    "aws-sdk": "^2.540.0",
+    "aws-sdk": "^2.585.0",
     "serenova-js-utils": "1.7.1",
     "smooch-core": "^8.7.3"
   }

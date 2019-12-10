@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@hapi/joi": "^16.1.7",
-    "aws-sdk": "^2.540.0",
+    "aws-sdk": "^2.585.0",
     "serenova-js-utils": "1.9.0"
   }
 }
