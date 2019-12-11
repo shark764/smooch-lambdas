@@ -141,8 +141,8 @@ exports.handler = async (event) => {
       await sendSqsMessage({
         tenantId,
         interactionId,
-        resourceId: participant.resourceId,
-        sessionId: participant.sessionId,
+        resourceId: participant['resource-id'],
+        sessionId: participant['session-id'],
         messageType: 'received-message',
         message: smoochMessage,
         logContext,
