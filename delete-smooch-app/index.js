@@ -1,5 +1,5 @@
 /**
- * Lambda that deletes an smooch app
+ * Lambda that deletes a smooch app
  * */
 
 const SmoochCore = require('smooch-core');
@@ -179,6 +179,12 @@ exports.handler = async (event) => {
     };
   }
 
+  log.info('user deleted a smooch app', {
+    userId: identity['user-id'],
+    tenantId,
+    smoochAppId: appId,
+    audit: true,
+  });
   log.info('delete-smooch-app complete', logContext);
 
   return {

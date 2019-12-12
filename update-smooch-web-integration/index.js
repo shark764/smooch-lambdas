@@ -1,5 +1,5 @@
 /**
- * Lambda that updates an smooch integration
+ * Lambda that updates a smooch integration
  * */
 
 const AWS = require('aws-sdk');
@@ -319,6 +319,13 @@ exports.handler = async (event) => {
     ...dynamoValueCased,
   };
 
+  log.info('user updated a smooch integration', {
+    userId: identity['user-id'],
+    tenantId,
+    smoochIntegrationId: integrationId,
+    auditData: Object.keys(body || {}),
+    audit: true,
+  });
   log.info('update-smooch-web-integration complete', { ...logContext, result });
 
   return {

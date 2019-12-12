@@ -1,5 +1,5 @@
 /**
- * Lambda that deletes an smooch web integration
+ * Lambda that deletes a smooch web integration
  * */
 
 const AWS = require('aws-sdk');
@@ -165,6 +165,12 @@ exports.handler = async (event) => {
     };
   }
 
+  log.info('user deleted a smooch web-integration', {
+    userId: identity['user-id'],
+    tenantId,
+    smoochIntegrationId: integrationId,
+    audit: true,
+  });
   log.info('delete-smooch-web-integration complete', logContext);
 
   return {

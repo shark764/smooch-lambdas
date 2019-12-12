@@ -76,26 +76,14 @@ exports.handler = async (event) => {
     };
   }
 
-  let cxAuthSecret;
-  try {
-    cxAuthSecret = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
-    }).promise();
-  } catch (error) {
-    const errMsg = 'An Error has occurred trying to retrieve cx credentials';
-
-    log.error(errMsg, logContext, error);
-
-    throw error;
-  }
-
-  const cxAuth = JSON.parse(cxAuthSecret.SecretString);
   const apiUrl = `https://${ENVIRONMENT}-api.${DOMAIN}/v1/tenants/${tenantId}`;
   try {
-    const response = await axios.get({
+    const response = await axios({
       method: 'get',
       url: apiUrl,
-      auth: cxAuth,
+      headers: {
+        Authorization: auth,
+      },
     });
     if (!(response && response.data && response.data.result && response.data.result.active)) {
       const errMsg = 'Error tenant not found or inactive';
@@ -270,6 +258,13 @@ exports.handler = async (event) => {
     };
   }
 
+  log.info('user created a new smooch app', {
+    userId: identity['user-id'],
+    tenantId,
+    smoochAppId: newAppId,
+    auditData: Object.keys(body),
+    audit: true,
+  });
   log.info('create-smooch-app complete', { ...logContext, webhook, app: newApp });
 
   return {

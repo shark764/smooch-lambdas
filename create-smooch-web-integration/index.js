@@ -1,5 +1,5 @@
 /**
- * Lambda that creates an smooch web integration
+ * Lambda that creates a smooch web integration
  * */
 
 const AWS = require('aws-sdk');
@@ -287,6 +287,13 @@ exports.handler = async (event) => {
     ...dynamoValueCased,
   };
 
+  log.info('user created a new smooch integration', {
+    userId: identity['user-id'],
+    tenantId,
+    smoochIntegrationId: smoochIntegration.id,
+    auditData: Object.keys(body),
+    audit: true,
+  });
   log.info('create-smooch-web-integration complete', { ...logContext, result });
 
   return {
