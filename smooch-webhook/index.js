@@ -54,6 +54,21 @@ exports.handler = async (event) => {
 
   logContext.smoochPlatform = platform;
 
+  let cxAuthSecret;
+  try {
+    cxAuthSecret = await secretsClient.getSecretValue({
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+    }).promise();
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to retrieve cx credentials';
+
+    log.error(errMsg, logContext, error);
+
+    throw error;
+  }
+
+  const auth = JSON.parse(cxAuthSecret.SecretString);
+
   switch (trigger) {
     case 'message:appUser': {
       log.debug('Trigger received: message:appUser', logContext);
@@ -69,21 +84,6 @@ exports.handler = async (event) => {
       const { integrationId } = client;
       logContext.smoochMessageType = type;
       logContext.smoochIntegrationId = integrationId;
-
-      let cxAuthSecret;
-      try {
-        cxAuthSecret = await secretsClient.getSecretValue({
-          SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
-        }).promise();
-      } catch (error) {
-        const errMsg = 'An Error has occurred trying to retrieve cx credentials';
-
-        log.error(errMsg, logContext, error);
-
-        throw error;
-      }
-
-      const auth = JSON.parse(cxAuthSecret.SecretString);
 
       switch (platform) {
         case 'web': {
@@ -145,6 +145,7 @@ exports.handler = async (event) => {
         interactionId,
         conversationEvent: 'conversation-read',
         timestamp,
+        auth,
         logContext,
       });
       return;
@@ -157,6 +158,7 @@ exports.handler = async (event) => {
         interactionId,
         conversationEvent: currentEvent,
         timestamp,
+        auth,
         logContext,
       });
       return;
@@ -397,6 +399,7 @@ async function handleCollectMessageResponse({
       tenantId,
       interactionId,
       message: response,
+      auth,
       logContext,
     });
     log.debug('Sent collect-message response to participants', {
@@ -502,10 +505,11 @@ async function sendCustomerMessageToParticipants({
   tenantId,
   interactionId,
   message,
+  auth,
   logContext,
 }) {
   try {
-    const { data } = await getMetadata({ tenantId, interactionId });
+    const { data } = await getMetadata({ tenantId, interactionId, auth });
     log.debug('Got interaction metadata', { ...logContext, interaction: data });
     const { participants } = data;
 
@@ -551,10 +555,11 @@ async function sendConversationEvent({
   interactionId,
   conversationEvent,
   timestamp,
+  auth,
   logContext,
 }) {
   try {
-    const { data } = await getMetadata({ tenantId, interactionId });
+    const { data } = await getMetadata({ tenantId, interactionId, auth });
     log.debug('Got interaction metadata', { ...logContext, interaction: data });
     const { participants } = data;
 
