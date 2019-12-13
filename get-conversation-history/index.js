@@ -116,12 +116,13 @@ exports.handler = async (event) => {
   }
 
   messages = messages.messages
-    // Keep messages from customer that are not form response.
-    // Keep agent messages (they have metadata for their name and id).
-    .filter((message) => (message.role === 'appUser' && message.type !== 'formResponse') || message.metadata)
+    // Keep formResponses that have metadata (collect-message responses)
+    // Keep messages from customer that are not form response (normal customer messages)
+    // Keep messages with metadata (agent or system messages)
+    .filter((message) => ((message.type === 'formResponse' && message.quotedMessage.content.metadata) || (message.role === 'appUser' && message.type !== 'formResponse') || message.metadata))
     .map((message) => ({
       id: message._id,
-      text: message.text,
+      text: getMessageText(message),
       type: message.role === 'appMaker' ? message.metadata.type : 'customer',
       from: message.role === 'appMaker' ? message.metadata.from : customer,
       resourceId: message.role === 'appMaker' ? message.metadata.resourceId : null,
@@ -142,4 +143,16 @@ async function getMetadata({ tenantId, interactionId, auth }) {
     url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
     auth,
   });
+}
+
+function getMessageText(message) {
+  if (message.role === 'appMaker' && message.type === 'form') {
+    return message.fields[0].label; // collect-message
+  }
+
+  if (message.type === 'formResponse') {
+    return message.fields[0].text; // collect-message response
+  }
+
+  return message.text; // normal messages
 }

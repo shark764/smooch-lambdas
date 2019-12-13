@@ -60,7 +60,7 @@ exports.handler = async (event) => {
 
   const cxAuth = JSON.parse(cxAuthSecret.SecretString);
 
-  if (participants.length !== updatedParticipants.length) {
+  if (participants.length === updatedParticipants.length) {
     log.warn('Participant does not exist', { ...logContext, participants, resourceId });
   } else {
     try {
