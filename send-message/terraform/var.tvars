@@ -4,5 +4,6 @@ zip_path="send-message/send-message.zip"
 handler = "index.handler"
 environmentVars = {
   "ENVIRONMENT" = "${ENVIRONMENT}",
-  "DOMAIN" = "${DOMAIN}"
+  "DOMAIN" = "${DOMAIN}",
+  "SNS_REPORTING_ARN" = "arn:aws:sns:${REGION}:${ACCOUNT_ID}:${REGION}-${ENVIRONMENT}-agent-message"
 }

@@ -7,7 +7,17 @@
             "logs:PutLogEvents",
             "ec2:CreateNetworkInterface",
             "ec2:DescribeNetworkInterfaces",
-            "ec2:DeleteNetworkInterface"
+            "ec2:DeleteNetworkInterface",
+            "sns:SetTopicAttributes",
+            "sns:SetSubscriptionAttributes",
+            "sns:CreateTopic",
+            "sns:GetTopicAttributes",
+            "sns:Subscribe",
+            "sns:SetEndpointAttributes",
+            "sns:Publish",
+            "sns:Unsubscribe",
+            "sns:GetEndpointAttributes",
+            "sns:GetSubscriptionAttributes"
         ],
         "Effect": "Allow",
         "Resource": "*"

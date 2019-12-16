@@ -6,14 +6,17 @@ const SmoochCore = require('smooch-core');
 const log = require('serenova-js-utils/lambda/log');
 const axios = require('axios');
 const AWS = require('aws-sdk');
+const uuidv4 = require('uuid/v4');
 
 const secretsClient = new AWS.SecretsManager();
+const sns = new AWS.SNS({ apiVersion: '2010-03-31' });
 
 const {
   AWS_REGION,
   ENVIRONMENT,
   DOMAIN,
   smooch_api_url: smoochApiUrl,
+  SNS_REPORTING_ARN,
 } = process.env;
 
 exports.handler = async (event) => {
@@ -152,6 +155,12 @@ exports.handler = async (event) => {
 
   log.info('Sent smooch message successfully', { ...logContext, smoochMessage: messageSent });
 
+  try {
+    await sendReportingEvent({ logContext, messageId: messageSent.id });
+  } catch (error) {
+    log.error('Failed to send Reporting Event', logContext, error);
+  }
+
   return {
     status: 200,
     body: { message: messageSent, interactionId },
@@ -164,4 +173,46 @@ async function getMetadata({ tenantId, interactionId, auth }) {
     url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
     auth,
   });
+}
+
+async function sendReportingEvent({
+  logContext, messageId,
+}) {
+  const { tenantId, interactionId, resourceId } = logContext;
+  const topic = 'AgentMessage';
+  const appName = `${AWS_REGION}-${ENVIRONMENT}-send-message`;
+  const appId = '55448dde-5fa1-416f-a55a-19537cc63c94';
+
+  let message = {
+    'psychopomp/version': `psychopomp.messages.reporting/${topic}`,
+    'psychopomp/type': topic,
+    'event-id': uuidv4(),
+    timestamp: Date.now(),
+    'app-name': appName,
+    'app-id': appId,
+    'tenant-id': tenantId,
+    'interaction-id': interactionId,
+    'agent-id': resourceId,
+    'message-id': messageId,
+  };
+  const asStringVal = (s) => ({ DataType: 'String', StringValue: s });
+
+  message = {
+    'topic-key': asStringVal(topic),
+    'app-name': asStringVal(appName),
+    'app-id': asStringVal(appId),
+    encoding: asStringVal('application/json'),
+    message: asStringVal(JSON.stringify(message)),
+  };
+
+  const params = {
+    Message: 'dist-event',
+    TopicArn: SNS_REPORTING_ARN,
+    MessageAttributes: message,
+  };
+
+  log.debug('Sending to SNS', { ...logContext, payload: params });
+
+  const result = await sns.publish(params).promise();
+  log.debug(`[AWS] Reporting Event ${params.TopicArn}`, { ...logContext, result });
 }
