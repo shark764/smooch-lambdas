@@ -13,7 +13,17 @@
             "sqs:ListDeadLetterSourceQueues",
             "sqs:ReceiveMessage",
             "sqs:SendMessage",
-            "sqs:GetQueueAttributes"
+            "sqs:GetQueueAttributes",
+            "sns:SetTopicAttributes",
+            "sns:SetSubscriptionAttributes",
+            "sns:CreateTopic",
+            "sns:GetTopicAttributes",
+            "sns:Subscribe",
+            "sns:SetEndpointAttributes",
+            "sns:Publish",
+            "sns:Unsubscribe",
+            "sns:GetEndpointAttributes",
+            "sns:GetSubscriptionAttributes"
         ],
         "Effect": "Allow",
         "Resource": "*"

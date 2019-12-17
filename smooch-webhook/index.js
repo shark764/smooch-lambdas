@@ -14,10 +14,12 @@ const {
   ENVIRONMENT,
   DOMAIN,
   smooch_api_url: smoochApiUrl,
+  SNS_REPORTING_ARN,
 } = process.env;
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
+const sns = new AWS.SNS({ apiVersion: '2010-03-31' });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
 
@@ -544,6 +546,7 @@ async function sendCustomerMessageToParticipants({
         await sqs.sendMessage(sqsMessageAction).promise();
       }),
     );
+    await sendReportingEvent({ logContext, messageId: message._id });
   } catch (error) {
     log.error('Error sending message to participants', logContext, error);
     throw error;
@@ -626,4 +629,45 @@ async function updateInteractionMetadata({
     },
     auth,
   });
+}
+
+async function sendReportingEvent({
+  logContext, messageId,
+}) {
+  const { tenantId, interactionId } = logContext;
+  const topic = 'customer-message';
+  const appName = `${AWS_REGION}-${ENVIRONMENT}-smooch-webhook`;
+  const appId = '55448dde-5fa1-416f-a55a-19537cc63c94';
+
+  let message = {
+    'psychopomp/version': `psychopomp.messages.reporting/${topic}`,
+    'psychopomp/type': topic,
+    'event-id': uuidv4(),
+    timestamp: `${new Date(Date.now()).toISOString().split('.').shift()}Z`,
+    'app-name': appName,
+    'app-id': appId,
+    'tenant-id': tenantId,
+    'interaction-id': interactionId,
+    'message-id': messageId,
+  };
+  const asStringVal = (s) => ({ DataType: 'String', StringValue: s });
+
+  message = {
+    'topic-key': asStringVal(topic),
+    'app-name': asStringVal(appName),
+    'app-id': asStringVal(appId),
+    encoding: asStringVal('application/json'),
+    message: asStringVal(JSON.stringify(message)),
+  };
+
+  const params = {
+    Message: 'dist-event',
+    TopicArn: SNS_REPORTING_ARN,
+    MessageAttributes: message,
+  };
+
+  log.debug('Sending to SNS', { ...logContext, payload: params });
+
+  const result = await sns.publish(params).promise();
+  log.debug(`[AWS] Reporting Event ${params.TopicArn}`, { ...logContext, result });
 }

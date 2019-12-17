@@ -179,7 +179,7 @@ async function sendReportingEvent({
   logContext, messageId,
 }) {
   const { tenantId, interactionId, resourceId } = logContext;
-  const topic = 'AgentMessage';
+  const topic = 'agent-message';
   const appName = `${AWS_REGION}-${ENVIRONMENT}-send-message`;
   const appId = '55448dde-5fa1-416f-a55a-19537cc63c94';
 
@@ -187,7 +187,7 @@ async function sendReportingEvent({
     'psychopomp/version': `psychopomp.messages.reporting/${topic}`,
     'psychopomp/type': topic,
     'event-id': uuidv4(),
-    timestamp: Date.now(),
+    timestamp: `${new Date(Date.now()).toISOString().split('.').shift()}Z`,
     'app-name': appName,
     'app-id': appId,
     'tenant-id': tenantId,
