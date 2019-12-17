@@ -1,5 +1,148 @@
+const SmoochCore = require('smooch-core');
 const log = require('serenova-js-utils/lambda/log');
+const axios = require('axios');
+const AWS = require('aws-sdk');
+
+const secretsClient = new AWS.SecretsManager();
+const {
+  AWS_REGION,
+  ENVIRONMENT,
+  DOMAIN,
+  smooch_api_url: smoochApiUrl,
+} = process.env;
 
 exports.handler = async (event) => {
-  log.info('smooch-event-end-interaction was called', event);
+  const {
+    'tentant-id': tenantId,
+    'interaction-id': interactionId,
+    'interaction-metadata': metadata,
+    event: incomingEvent,
+  } = JSON.parse(event.Records[0].body);
+  const { appId, userId } = metadata;
+  const logContext = {
+    tenantId,
+    interactionId,
+    smoochAppId: appId,
+    smoochUserId: userId,
+  };
+
+  log.info('smooch-event-end-interaction was called', { ...logContext, incomingEvent });
+
+  let cxAuthSecret;
+  try {
+    cxAuthSecret = await secretsClient.getSecretValue({
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+    }).promise();
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to retrieve cx credentials';
+
+    log.error(errMsg, logContext, error);
+
+    throw error;
+  }
+
+  const cxAuth = JSON.parse(cxAuthSecret.SecretString);
+
+  let appSecrets;
+  try {
+    appSecrets = await secretsClient.getSecretValue({
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+    }).promise();
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
+
+    log.error(errMsg, logContext, error);
+
+    throw error;
+  }
+  const appKeys = JSON.parse(appSecrets.SecretString);
+
+  let smooch;
+  try {
+    smooch = new SmoochCore({
+      keyId: appKeys[`${appId}-id`],
+      secret: appKeys[`${appId}-secret`],
+      scope: 'app',
+      serviceUrl: smoochApiUrl,
+    });
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
+    log.error(errMsg, logContext, error);
+    throw error;
+  }
+
+  let messages;
+
+  try {
+    messages = await smooch.appUsers.getMessages({
+      appId,
+      userId,
+    });
+  } catch (error) {
+    const errMsg = 'An error occurred fetching interaction messages';
+
+    log.error(errMsg, logContext, error);
+
+    throw error;
+  }
+
+  const transcript = await formatMessages(messages);
+  const multipart = new Blob([JSON.stringify(transcript)], {
+    type: 'application/json',
+  });
+
+  log.info('Archiving an interaction artifact', { ...logContext, multipart });
+  await persistArchivedHistory('messaging-transcript', logContext, multipart, cxAuth);
 };
+
+async function persistArchivedHistory(type, logContext, multipart, cxAuth) {
+  try {
+    const { data: artifact } = await createArtifact(logContext, type, cxAuth);
+    log.debug('Created Artifact', { ...logContext, artifact });
+
+    const { artifactId } = artifact;
+    const { data } = await uploadArtifactFile(
+      logContext, artifactId, multipart, cxAuth,
+    );
+    const artifactFileId = data['transcript.json'];
+
+    log.info(
+      'Successfully created Smooch transcript artifact', {
+        ...logContext, artifactId, artifactFileId,
+      },
+    );
+  } catch (error) {
+    log.error(
+      'Error persisting artifact history',
+      { ...logContext, multipart },
+      error,
+    );
+  }
+}
+
+async function createArtifact({ tenantId, interactionId }, type, auth) {
+  return axios({
+    method: 'post',
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts`,
+    data: {
+      artifactType: type,
+    },
+    auth,
+  });
+}
+
+async function uploadArtifactFile({ tenantId, interactionId }, artifactId, multipart, auth) {
+  const data = new FormData();
+  data.append('content', multipart);
+
+  return axios({
+    method: 'post',
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}/files`,
+    data,
+    auth,
+  });
+}
+
+async function formatMessages({ messages }) {
+  return messages;
+}
