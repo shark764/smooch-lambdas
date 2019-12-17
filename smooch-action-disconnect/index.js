@@ -27,26 +27,6 @@ exports.handler = async (event) => {
 
   log.info('smooch-action-disconnect was called', { ...logContext });
 
-  if (!parameters.resource || !parameters.resource.id) {
-    switch (source) {
-      case 'web':
-        log.info('Web messaging interaction ended by resource', logContext);
-        break;
-      default:
-        log.warn('Ignoring customer disconnect action - Source is not valid', { ...logContext, source });
-        break;
-    }
-    return;
-  }
-
-  const {
-    id: resourceId,
-  } = parameters.resource;
-  logContext.resourceId = resourceId;
-
-  const { participants } = metadata;
-  const updatedParticipants = participants.filter((participant) => participant['resource-id'] !== resourceId);
-
   let cxAuthSecret;
   try {
     cxAuthSecret = await secretsClient.getSecretValue({
@@ -59,6 +39,22 @@ exports.handler = async (event) => {
   }
 
   const cxAuth = JSON.parse(cxAuthSecret.SecretString);
+
+  if (!parameters.resource || !parameters.resource.id) {
+    log.info('Web messaging interaction ended by resource - Customer Disconnect', logContext);
+    await sendFlowActionResponse({
+      logContext, actionId: id, subId, auth: cxAuth,
+    });
+    return;
+  }
+
+  const {
+    id: resourceId,
+  } = parameters.resource;
+  logContext.resourceId = resourceId;
+
+  const { participants } = metadata;
+  const updatedParticipants = participants.filter((participant) => participant['resource-id'] !== resourceId);
 
   if (participants.length === updatedParticipants.length) {
     log.warn('Participant does not exist', { ...logContext, participants, resourceId });
@@ -74,22 +70,9 @@ exports.handler = async (event) => {
   }
 
   // Flow Action Response
-  try {
-    await axios({
-      method: 'post',
-      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${id}?id=${uuidv1()}`,
-      data: {
-        source: 'smooch',
-        subId,
-        metadata: {},
-        update: {},
-      },
-      auth: cxAuth,
-    });
-  } catch (error) {
-    log.error('An Error has occurred trying to send action response', logContext, error);
-    throw error;
-  }
+  await sendFlowActionResponse({
+    logContext, actionId: id, subId, auth: cxAuth,
+  });
 
   // Perform Resource Interrupt
   try {
@@ -123,4 +106,26 @@ async function disconnectResource({ tenantId, interactionId, metadata }, auth) {
     },
     auth,
   });
+}
+
+async function sendFlowActionResponse({
+  logContext, actionId, subId, auth,
+}) {
+  const { tenantId, interactionId } = logContext;
+  try {
+    await axios({
+      method: 'post',
+      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${actionId}?id=${uuidv1()}`,
+      data: {
+        source: 'smooch',
+        subId,
+        metadata: {},
+        update: {},
+      },
+      auth,
+    });
+  } catch (error) {
+    log.error('An Error has occurred trying to send action response', logContext, error);
+    throw error;
+  }
 }
