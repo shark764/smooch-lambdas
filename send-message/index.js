@@ -156,7 +156,7 @@ exports.handler = async (event) => {
   log.info('Sent smooch message successfully', { ...logContext, smoochMessage: messageSent });
 
   try {
-    await sendReportingEvent({ logContext, messageId: messageSent.id });
+    await sendReportingEvent({ logContext });
   } catch (error) {
     log.error('Failed to send Reporting Event', logContext, error);
   }
@@ -176,7 +176,7 @@ async function getMetadata({ tenantId, interactionId, auth }) {
 }
 
 async function sendReportingEvent({
-  logContext, messageId,
+  logContext,
 }) {
   const { tenantId, interactionId, resourceId } = logContext;
   const topic = 'agent-message';
@@ -193,7 +193,7 @@ async function sendReportingEvent({
     'tenant-id': tenantId,
     'interaction-id': interactionId,
     'agent-id': resourceId,
-    'message-id': messageId,
+    'message-id': uuidv4(),
   };
   const asStringVal = (s) => ({ DataType: 'String', StringValue: s });
 

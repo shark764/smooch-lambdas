@@ -546,7 +546,7 @@ async function sendCustomerMessageToParticipants({
         await sqs.sendMessage(sqsMessageAction).promise();
       }),
     );
-    await sendReportingEvent({ logContext, messageId: message._id });
+    await sendReportingEvent({ logContext });
   } catch (error) {
     log.error('Error sending message to participants', logContext, error);
     throw error;
@@ -632,7 +632,7 @@ async function updateInteractionMetadata({
 }
 
 async function sendReportingEvent({
-  logContext, messageId,
+  logContext,
 }) {
   const { tenantId, interactionId } = logContext;
   const topic = 'customer-message';
@@ -648,7 +648,7 @@ async function sendReportingEvent({
     'app-id': appId,
     'tenant-id': tenantId,
     'interaction-id': interactionId,
-    'message-id': messageId,
+    'message-id': uuidv4(),
   };
   const asStringVal = (s) => ({ DataType: 'String', StringValue: s });
 
