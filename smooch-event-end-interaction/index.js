@@ -2,6 +2,7 @@ const SmoochCore = require('smooch-core');
 const log = require('serenova-js-utils/lambda/log');
 const axios = require('axios');
 const AWS = require('aws-sdk');
+const FormData = require('form-data');
 
 const secretsClient = new AWS.SecretsManager();
 const {
@@ -13,12 +14,12 @@ const {
 
 exports.handler = async (event) => {
   const {
-    'tentant-id': tenantId,
+    'tenant-id': tenantId,
     'interaction-id': interactionId,
     'interaction-metadata': metadata,
     event: incomingEvent,
   } = JSON.parse(event.Records[0].body);
-  const { appId, userId } = metadata;
+  const { 'app-id': appId, 'user-id': userId } = metadata;
   const logContext = {
     tenantId,
     interactionId,
@@ -34,31 +35,24 @@ exports.handler = async (event) => {
       SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
     }).promise();
   } catch (error) {
-    const errMsg = 'An Error has occurred trying to retrieve cx credentials';
-
-    log.error(errMsg, logContext, error);
-
+    log.error('An Error has occurred trying to retrieve cx credentials', logContext, error);
     throw error;
   }
 
   const cxAuth = JSON.parse(cxAuthSecret.SecretString);
-
   let appSecrets;
   try {
     appSecrets = await secretsClient.getSecretValue({
       SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
     }).promise();
   } catch (error) {
-    const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
-
-    log.error(errMsg, logContext, error);
-
+    log.error('An Error has occurred trying to retrieve digital channels credentials', logContext, error);
     throw error;
   }
-  const appKeys = JSON.parse(appSecrets.SecretString);
 
   let smooch;
   try {
+    const appKeys = JSON.parse(appSecrets.SecretString);
     smooch = new SmoochCore({
       keyId: appKeys[`${appId}-id`],
       secret: appKeys[`${appId}-secret`],
@@ -66,13 +60,11 @@ exports.handler = async (event) => {
       serviceUrl: smoochApiUrl,
     });
   } catch (error) {
-    const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
-    log.error(errMsg, logContext, error);
+    log.error('An Error has occurred trying to initialize Smooch SDK', logContext, error);
     throw error;
   }
 
   let messages;
-
   try {
     messages = await smooch.appUsers.getMessages({
       appId,
@@ -87,37 +79,46 @@ exports.handler = async (event) => {
   }
 
   const transcript = await formatMessages(messages);
-  const multipart = new Blob([JSON.stringify(transcript)], {
-    type: 'application/json',
-  });
-
-  log.info('Archiving an interaction artifact', { ...logContext, multipart });
-  await persistArchivedHistory('messaging-transcript', logContext, multipart, cxAuth);
+  await persistArchivedHistory('messaging-transcript', logContext, transcript, cxAuth);
 };
 
-async function persistArchivedHistory(type, logContext, multipart, cxAuth) {
+async function persistArchivedHistory(type, logContext, transcript, cxAuth) {
+  let artifact;
   try {
-    const { data: artifact } = await createArtifact(logContext, type, cxAuth);
-    log.debug('Created Artifact', { ...logContext, artifact });
-
-    const { artifactId } = artifact;
-    const { data } = await uploadArtifactFile(
-      logContext, artifactId, multipart, cxAuth,
-    );
-    const artifactFileId = data['transcript.json'];
-
-    log.info(
-      'Successfully created Smooch transcript artifact', {
-        ...logContext, artifactId, artifactFileId,
-      },
-    );
+    const { data } = await createArtifact(logContext, type, cxAuth);
+    log.debug('Created Artifact', { ...logContext, artifact: data });
+    artifact = data;
   } catch (error) {
     log.error(
-      'Error persisting artifact history',
-      { ...logContext, multipart },
+      'Error creating artifact',
+      { ...logContext, transcript },
       error,
     );
+    throw error;
   }
+
+  const { artifactId } = artifact;
+  let artifactFile;
+  try {
+    const { data } = await uploadArtifactFile(
+      logContext, artifactId, transcript, cxAuth,
+    );
+    artifactFile = data;
+  } catch (error) {
+    log.error(
+      'Error persisting artifact history', {
+        ...logContext, artifactId, artifactFile,
+      },
+      error,
+    );
+    throw error;
+  }
+
+  log.info(
+    'Successfully created messaging transcript artifact', {
+      ...logContext, artifactId, artifactFile,
+    },
+  );
 }
 
 async function createArtifact({ tenantId, interactionId }, type, auth) {
@@ -131,15 +132,22 @@ async function createArtifact({ tenantId, interactionId }, type, auth) {
   });
 }
 
-async function uploadArtifactFile({ tenantId, interactionId }, artifactId, multipart, auth) {
-  const data = new FormData();
-  data.append('content', multipart);
+async function uploadArtifactFile({ tenantId, interactionId }, artifactId, transcript, auth) {
+  const form = new FormData();
+  form.append('content', Buffer.from(JSON.stringify(transcript)), {
+    filename: 'transcript.json',
+    contentType: 'application/json',
+  });
 
+  log.debug('Uploading artifact using old upload route', {
+    tenantId, interactionId, artifactId, transcript,
+  });
   return axios({
     method: 'post',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}/files`,
-    data,
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
+    data: form,
     auth,
+    headers: form.getHeaders(),
   });
 }
 
