@@ -170,7 +170,7 @@ function formatMessages({ messages }, tenantId) {
             || 'system',
         },
         body: {
-          text: message.text,
+          text: getMessageText(message),
         },
         from: (message.metadata && message.metadata.resourceId) || message.authorId,
         'tenant-id': tenantId,
@@ -182,4 +182,16 @@ function formatMessages({ messages }, tenantId) {
       timestamp: Math.floor((new Date(message.received * 1000)).getTime() / 1000)
 
     }));
+}
+
+function getMessageText(message) {
+  if (message.role === 'appMaker' && message.type === 'form') {
+    return message.fields[0].label; // collect-message
+  }
+
+  if (message.type === 'formResponse') {
+    return message.fields[0].text; // collect-message response
+  }
+
+  return message.text; // normal messages
 }

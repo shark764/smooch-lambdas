@@ -345,7 +345,7 @@ async function handleCollectMessageResponse({
   auth,
   logContext,
 }) {
-  const { data: metadata } = await getMetadata({ tenantId, interactionId });
+  const { data: metadata } = await getMetadata({ tenantId, interactionId, auth });
   const { collectActions: pendingActions } = metadata;
   const { actionId, subId } = form.quotedMessage.content.metadata;
   const response = form.fields[0].text;
