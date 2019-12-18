@@ -78,7 +78,7 @@ exports.handler = async (event) => {
     throw error;
   }
 
-  const transcript = await formatMessages(messages);
+  const transcript = await formatMessages(messages, tenantId);
   await persistArchivedHistory('messaging-transcript', logContext, transcript, cxAuth);
 };
 
@@ -151,6 +151,35 @@ async function uploadArtifactFile({ tenantId, interactionId }, artifactId, trans
   });
 }
 
-async function formatMessages({ messages }) {
-  return messages;
+function formatMessages({ messages }, tenantId) {
+  return messages
+    .filter((message) => ((message.type === 'formResponse' && message.quotedMessage.content.metadata) || (message.role === 'appUser' && message.type !== 'formResponse') || message.metadata))
+    .map((message) => ({
+      payload: {
+        metadata: {
+          name: message.name || (message.metadata && message.metadata.from) || 'system',
+          source: 'smooch',
+          type: message.role === 'appMaker' ? message.metadata.type : 'customer',
+          'first-name': (message.metadata && message.metadata.from
+            && message.metadata.from.split(' ')[0])
+            || (message.name && message.name.split(' ')[0])
+            || 'system',
+          'last-name': (message.metadata && message.metadata.from
+            && message.metadata.from.split(' ')[1])
+            || (message.name && message.name.split(' ')[1])
+            || 'system',
+        },
+        body: {
+          text: message.text,
+        },
+        from: (message.metadata && message.metadata.resourceId) || message.authorId,
+        'tenant-id': tenantId,
+        to: null, // channelId
+        type: 'message',
+        timestamp: `${(new Date(message.received * 1000)).toISOString().split('.').shift()}Z`,
+      },
+      channelId: null,
+      timestamp: Math.floor((new Date(message.received * 1000)).getTime() / 1000)
+
+    }));
 }
