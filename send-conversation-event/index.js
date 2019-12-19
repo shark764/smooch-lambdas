@@ -136,7 +136,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    smooch.appUsers.conversationActivity({
+    await smooch.appUsers.conversationActivity({
       appId,
       userId: smoochUserId,
       activityProps: {
