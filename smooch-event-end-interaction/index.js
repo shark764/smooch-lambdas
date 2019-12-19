@@ -179,8 +179,7 @@ function formatMessages({ messages }, tenantId) {
         timestamp: `${(new Date(message.received * 1000)).toISOString().split('.').shift()}Z`,
       },
       channelId: null,
-      timestamp: Math.floor((new Date(message.received * 1000)).getTime() / 1000)
-
+      timestamp: (message.received * 1000).toString(),
     }));
 }
 
