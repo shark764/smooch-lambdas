@@ -16,7 +16,7 @@ exports.handler = async (event) => {
     metadata,
     parameters,
   } = JSON.parse(event.Records[0].body);
-  const { 'app-id': appId, 'user-id': userId, source } = metadata;
+  const { 'app-id': appId, 'user-id': userId } = metadata;
 
   const logContext = {
     tenantId,
