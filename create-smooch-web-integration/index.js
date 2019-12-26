@@ -179,7 +179,7 @@ exports.handler = async (event) => {
     const { integration } = await smooch.integrations.create(appId, {
       type: 'web',
       brandColor: body.brandColor,
-      originWhiteList: body.whitelistedUrls,
+      originWhitelist: body.whitelistedUrls,
       businessName: body.businessName,
       businessIconUrl: body.businessIconUrl,
       fixedIntroPane: body.fixedIntroPane,
@@ -277,6 +277,8 @@ exports.handler = async (event) => {
   delete smoochIntegration.displayName;
   delete smoochIntegration.status;
   delete smoochIntegration.type;
+  smoochIntegration.whitelistedUrls = smoochIntegration.originWhitelist;
+  delete smoochIntegration.originWhitelist;
   smoochIntegration.prechatCapture = smoochIntegration.prechatCapture.fields[0].name;
   Object.keys(dynamoValue).forEach((v) => {
     dynamoValueCased[string.kebabCaseToCamelCase(v)] = dynamoValue[v];

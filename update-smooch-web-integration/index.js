@@ -213,7 +213,7 @@ exports.handler = async (event) => {
         integrationId,
         props: {
           brandColor: body.brandColor,
-          originWhiteList: body.whitelistedUrls,
+          originWhitelist: body.whitelistedUrls,
           businessName: body.businessName,
           businessIconUrl: body.businessIconUrl,
           fixedIntroPane: body.fixedIntroPane,
