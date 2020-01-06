@@ -3,7 +3,9 @@ const axios = require('axios');
 const uuidv1 = require('uuid/v1');
 const AWS = require('aws-sdk');
 
+AWS.config.update({ region: process.env.AWS_REGION });
 const secretsClient = new AWS.SecretsManager();
+const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 
 const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
 
@@ -61,8 +63,8 @@ exports.handler = async (event) => {
   } else {
     try {
       metadata.participants = updatedParticipants;
-      const { data } = await disconnectResource({ tenantId, interactionId, metadata }, cxAuth);
-      log.debug('Removed participant from interaction metadata', { ...logContext, metadata, data });
+      await updateInteractionMetadata({ tenantId, interactionId, metadata });
+      log.debug('Removed participant from interaction metadata', { ...logContext, metadata });
     } catch (error) {
       log.error('Error updating interaction metadata', logContext, error);
       throw error;
@@ -96,36 +98,48 @@ exports.handler = async (event) => {
   log.info('smooch-action-disconnect was successful', logContext);
 };
 
-async function disconnectResource({ tenantId, interactionId, metadata }, auth) {
-  return axios({
-    method: 'post',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata?id=${uuidv1()}`,
-    data: {
-      source: 'smooch',
-      metadata,
-    },
-    auth,
+async function updateInteractionMetadata({
+  tenantId,
+  interactionId,
+  metadata,
+}) {
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-update-interaction-metadata`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const payload = JSON.stringify({
+    tenantId,
+    interactionId,
+    source: 'smooch',
+    metadata,
   });
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
 }
 
+
 async function sendFlowActionResponse({
-  logContext, actionId, subId, auth,
+  logContext, actionId, subId,
 }) {
   const { tenantId, interactionId } = logContext;
-  try {
-    await axios({
-      method: 'post',
-      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${actionId}?id=${uuidv1()}`,
-      data: {
-        source: 'smooch',
-        subId,
-        metadata: {},
-        update: {},
-      },
-      auth,
-    });
-  } catch (error) {
-    log.error('An Error has occurred trying to send action response', logContext, error);
-    throw error;
-  }
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-send-flow-response`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const data = {
+    source: 'smooch',
+    subId,
+    metadata: {},
+    update: {},
+  };
+  const payload = JSON.stringify({
+    tenantId,
+    actionId,
+    interactionId,
+    data,
+  });
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
 }

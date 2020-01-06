@@ -14,12 +14,10 @@ const {
   ENVIRONMENT,
   DOMAIN,
   smooch_api_url: smoochApiUrl,
-  SNS_REPORTING_ARN,
 } = process.env;
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
-const sns = new AWS.SNS({ apiVersion: '2010-03-31' });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
 
@@ -290,11 +288,9 @@ async function handleFormResponse({
     } catch (error) {
       log.error('Error updating Smooch appUser', logContext, error);
 
-      let endedInteraction;
-
       try {
-        endedInteraction = endInteraction({ interactionId: newInteractionId, tenantId, auth });
-        log.info('Ended interaction', { ...logContext, endedInteraction });
+        await endInteraction({ interactionId: newInteractionId, tenantId });
+        log.info('Ended interaction', logContext);
       } catch (err) {
         log.fatal('Error ending interaction', logContext, err);
       }
@@ -377,23 +373,7 @@ async function handleCollectMessageResponse({
   }
 
   // Update flow
-  try {
-    await axios({
-      method: 'post',
-      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${actionId}?id=${uuidv1()}`,
-      data: {
-        source: 'smooch',
-        subId,
-        metadata: {},
-        update: { response },
-      },
-      auth,
-    });
-  } catch (error) {
-    const errMsg = 'An Error has occurred trying to send an action response';
-    log.error(errMsg, logContext, error);
-    throw error;
-  }
+  await sendFlowActionResponse({ logContext, actionId, subId });
 
   // Send response to resources
   try {
@@ -418,16 +398,12 @@ async function handleCollectMessageResponse({
   }
   // Remove action from pending actions
   try {
-    const deletedActionMetadata = await updateInteractionMetadata({
+    await updateInteractionMetadata({
       tenantId,
       interactionId,
       metadata,
-      auth,
     });
-    log.info('Removed collect-message action from metadata', {
-      ...logContext,
-      deletedActionMetadata,
-    });
+    log.info('Removed collect-message action from metadata', logContext);
   } catch (error) {
     log.fatal(
       'Error removing pending collect-message action from metadata',
@@ -486,21 +462,20 @@ async function createInteraction({
   });
 }
 
-function endInteraction({
-  tenantId, interactionId, auth, logContext,
-}) {
-  log.debug('Ending interaction', { ...logContext, tenantId, interactionId });
+async function endInteraction({ tenantId, interactionId }) {
+  log.debug('Ending interaction', { tenantId, interactionId });
 
-  return axios({
-    method: 'post',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts?id=${uuidv1()}`,
-    data: {
-      source: 'smooch',
-      interruptType: 'customer-disconnect',
-      interrupt: {},
-    },
-    auth,
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-end-interaction`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const payload = JSON.stringify({
+    tenantId,
+    interactionId,
   });
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
 }
 
 async function sendCustomerMessageToParticipants({
@@ -618,56 +593,63 @@ async function updateInteractionMetadata({
   tenantId,
   interactionId,
   metadata,
-  auth,
 }) {
-  return axios({
-    method: 'post',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata?id=${uuidv1()}`,
-    data: {
-      source: 'smooch',
-      metadata,
-    },
-    auth,
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-update-interaction-metadata`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const payload = JSON.stringify({
+    tenantId,
+    interactionId,
+    source: 'smooch',
+    metadata,
   });
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
 }
 
 async function sendReportingEvent({
   logContext,
 }) {
   const { tenantId, interactionId } = logContext;
-  const topic = 'customer-message';
-  const appName = `${AWS_REGION}-${ENVIRONMENT}-smooch-webhook`;
-  const appId = '55448dde-5fa1-416f-a55a-19537cc63c94';
-
-  let message = {
-    'psychopomp/version': `psychopomp.messages.reporting/${topic}`,
-    'psychopomp/type': topic,
-    'event-id': uuidv4(),
-    timestamp: `${new Date(Date.now()).toISOString().split('.').shift()}Z`,
-    'app-name': appName,
-    'app-id': appId,
-    'tenant-id': tenantId,
-    'interaction-id': interactionId,
-    'message-id': uuidv4(),
-  };
-  const asStringVal = (s) => ({ DataType: 'String', StringValue: s });
-
-  message = {
-    'topic-key': asStringVal(topic),
-    'app-name': asStringVal(appName),
-    'app-id': asStringVal(appId),
-    encoding: asStringVal('application/json'),
-    message: asStringVal(JSON.stringify(message)),
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-send-reporting-event`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const payload = JSON.stringify({
+    tenantId,
+    interactionId,
+    topic: 'customer-message',
+    appName: `${AWS_REGION}-${ENVIRONMENT}-smooch-webhook`,
+  });
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
   };
 
-  const params = {
-    Message: 'dist-event',
-    TopicArn: SNS_REPORTING_ARN,
-    MessageAttributes: message,
+  await sqs.sendMessage(sqsMessageAction).promise();
+}
+
+async function sendFlowActionResponse({
+  logContext, actionId, subId,
+}) {
+  const { tenantId, interactionId } = logContext;
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-send-flow-response`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const data = {
+    source: 'smooch',
+    subId,
+    metadata: {},
+    update: {},
   };
-
-  log.debug('Sending to SNS', { ...logContext, payload: params });
-
-  const result = await sns.publish(params).promise();
-  log.debug(`[AWS] Reporting Event ${params.TopicArn}`, { ...logContext, result });
+  const payload = JSON.stringify({
+    tenantId,
+    actionId,
+    interactionId,
+    data,
+  });
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
 }

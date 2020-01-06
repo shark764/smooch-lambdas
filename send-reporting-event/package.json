@@ -1,0 +1,12 @@
+{
+  "name": "send-reporting-event",
+  "version": "1.0.0",
+  "description": "Lambda to send reporting events",
+  "repository": {},
+  "license": "UNLICENSED",
+  "dependencies": {
+    "aws-sdk": "^2.585.0",
+    "serenova-js-utils": "1.7.1",
+    "uuid": "^3.3.3"
+  }
+}

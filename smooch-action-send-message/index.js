@@ -172,28 +172,33 @@ exports.handler = async (event) => {
     throw error;
   }
 
-  const actionResponseUrl = `${cxApiUrl}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${id}?id=${uuidv1()}`;
-
-  try { // send action response
-    await axios({
-      method: 'post',
-      url: actionResponseUrl,
-      data: {
-        source: 'smooch',
-        subId,
-        metadata: {},
-        update: {},
-      },
-      auth: cxAuth,
-    });
-  } catch (error) {
-    const errMsg = 'An Error has occurred trying to send action response';
-    log.error(errMsg, logContext, error);
-    throw error;
-  }
-
-  log.info('smooch-action-send-message was successful', logContext);
+  await sendFlowActionResponse({ logContext, actionId: id, subId });
 };
+
+async function sendFlowActionResponse({
+  logContext, actionId, subId,
+}) {
+  const { tenantId, interactionId } = logContext;
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-send-flow-response`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const data = {
+    source: 'smooch',
+    subId,
+    metadata: {},
+    update: {},
+  };
+  const payload = JSON.stringify({
+    tenantId,
+    actionId,
+    interactionId,
+    data,
+  });
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
+}
 
 async function sendSqsMessage({
   interactionId,

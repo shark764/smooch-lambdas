@@ -1,11 +1,10 @@
 const log = require('serenova-js-utils/lambda/log');
-const axios = require('axios');
-const uuidv1 = require('uuid/v1');
 const AWS = require('aws-sdk');
 
-const secretsClient = new AWS.SecretsManager();
+const { AWS_REGION, ENVIRONMENT } = process.env;
 
-const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
+AWS.config.update({ region: process.env.AWS_REGION });
+const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 
 exports.handler = async (event) => {
   const {
@@ -48,26 +47,12 @@ exports.handler = async (event) => {
     (participant) => participant.resourceId === resourceId,
   );
 
-  let cxAuthSecret;
-  try {
-    cxAuthSecret = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
-    }).promise();
-  } catch (error) {
-    const errMsg = 'An Error has occurred trying to retrieve cx credentials';
-    log.error(errMsg, logContext, error);
-    throw error;
-  }
-
-  const cxAuth = JSON.parse(cxAuthSecret.SecretString);
-
   if (!existingParticipant) {
     try {
-      const { data } = await joinParticipant(newMetadata, cxAuth);
-      log.debug('Added participant to interaction metadata', {
-        ...logContext,
-        metadata: data,
-      });
+      const updatedMetadata = newMetadata.metadata;
+      updatedMetadata.participants.push(newMetadata.resource);
+      await updateInteractionMetadata({ tenantId, interactionId, metadata: updatedMetadata });
+      log.debug('Added participant to interaction metadata', logContext);
     } catch (error) {
       log.error(
         'Error updating interaction metadata',
@@ -78,41 +63,51 @@ exports.handler = async (event) => {
     }
   }
 
-  try {
-    await axios({
-      method: 'post',
-      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${id}?id=${uuidv1()}`,
-      data: {
-        source: 'smooch',
-        subId,
-        metadata: {},
-        update: {},
-      },
-      auth: cxAuth,
-    });
-  } catch (error) {
-    const errMsg = 'An Error has occurred trying to send action response';
-    log.error(errMsg, logContext, error);
-    throw error;
-  }
+  await sendFlowActionResponse({ logContext, actionId: id, subId });
   log.info('smooch-action-add-participant was successful', logContext);
 };
 
-async function joinParticipant({
+async function sendFlowActionResponse({
+  logContext, actionId, subId,
+}) {
+  const { tenantId, interactionId } = logContext;
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-send-flow-response`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const data = {
+    source: 'smooch',
+    subId,
+    metadata: {},
+    update: {},
+  };
+  const payload = JSON.stringify({
+    tenantId,
+    actionId,
+    interactionId,
+    data,
+  });
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
+}
+
+async function updateInteractionMetadata({
   tenantId,
   interactionId,
-  resource,
   metadata,
-}, auth) {
-  metadata.participants.push(resource);
-
-  return axios({
-    method: 'post',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata?id=${uuidv1()}`,
-    data: {
-      source: 'smooch',
-      metadata,
-    },
-    auth,
+}) {
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-update-interaction-metadata`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const payload = JSON.stringify({
+    tenantId,
+    interactionId,
+    source: 'smooch',
+    metadata,
   });
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
 }

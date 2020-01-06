@@ -5,6 +5,5 @@ zip_path="smooch-webhook/smooch-webhook.zip"
 handler = "index.handler"
 environmentVars = {
   "ENVIRONMENT" = "${ENVIRONMENT}",
-  "DOMAIN" = "${DOMAIN}",
-  "SNS_REPORTING_ARN" = "arn:aws:sns:${REGION}:${ACCOUNT_ID}:${REGION}-${ENVIRONMENT}-customer-message"
+  "DOMAIN" = "${DOMAIN}"
 }

@@ -1,6 +1,7 @@
+include_queue = "true"
 timeout = 30
 memory_size = 128
-zip_path="send-message/send-message.zip"
+zip_path="end-interaction/end-interaction.zip"
 handler = "index.handler"
 environmentVars = {
   "ENVIRONMENT" = "${ENVIRONMENT}",

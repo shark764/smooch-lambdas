@@ -6,17 +6,15 @@ const SmoochCore = require('smooch-core');
 const log = require('serenova-js-utils/lambda/log');
 const axios = require('axios');
 const AWS = require('aws-sdk');
-const uuidv4 = require('uuid/v4');
 
 const secretsClient = new AWS.SecretsManager();
-const sns = new AWS.SNS({ apiVersion: '2010-03-31' });
+const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 
 const {
   AWS_REGION,
   ENVIRONMENT,
   DOMAIN,
   smooch_api_url: smoochApiUrl,
-  SNS_REPORTING_ARN,
 } = process.env;
 
 exports.handler = async (event) => {
@@ -179,40 +177,19 @@ async function sendReportingEvent({
   logContext,
 }) {
   const { tenantId, interactionId, resourceId } = logContext;
-  const topic = 'agent-message';
-  const appName = `${AWS_REGION}-${ENVIRONMENT}-send-message`;
-  const appId = '55448dde-5fa1-416f-a55a-19537cc63c94';
-
-  let message = {
-    'psychopomp/version': `psychopomp.messages.reporting/${topic}`,
-    'psychopomp/type': topic,
-    'event-id': uuidv4(),
-    timestamp: `${new Date(Date.now()).toISOString().split('.').shift()}Z`,
-    'app-name': appName,
-    'app-id': appId,
-    'tenant-id': tenantId,
-    'interaction-id': interactionId,
-    'agent-id': resourceId,
-    'message-id': uuidv4(),
-  };
-  const asStringVal = (s) => ({ DataType: 'String', StringValue: s });
-
-  message = {
-    'topic-key': asStringVal(topic),
-    'app-name': asStringVal(appName),
-    'app-id': asStringVal(appId),
-    encoding: asStringVal('application/json'),
-    message: asStringVal(JSON.stringify(message)),
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-send-reporting-event`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const payload = JSON.stringify({
+    tenantId,
+    interactionId,
+    resourceId,
+    topic: 'agent-message',
+    appName: `${AWS_REGION}-${ENVIRONMENT}-send-message`,
+  });
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
   };
 
-  const params = {
-    Message: 'dist-event',
-    TopicArn: SNS_REPORTING_ARN,
-    MessageAttributes: message,
-  };
-
-  log.debug('Sending to SNS', { ...logContext, payload: params });
-
-  const result = await sns.publish(params).promise();
-  log.debug(`[AWS] Reporting Event ${params.TopicArn}`, { ...logContext, result });
+  await sqs.sendMessage(sqsMessageAction).promise();
 }
