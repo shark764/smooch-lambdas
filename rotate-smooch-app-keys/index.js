@@ -7,7 +7,6 @@ const AWS = require('aws-sdk');
 const log = require('serenova-js-utils/lambda/log');
 
 AWS.config.update({ region: process.env.AWS_REGION });
-const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
 
 exports.handler = async () => {
@@ -24,31 +23,18 @@ exports.handler = async () => {
     serviceUrl: smoochApiUrl,
   });
 
-  const params = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
-    IndexName: 'type-index', // TODO: unnecessary index now. All app ids are available in secret keys.
-    KeyConditionExpression: '#type = :type',
-    ExpressionAttributeNames: {
-      '#type': 'type',
-    },
-    ExpressionAttributeValues: {
-      ':type': 'app',
-    },
-  };
-
-  const appsResult = await docClient.query(params).promise();
-
-  const appSecretName = `${AWS_REGION}-${ENVIRONMENT}-smooch-app`;
+  const appSecrets = await secretsClient.getSecretValue({
+    SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+  }).promise();
+  const appKeys = JSON.parse(appSecrets.SecretString);
+  const appIds = Object.keys(appKeys)
+    .filter((appSecretKey) => appSecretKey.includes('-id'))
+    .map((appSecretKey) => appSecretKey.replace('id', ''));
 
   let hasErrored = false;
-  for (const app of appsResult.Items) { // eslint-disable-line no-restricted-syntax
-    const { id: appId, 'tenant-id': tenantId } = app;
-    const logContext = { tenantId, smoochAppId: appId };
+  for (const appId of appIds) {
+    const logContext = { appId };
     try {
-      const appSecrets = await secretsClient.getSecretValue({
-        SecretId: appSecretName,
-      }).promise();
-      const appKeys = JSON.parse(appSecrets.SecretString);
       const { key: newSmoochAppKeys } = await smooch.apps.keys.create(appId, appId);
       if (appKeys[`${appId}-id-old`]) {
         await smooch.apps.keys.delete(appId, appKeys[`${appId}-id-old`]);
@@ -59,15 +45,16 @@ exports.handler = async () => {
       appKeys[`${appId}-secret-old`] = appKeys[`${appId}-secret`];
       appKeys[`${appId}-id`] = newSmoochAppKeys._id;
       appKeys[`${appId}-secret`] = newSmoochAppKeys.secret;
-      await secretsClient.putSecretValue({
-        SecretId: appSecretName,
-        SecretString: JSON.stringify(appKeys),
-      }).promise();
     } catch (error) {
       hasErrored = true;
-      log.error('An error occurred trying to update app credentials', logContext, error);
+      log.error('An error occurred trying to rotate app keys', logContext, error);
     }
   }
+
+  await secretsClient.putSecretValue({
+    SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+    SecretString: JSON.stringify(appKeys),
+  }).promise();
 
   if (hasErrored) {
     throw new Error('At least one of the apps was unable to rotate app keys. See logs for details.');
