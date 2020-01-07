@@ -27,12 +27,5 @@
         ],
         "Effect": "Allow",
         "Resource": "*"
-    }, {
-        "Sid": "GetSecrets",
-        "Action": "secretsmanager:GetSecretValue",
-        "Effect": "Allow",
-        "Resource": [
-            "arn:aws:secretsmanager:*:*:secret:*-smooch-cx-??????"
-        ]
     }]
 }
