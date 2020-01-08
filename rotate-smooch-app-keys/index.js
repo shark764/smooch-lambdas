@@ -28,8 +28,8 @@ exports.handler = async () => {
   }).promise();
   const appKeys = JSON.parse(appSecrets.SecretString);
   const appIds = Object.keys(appKeys)
-    .filter((appSecretKey) => appSecretKey.includes('-id'))
-    .map((appSecretKey) => appSecretKey.replace('id', ''));
+    .filter((appSecretKey) => appSecretKey.includes('-id') && !appSecretKey.includes('-id-old'))
+    .map((appSecretKey) => appSecretKey.replace('-id', ''));
 
   let hasErrored = false;
   for (const appId of appIds) {
