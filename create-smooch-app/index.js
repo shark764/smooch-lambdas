@@ -281,7 +281,7 @@ exports.handler = async (event) => {
       url: cxIntegrationsUrl,
       auth: cxAuth,
     });
-    cxIntegrations = data;
+    cxIntegrations = data.result;
   } catch (error) {
     const errMsg = 'An Error has occured retrieving CxEngage integrations';
 
