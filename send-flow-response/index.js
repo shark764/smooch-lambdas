@@ -38,7 +38,7 @@ exports.handler = async (event) => {
       method: 'post',
       url,
       data,
-      cxAuth,
+      auth: cxAuth,
     });
   } catch (error) {
     log.error('An Error has occurred trying to send action response', logContext, error);
