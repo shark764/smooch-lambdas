@@ -213,7 +213,10 @@ exports.handler = async (event) => {
         integrationId,
         props: {
           brandColor: body.brandColor,
-          originWhitelist: body.whitelistedUrls,
+          // Set originWhitelist to undefined if array is empty
+          originWhitelist: body.whitelistedUrls && body.whitelistedUrls.length === 0
+            ? undefined
+            : body.whitelistedUrls,
           businessName: body.businessName,
           businessIconUrl: body.businessIconUrl,
           fixedIntroPane: body.fixedIntroPane,
