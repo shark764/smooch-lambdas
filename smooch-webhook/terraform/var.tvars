@@ -1,6 +1,6 @@
 custom_queue_mapping = "smooch-webhook"
 timeout = 30
-memory_size = 128
+memory_size = 512
 zip_path="smooch-webhook/smooch-webhook.zip"
 handler = "index.handler"
 environmentVars = {

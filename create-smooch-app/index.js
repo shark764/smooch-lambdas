@@ -293,15 +293,15 @@ exports.handler = async (event) => {
     };
   }
 
-  const smoochGatewayIntegrations = cxIntegrations.filter((integration) => integration.type === 'smooch-gateway');
+  const smoochGatewayIntegrations = cxIntegrations.filter((integration) => integration.type === 'smooch');
   if (!smoochGatewayIntegrations.length) {
     try {
       await axios({
         method: 'post',
         url: cxIntegrationsUrl,
         data: {
-          name: 'smooch-gateway',
-          type: 'smooch-gateway',
+          name: 'smooch',
+          type: 'smooch',
           active: true,
           properties: {},
         },
