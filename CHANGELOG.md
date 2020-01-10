@@ -1,3 +1,6 @@
+## 1.0.8
+* Fix reporting events on messages
+
 ## 1.0.7
 * Fix auth for the flow response
 

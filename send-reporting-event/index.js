@@ -21,7 +21,12 @@ exports.handler = async (event) => {
     resourceId,
   } = JSON.parse(event.Records[0].body);
 
-  const logContext = { tenantId, interactionId };
+  const logContext = {
+    tenantId,
+    interactionId,
+    topic,
+    resourceId,
+  };
   const appId = '55448dde-5fa1-416f-a55a-19537cc63c94';
 
   let message = {
@@ -63,8 +68,14 @@ exports.handler = async (event) => {
     MessageAttributes: message,
   };
 
-  log.debug('Sending to SNS', { ...logContext, payload: params });
+  log.debug('Sending reporting event to SNS', { ...logContext, snsParams: params });
 
-  const result = await sns.publish(params).promise();
-  log.debug(`[AWS] Reporting Event ${params.TopicArn}`, { ...logContext, result });
+  let result;
+  try {
+    result = await sns.publish(params).promise();
+  } catch (error) {
+    log.error('Failed to send reporting event', logContext, error);
+    throw error;
+  }
+  log.debug('Sent reporting event', { ...logContext, result });
 };

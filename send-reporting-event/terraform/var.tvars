@@ -6,4 +6,5 @@ handler = "index.handler"
 environmentVars = {
   "ENVIRONMENT" = "${ENVIRONMENT}",
   "DOMAIN" = "${DOMAIN}"
+  "ACCOUNT_ID" = "${ACCOUNT_ID}"
 }
