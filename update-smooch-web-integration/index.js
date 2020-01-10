@@ -215,7 +215,7 @@ exports.handler = async (event) => {
           brandColor: body.brandColor,
           // Set originWhitelist to undefined if array is empty
           originWhitelist: body.whitelistedUrls && body.whitelistedUrls.length === 0
-            ? undefined
+            ? null
             : body.whitelistedUrls,
           businessName: body.businessName,
           businessIconUrl: body.businessIconUrl,

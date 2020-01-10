@@ -105,6 +105,10 @@ exports.handler = async (event) => {
             }
             case 'text': {
               log.debug('Web type received: text', logContext);
+              if (!interactionId) {
+                log.info('Web type received: text, but no interaction yet. Ignoring.', logContext);
+                break;
+              }
               await sendCustomerMessageToParticipants({
                 appId,
                 userId,
@@ -140,6 +144,10 @@ exports.handler = async (event) => {
     }
     case 'conversation:read': {
       log.debug('Trigger received: conversation:read', logContext);
+      if (!interactionId) {
+        log.info('Trigger received: conversation:read, but no interaction yet. Ignoring.', logContext);
+        break;
+      }
       await sendConversationEvent({
         tenantId,
         interactionId,
@@ -148,10 +156,14 @@ exports.handler = async (event) => {
         auth,
         logContext,
       });
-      return;
+      break;
     }
     case 'typing:appUser': {
       log.debug('Trigger received: typing:appUser', logContext);
+      if (!interactionId) {
+        log.info('Trigger received: typing:appUser, but no interaction yet. Ignoring.', logContext);
+        break;
+      }
       const currentEvent = activity.type === 'typing:start' ? 'typing-start' : 'typing-stop';
       await sendConversationEvent({
         tenantId,
@@ -161,7 +173,7 @@ exports.handler = async (event) => {
         auth,
         logContext,
       });
-      return;
+      break;
     }
     default: {
       log.warn('Unsupported trigger from Smooch', { ...logContext, trigger });

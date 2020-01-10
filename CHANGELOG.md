@@ -1,3 +1,8 @@
+## 1.0.10
+* Fix customer events erroring before interaction has been created
+* Fix end interaction events being called from old messaging (without smooch app ids)
+* Fix empty array being set on origin whitelist (acually set it to null)
+
 ## 1.0.9
 * increase memory
 

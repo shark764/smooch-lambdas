@@ -29,6 +29,12 @@ exports.handler = async (event) => {
 
   log.info('smooch-event-end-interaction was called', { ...logContext, incomingEvent });
 
+  // This can happen for old messaging interactions
+  if (!appId) {
+    log.info('smooch-event-end-interaction was called, but no appId. Ignoring.', logContext);
+    return;
+  }
+
   let cxAuthSecret;
   try {
     cxAuthSecret = await secretsClient.getSecretValue({
