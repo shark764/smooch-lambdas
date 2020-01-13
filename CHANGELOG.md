@@ -1,3 +1,6 @@
+## 1.0.11
+* CXV1-21146 - Add firstName to message metadata
+
 ## 1.0.10
 * Fix customer events erroring before interaction has been created
 * Fix end interaction events being called from old messaging (without smooch app ids)

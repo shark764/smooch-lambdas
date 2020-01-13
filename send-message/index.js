@@ -127,6 +127,7 @@ exports.handler = async (event) => {
         metadata: {
           type: 'agent',
           from,
+          firstName,
           resourceId,
         },
       },
