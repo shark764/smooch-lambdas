@@ -1,3 +1,6 @@
+## 1.0.12
+* CXV1-21149 - Remove agent(s) from participants list on customer disconnect action so agents don't continue to get messages after the interaction has ended
+
 ## 1.0.11
 * CXV1-21146 - Add firstName to message metadata
 

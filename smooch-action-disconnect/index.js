@@ -42,11 +42,22 @@ exports.handler = async (event) => {
 
   const cxAuth = JSON.parse(cxAuthSecret.SecretString);
 
+  // Customer disconnect (has no resource attached to the disconnect signal)
   if (!parameters.resource || !parameters.resource.id) {
-    log.info('Web messaging interaction ended by resource - Customer Disconnect', logContext);
+    log.info('Customer Disconnect - removing all participants', logContext);
+    metadata.participants = [];
+    try {
+      await updateInteractionMetadata({ tenantId, interactionId, metadata });
+    } catch (error) {
+      log.error('Error updating interaction metadata', logContext, error);
+      throw error;
+    }
+    log.debug('Removed all participants from interaction metadata', { ...logContext, metadata });
+
     await sendFlowActionResponse({
       logContext, actionId: id, subId, auth: cxAuth,
     });
+
     return;
   }
 
@@ -54,6 +65,8 @@ exports.handler = async (event) => {
     id: resourceId,
   } = parameters.resource;
   logContext.resourceId = resourceId;
+
+  log.info('Resource disconnect - removing participant', logContext);
 
   const { participants } = metadata;
   const updatedParticipants = participants.filter((participant) => participant['resource-id'] !== resourceId);
