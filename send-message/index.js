@@ -27,6 +27,7 @@ exports.handler = async (event) => {
   const { 'user-id': resourceId, 'first-name': firstName, 'last-name': lastName } = identity;
   const from = `${firstName} ${lastName}`;
   const {
+    agentMessageId,
     message,
   } = body;
   const logContext = {
@@ -40,6 +41,7 @@ exports.handler = async (event) => {
     message,
     from,
     smoochApiUrl,
+    body,
   });
 
   let appSecrets;
@@ -148,6 +150,7 @@ exports.handler = async (event) => {
     text: messageSent.message.text,
     type: 'agent',
     from,
+    agentMessageId,
     resourceId,
     timestamp: messageSent.message.received * 1000,
   };
