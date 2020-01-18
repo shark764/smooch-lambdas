@@ -1,3 +1,6 @@
+## 1.0.14
+* Add region to CX URLs
+
 ## 1.0.13
 * CXV1-21294 - Add agentMessageId to send-message lambda
 

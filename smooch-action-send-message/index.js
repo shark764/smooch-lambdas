@@ -17,7 +17,7 @@ const {
   DOMAIN,
   smooch_api_url: smoochApiUrl,
 } = process.env;
-const cxApiUrl = `https://${ENVIRONMENT}-api.${DOMAIN}`;
+const cxApiUrl = `https://${AWS_REGION}-${ENVIRONMENT}-api.${DOMAIN}`;
 
 exports.handler = async (event) => {
   let {

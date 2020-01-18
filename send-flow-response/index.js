@@ -5,7 +5,11 @@ const uuidv1 = require('uuid/v1');
 
 const secretsClient = new AWS.SecretsManager();
 
-const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
+const {
+  AWS_REGION,
+  ENVIRONMENT,
+  DOMAIN,
+} = process.env;
 
 exports.handler = async (event) => {
   const {
@@ -32,7 +36,7 @@ exports.handler = async (event) => {
     }
 
     const cxAuth = JSON.parse(cxAuthSecret.SecretString);
-    const url = `https://${ENVIRONMENT}-api.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${actionId}?id=${uuidv1()}`;
+    const url = `https://${AWS_REGION}-${ENVIRONMENT}-api.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${actionId}?id=${uuidv1()}`;
 
     await axios({
       method: 'post',
