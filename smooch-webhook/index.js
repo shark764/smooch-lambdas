@@ -385,7 +385,9 @@ async function handleCollectMessageResponse({
   }
 
   // Update flow
-  await sendFlowActionResponse({ logContext, actionId, subId });
+  await sendFlowActionResponse({
+    logContext, actionId, subId, response,
+  });
 
   // Send response to resources
   try {
@@ -642,7 +644,7 @@ async function sendReportingEvent({
 }
 
 async function sendFlowActionResponse({
-  logContext, actionId, subId,
+  logContext, actionId, subId, response,
 }) {
   const { tenantId, interactionId } = logContext;
   const QueueName = `${AWS_REGION}-${ENVIRONMENT}-send-flow-response`;
@@ -651,7 +653,9 @@ async function sendFlowActionResponse({
     source: 'smooch',
     subId,
     metadata: {},
-    update: {},
+    update: {
+      response,
+    },
   };
   const payload = JSON.stringify({
     tenantId,

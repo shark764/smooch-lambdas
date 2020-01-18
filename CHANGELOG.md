@@ -1,3 +1,6 @@
+## 1.0.15
+* Add flow response update on smooch-webhook for collect-message-response
+
 ## 1.0.14
 * Add region to CX URLs
 

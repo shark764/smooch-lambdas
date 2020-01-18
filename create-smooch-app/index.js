@@ -76,7 +76,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const apiUrl = `https://${AWS_REGION}-${ENVIRONMENT}-api.${DOMAIN}/v1/tenants/${tenantId}`;
+  const apiUrl = `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}`;
   try {
     const response = await axios({
       method: 'get',
@@ -273,7 +273,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const cxIntegrationsUrl = `https://${AWS_REGION}-${ENVIRONMENT}-api.${DOMAIN}/v1/tenants/${tenantId}/integrations`;
+  const cxIntegrationsUrl = `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/integrations`;
   let cxIntegrations;
   try {
     const { data } = await axios({

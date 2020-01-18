@@ -36,7 +36,7 @@ exports.handler = async (event) => {
     }
 
     const cxAuth = JSON.parse(cxAuthSecret.SecretString);
-    const url = `https://${AWS_REGION}-${ENVIRONMENT}-api.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${actionId}?id=${uuidv1()}`;
+    const url = `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/actions/${actionId}?id=${uuidv1()}`;
 
     await axios({
       method: 'post',
