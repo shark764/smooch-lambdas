@@ -222,7 +222,7 @@ async function sendSqsMessage({
     interactionId,
     actionId: uuidv1(),
     subId: uuidv1(),
-    type: 'smooch',
+    type: 'send-message',
     ...parameters,
   });
   const QueueName = `${tenantId}_${resourceId}`;
