@@ -1,3 +1,6 @@
+## 1.0.17
+* CXV1-21147 - Update add-participant iam policy
+
 ## 1.0.16
 * CXV1-21402 - Fix send message actions sent to agents
 
