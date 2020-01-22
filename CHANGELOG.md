@@ -1,3 +1,6 @@
+## 1.0.19
+* <no-jira> - Adding pre-commit and pre-push script.
+
 ## 1.0.18
 * CXV1-21335 - Transcript now includes all messages.
 

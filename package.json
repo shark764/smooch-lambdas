@@ -1,17 +1,20 @@
 {
   "name": "smooch-lambdas",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "dependencies": {},
   "scripts": {
     "build": "node install.js && node zip.js",
     "test": "eslint .",
-    "postinstall": "node install.js"
+    "postinstall": "node install.js",
+    "precommit": "npm test",
+    "prepush": "npm test"
   },
   "author": "SerenovaLLC",
   "license": "UNLICENSED",
   "devDependencies": {
     "eslint": "^6.5.1",
     "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.18.2"
+    "eslint-plugin-import": "^2.18.2",
+    "husky": "0.14.3"
   }
 }
