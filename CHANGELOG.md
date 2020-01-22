@@ -1,3 +1,6 @@
+## 1.0.18
+* CXV1-21335 - Transcript now includes all messages.
+
 ## 1.0.17
 * CXV1-21147 - Update add-participant iam policy
 

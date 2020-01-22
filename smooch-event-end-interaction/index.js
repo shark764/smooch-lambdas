@@ -70,23 +70,58 @@ exports.handler = async (event) => {
     throw error;
   }
 
+  // All Messages
   let messages;
+  // Used in loop to get previous messages
+  let previousMessages;
+  // Timestamp used for pagination of messages
+  let previousTimestamp;
   try {
     messages = await smooch.appUsers.getMessages({
       appId,
       userId,
     });
   } catch (error) {
-    const errMsg = 'An error occurred fetching interaction messages';
-
-    log.error(errMsg, logContext, error);
-
+    log.error('An error occurred fetching interaction messages', logContext, error);
     throw error;
   }
+  // Getting timestamp for pagination, previous messages
+  // will be fetched if this value if not undefined.
+  previousTimestamp = getPreviousTimestamp(messages);
+  while (previousTimestamp !== null) {
+    try {
+      previousMessages = await smooch.appUsers.getMessages({
+        appId,
+        userId,
+        query: {
+          before: previousTimestamp,
+        },
+      });
+    } catch (error) {
+      log.error('An error occurred fetching previous interaction messages', logContext, error);
+      throw error;
+    }
+    // Combining messages, previous messages are added
+    // at the beginning of previous array.
+    messages.messages.unshift(...previousMessages.messages);
+    // Getting new timestamp for pagination, previous messages
+    // will be fetched if this value if not undefined.
+    previousTimestamp = getPreviousTimestamp(previousMessages);
+  }
 
+  // Transcript will have the total of messages
   const transcript = await formatMessages(messages, tenantId);
   await persistArchivedHistory('messaging-transcript', logContext, transcript, cxAuth);
 };
+
+function getPreviousTimestamp({ previous }) {
+  try {
+    const prev = new URL(previous);
+    return prev.searchParams.get('before');
+  } catch (error) {
+    return null;
+  }
+}
 
 async function persistArchivedHistory(type, logContext, transcript, cxAuth) {
   let artifact;
