@@ -1,9 +1,17 @@
+const SmoochCore = require('smooch-core');
 const log = require('serenova-js-utils/lambda/log');
 const AWS = require('aws-sdk');
+const axios = require('axios');
 
-const { AWS_REGION, ENVIRONMENT } = process.env;
+const {
+  AWS_REGION,
+  ENVIRONMENT,
+  DOMAIN,
+  smooch_api_url: smoochApiUrl,
+} = process.env;
 
 AWS.config.update({ region: process.env.AWS_REGION });
+const secretsClient = new AWS.SecretsManager();
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 
 exports.handler = async (event) => {
@@ -47,20 +55,95 @@ exports.handler = async (event) => {
     (participant) => participant.resourceId === resourceId,
   );
 
+  let cxAuthSecret;
+  try {
+    cxAuthSecret = await secretsClient.getSecretValue({
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+    }).promise();
+  } catch (error) {
+    log.error('An Error has occurred trying to retrieve cx credentials', logContext, error);
+    throw error;
+  }
+
+  const auth = JSON.parse(cxAuthSecret.SecretString);
+  let appSecrets;
+  try {
+    appSecrets = await secretsClient.getSecretValue({
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+    }).promise();
+  } catch (error) {
+    log.error('An Error has occurred trying to retrieve digital channels credentials', logContext, error);
+    throw error;
+  }
+
+  const appKeys = JSON.parse(appSecrets.SecretString);
+  let smooch;
+  try {
+    smooch = new SmoochCore({
+      keyId: appKeys[`${appId}-id`],
+      secret: appKeys[`${appId}-secret`],
+      scope: 'app',
+      serviceUrl: smoochApiUrl,
+    });
+  } catch (error) {
+    log.error('An Error has occurred trying to retrieve digital channels credentials', logContext, error);
+    throw error;
+  }
+
+  let firstName;
   if (!existingParticipant) {
     try {
-      const updatedMetadata = newMetadata.metadata;
-      updatedMetadata.participants.push(newMetadata.resource);
-      await updateInteractionMetadata({ tenantId, interactionId, metadata: updatedMetadata });
-      log.debug('Added participant to interaction metadata', logContext);
+      ({
+        data: {
+          result: {
+            firstName,
+          },
+        },
+      } = await fetchUser({ tenantId, userId: resourceId, auth }));
     } catch (error) {
-      log.error(
-        'Error updating interaction metadata',
-        { ...logContext, newMetadata },
-        error,
-      );
+      log.error('Error fetching user information', logContext, error);
       throw error;
     }
+  }
+
+  if (!firstName) {
+    firstName = 'Agent';
+  }
+
+  try {
+    const updatedMetadata = newMetadata.metadata;
+    updatedMetadata.participants.push({
+      ...newMetadata.resource,
+      firstName,
+    });
+    await updateInteractionMetadata({ tenantId, interactionId, metadata: updatedMetadata });
+    log.debug('Added participant to interaction metadata', logContext);
+  } catch (error) {
+    log.error(
+      'Error updating interaction metadata',
+      { ...logContext, newMetadata },
+      error,
+    );
+    throw error;
+  }
+
+  try {
+    await smooch.appUsers.sendMessage({
+      appId,
+      userId,
+      message: {
+        text: `${firstName} connected.`,
+        role: 'appMaker',
+        type: 'text',
+        metadata: {
+          type: 'system',
+          from: 'system',
+        },
+      },
+    });
+  } catch (error) {
+    log.error('An error occurred sending message', logContext, error);
+    throw error;
   }
 
   await sendFlowActionResponse({ logContext, actionId: id, subId });
@@ -110,4 +193,13 @@ async function updateInteractionMetadata({
     QueueUrl,
   };
   await sqs.sendMessage(sqsMessageAction).promise();
+}
+
+async function fetchUser({ tenantId, userId, auth }) {
+  const url = `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/users/${userId}`;
+  return axios({
+    method: 'get',
+    url,
+    auth,
+  });
 }

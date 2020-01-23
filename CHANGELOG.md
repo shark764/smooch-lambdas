@@ -1,3 +1,6 @@
+## 1.1.0
+* CXV1-21147 - Send message when an agent connect or disconnects
+
 ## 1.0.19
 * <no-jira> - Adding pre-commit and pre-push script.
 

@@ -2,12 +2,18 @@ const log = require('serenova-js-utils/lambda/log');
 const axios = require('axios');
 const uuidv1 = require('uuid/v1');
 const AWS = require('aws-sdk');
+const SmoochCore = require('smooch-core');
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const secretsClient = new AWS.SecretsManager();
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 
-const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
+const {
+  AWS_REGION,
+  ENVIRONMENT,
+  DOMAIN,
+  smooch_api_url: smoochApiUrl,
+} = process.env;
 
 exports.handler = async (event) => {
   const {
@@ -42,9 +48,56 @@ exports.handler = async (event) => {
 
   const cxAuth = JSON.parse(cxAuthSecret.SecretString);
 
+  let appSecrets;
+  try {
+    appSecrets = await secretsClient.getSecretValue({
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+    }).promise();
+  } catch (error) {
+    log.error('An Error has occurred trying to retrieve digital channels credentials', logContext, error);
+    throw error;
+  }
+
+  const appKeys = JSON.parse(appSecrets.SecretString);
+  let smooch;
+  try {
+    smooch = new SmoochCore({
+      keyId: appKeys[`${appId}-id`],
+      secret: appKeys[`${appId}-secret`],
+      scope: 'app',
+      serviceUrl: smoochApiUrl,
+    });
+  } catch (error) {
+    log.error('An Error has occurred trying to retrieve digital channels credentials', logContext, error);
+    throw error;
+  }
+
   // Customer disconnect (has no resource attached to the disconnect signal)
   if (!parameters.resource || !parameters.resource.id) {
     log.info('Customer Disconnect - removing all participants', logContext);
+
+    try {
+      metadata.participants.forEach(async (participant) => {
+        await smooch.appUsers.sendMessage({
+          appId,
+          userId,
+          message: {
+            text: `${participant['first-name']} disconnected.`,
+            role: 'appMaker',
+            type: 'text',
+            metadata: {
+              type: 'system',
+              from: 'system',
+            },
+          },
+        });
+      });
+    } catch (error) {
+      log.error('An error occurred sending message', logContext, error);
+      throw error;
+    }
+
+
     metadata.participants = [];
     try {
       await updateInteractionMetadata({ tenantId, interactionId, metadata });
@@ -69,6 +122,7 @@ exports.handler = async (event) => {
   log.info('Resource disconnect - removing participant', logContext);
 
   const { participants } = metadata;
+  const removedParticipant = participants.find((participant) => participant['resource-id'] === resourceId);
   const updatedParticipants = participants.filter((participant) => participant['resource-id'] !== resourceId);
 
   if (participants.length === updatedParticipants.length) {
@@ -80,6 +134,25 @@ exports.handler = async (event) => {
       log.debug('Removed participant from interaction metadata', { ...logContext, metadata });
     } catch (error) {
       log.error('Error updating interaction metadata', logContext, error);
+      throw error;
+    }
+
+    try {
+      await smooch.appUsers.sendMessage({
+        appId,
+        userId,
+        message: {
+          text: `${removedParticipant['first-name']} disconnected.`,
+          role: 'appMaker',
+          type: 'text',
+          metadata: {
+            type: 'system',
+            from: 'system',
+          },
+        },
+      });
+    } catch (error) {
+      log.error('An error occurred sending message', logContext, error);
       throw error;
     }
   }
