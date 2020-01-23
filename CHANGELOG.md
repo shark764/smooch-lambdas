@@ -1,3 +1,6 @@
+## 1.2.0
+* CXV1-21381 - Move transcript creation to customer disconnect (smooch-action-disconnect)
+
 ## 1.1.0
 * CXV1-21147 - Send message when an agent connect or disconnects
 
