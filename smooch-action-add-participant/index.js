@@ -137,7 +137,7 @@ exports.handler = async (event) => {
         type: 'text',
         metadata: {
           type: 'system',
-          from: 'system',
+          from: 'System',
         },
       },
     });

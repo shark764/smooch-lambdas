@@ -1,3 +1,7 @@
+# 1.3.0
+* CXV1-21381 - Move transcript creation into its own lambda function.
+* CXV1-21147 - Add capitalization to form field for System messages.
+
 ## 1.2.0
 * CXV1-21381 - Move transcript creation to customer disconnect (smooch-action-disconnect)
 

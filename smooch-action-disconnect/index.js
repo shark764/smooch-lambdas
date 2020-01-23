@@ -99,7 +99,7 @@ exports.handler = async (event) => {
             type: 'text',
             metadata: {
               type: 'system',
-              from: 'system',
+              from: 'System',
             },
           },
         });
@@ -120,79 +120,6 @@ exports.handler = async (event) => {
       ...logContext,
       metadata,
     });
-
-    // This can happen for old messaging interactions
-    if (!appId) {
-      log.info(
-        'smooch-event-end-interaction was called, but no appId. Ignoring.',
-        logContext,
-      );
-      return;
-    }
-
-    // All Messages
-    let messages;
-    // Used in loop to get previous messages
-    let previousMessages;
-    // Timestamp used for pagination of messages
-    let previousTimestamp;
-    try {
-      messages = await smooch.appUsers.getMessages({
-        appId,
-        userId,
-      });
-    } catch (error) {
-      log.error(
-        'An error occurred fetching interaction messages',
-        logContext,
-        error,
-      );
-      throw error;
-    }
-    // Getting timestamp for pagination, previous messages
-    // will be fetched if this value if not undefined.
-    previousTimestamp = getPreviousTimestamp(messages);
-    while (previousTimestamp !== null) {
-      try {
-        previousMessages = await smooch.appUsers.getMessages({
-          appId,
-          userId,
-          query: {
-            before: previousTimestamp,
-          },
-        });
-      } catch (error) {
-        log.error(
-          'An error occurred fetching previous interaction messages',
-          logContext,
-          error,
-        );
-        throw error;
-      }
-      // Combining messages, previous messages are added
-      // at the beginning of previous array.
-      messages.messages.unshift(...previousMessages.messages);
-      // Getting new timestamp for pagination, previous messages
-      // will be fetched if this value if not undefined.
-      previousTimestamp = getPreviousTimestamp(previousMessages);
-    }
-
-    // Transcript will have the total of messages
-    const transcript = await formatMessages(messages, tenantId);
-    await persistArchivedHistory(
-      'messaging-transcript',
-      logContext,
-      transcript,
-      cxAuth,
-    );
-    await sendFlowActionResponse({
-      logContext,
-      actionId: id,
-      subId,
-      auth: cxAuth,
-    });
-
-    return;
   }
 
   const { id: resourceId } = parameters.resource;
@@ -237,7 +164,7 @@ exports.handler = async (event) => {
           type: 'text',
           metadata: {
             type: 'system',
-            from: 'system',
+            from: 'System',
           },
         },
       });
@@ -246,6 +173,11 @@ exports.handler = async (event) => {
       throw error;
     }
   }
+
+  // Create Transcript
+  await createMessagingTranscript({
+    logContext,
+  });
 
   // Flow Action Response
   await sendFlowActionResponse({
@@ -324,151 +256,26 @@ async function sendFlowActionResponse({ logContext, actionId, subId }) {
   await sqs.sendMessage(sqsMessageAction).promise();
 }
 
-function getPreviousTimestamp({ previous }) {
-  try {
-    const prev = new URL(previous);
-    return prev.searchParams.get('before');
-  } catch (error) {
-    return null;
-  }
-}
-
-async function persistArchivedHistory(type, logContext, transcript, cxAuth) {
-  let artifact;
-  try {
-    const { data } = await createArtifact(logContext, type, cxAuth);
-    log.debug('Created Artifact', { ...logContext, artifact: data });
-    artifact = data;
-  } catch (error) {
-    log.error('Error creating artifact', { ...logContext, transcript }, error);
-    throw error;
-  }
-
-  const { artifactId } = artifact;
-  let artifactFile;
-  try {
-    const { data } = await uploadArtifactFile(
-      logContext,
-      artifactId,
-      transcript,
-      cxAuth,
-    );
-    artifactFile = data;
-  } catch (error) {
-    log.error(
-      'Error persisting artifact history',
-      {
-        ...logContext,
-        artifactId,
-        artifactFile,
-      },
-      error,
-    );
-    throw error;
-  }
-
-  log.info('Successfully created messaging transcript artifact', {
-    ...logContext,
-    artifactId,
-    artifactFile,
-  });
-}
-
-async function createArtifact({ tenantId, interactionId }, type, auth) {
-  return axios({
-    method: 'post',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts`,
-    data: {
-      artifactType: type,
-    },
-    auth,
-  });
-}
-
-async function uploadArtifactFile(
-  { tenantId, interactionId },
-  artifactId,
-  transcript,
-  auth,
-) {
-  const form = new FormData();
-  form.append('content', Buffer.from(JSON.stringify(transcript)), {
-    filename: 'transcript.json',
-    contentType: 'application/json',
-  });
-
-  log.debug('Uploading artifact using old upload route', {
+async function createMessagingTranscript({ logContext }) {
+  const {
     tenantId,
     interactionId,
-    artifactId,
-    transcript,
-  });
-  return axios({
-    method: 'post',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
-    data: form,
-    auth,
-    headers: form.getHeaders(),
-  });
-}
+    smoochAppId: appId,
+    smoochUserId: userId,
+  } = logContext;
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-create-messaging-transcript`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName });
+  const payload = {
+    tenantId,
+    interactionId,
+    appId,
+    userId,
+  };
 
-function getMessageText(message) {
-  if (message.role === 'appMaker' && message.type === 'form') {
-    return message.fields[0].label; // collect-message
-  }
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
+  };
 
-  if (message.type === 'formResponse') {
-    return message.fields[0].text; // collect-message response
-  }
-
-  return message.text; // normal messages
-}
-
-function formatMessages({ messages }, tenantId) {
-  return messages
-    .filter(
-      (message) => (message.type === 'formResponse'
-          && message.quotedMessage.content.metadata)
-        || (message.role === 'appUser' && message.type !== 'formResponse')
-        || message.metadata,
-    )
-    .map((message) => ({
-      payload: {
-        metadata: {
-          name:
-            message.name
-            || (message.metadata && message.metadata.from)
-            || 'system',
-          source: 'smooch',
-          type:
-            message.role === 'appMaker' ? message.metadata.type : 'customer',
-          'first-name':
-            (message.metadata
-              && message.metadata.from
-              && message.metadata.from.split(' ')[0])
-            || (message.name && message.name.split(' ')[0])
-            || 'system',
-          'last-name':
-            (message.metadata
-              && message.metadata.from
-              && message.metadata.from.split(' ')[1])
-            || (message.name && message.name.split(' ')[1])
-            || 'system',
-        },
-        body: {
-          text: getMessageText(message),
-        },
-        from:
-          (message.metadata && message.metadata.resourceId) || message.authorId,
-        'tenant-id': tenantId,
-        to: null, // channelId
-        type: 'message',
-        timestamp: `${new Date(message.received * 1000)
-          .toISOString()
-          .split('.')
-          .shift()}Z`,
-      },
-      channelId: null,
-      timestamp: (message.received * 1000).toString(),
-    }));
+  await sqs.sendMessage(sqsMessageAction).promise();
 }

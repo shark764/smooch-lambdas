@@ -1,0 +1,13 @@
+{
+  "name": "create-messaging-transcript",
+  "version": "1.0.0",
+  "description": "Lambda to create messaging interactions transcripts",
+  "repository": {},
+  "license": "UNLICENSED",
+  "dependencies": {
+    "aws-sdk": "^2.585.0",
+    "axios": "^0.19.0",
+    "serenova-js-utils": "1.7.1",
+    "smooch-core": "^8.7.3"
+  }
+}
