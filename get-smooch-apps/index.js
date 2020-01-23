@@ -5,7 +5,7 @@
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
 const log = require('serenova-js-utils/lambda/log');
-const { validateTenantPermissions } = require('serenova-js-utils/lambda/api');
+const { validateTenantPermissions, validatePlatformPermissions } = require('serenova-js-utils/lambda/api');
 
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid(),
@@ -16,14 +16,10 @@ const paramsSchema = Joi.object({
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const lambdaPermissions = ['DIGITAL_CHANNELS_APP_READ'];
-
+const lambdaPlatformPermissions = ['PLATFORM_DIGITAL_CHANNELS_APP'];
 
 exports.handler = async (event) => {
-  const {
-    AWS_REGION,
-    ENVIRONMENT,
-    smooch_api_url: smoochApiUrl,
-  } = process.env;
+  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
   const { params, identity } = event;
   const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
 
@@ -43,8 +39,9 @@ exports.handler = async (event) => {
   const { 'tenant-id': tenantId } = params;
 
   const validPermissions = validateTenantPermissions(tenantId, identity, lambdaPermissions);
+  const validPlatformPermissions = validatePlatformPermissions(identity, lambdaPlatformPermissions);
 
-  if (!validPermissions) {
+  if (!(validPermissions || validPlatformPermissions)) {
     const errMsg = 'Error not enough permissions';
 
     log.warn(errMsg, logContext);

@@ -1,3 +1,6 @@
+## 1.3.1
+* CXV1-21385 - User with proper platform permission are able to invoke GET digital-channels-app.
+
 # 1.3.0
 * CXV1-21381 - Move transcript creation into its own lambda function.
 * CXV1-21147 - Add capitalization to form field for System messages.
