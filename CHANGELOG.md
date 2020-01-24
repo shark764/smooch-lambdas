@@ -1,3 +1,6 @@
+## 1.3.3
+* Fix create-messaging-transcript iam policy file
+
 ## 1.3.2
 * Add a return statement when customer disconnect finishes (smooch-action-disconnect)
   
