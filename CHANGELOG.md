@@ -1,3 +1,6 @@
+## 1.4.0
+* CXV1-21399 - Remove "smooch" integration creation from digital channels app create
+
 ## 1.3.3
 * Fix create-messaging-transcript iam policy file
 

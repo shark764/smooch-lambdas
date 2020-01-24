@@ -22,8 +22,7 @@
         "Effect": "Allow",
         "Resource": [
             "arn:aws:secretsmanager:*:*:secret:*-smooch-account-??????",
-            "arn:aws:secretsmanager:*:*:secret:*-smooch-app-??????",
-            "arn:aws:secretsmanager:*:*:secret:*-smooch-cx-??????"
+            "arn:aws:secretsmanager:*:*:secret:*-smooch-app-??????"
         ]
     }, {
         "Sid": "PutSecret",

@@ -110,21 +110,6 @@ exports.handler = async (event) => {
     };
   }
 
-  let cxAuthSecret;
-  try {
-    cxAuthSecret = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
-    }).promise();
-  } catch (error) {
-    const errMsg = 'An Error has occurred trying to retrieve cx credentials';
-
-    log.error(errMsg, logContext, error);
-
-    throw error;
-  }
-
-  const cxAuth = JSON.parse(cxAuthSecret.SecretString);
-
   let accountSecrets;
   try {
     accountSecrets = await secretsClient.getSecretValue({
@@ -271,52 +256,6 @@ exports.handler = async (event) => {
       status: 500,
       body: { message: errMsg },
     };
-  }
-
-  const cxIntegrationsUrl = `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/integrations`;
-  let cxIntegrations;
-  try {
-    const { data } = await axios({
-      method: 'get',
-      url: cxIntegrationsUrl,
-      auth: cxAuth,
-    });
-    cxIntegrations = data.result;
-  } catch (error) {
-    const errMsg = 'An Error has occured retrieving CxEngage integrations';
-
-    log.error(errMsg, logContext, error);
-
-    return {
-      status: 500,
-      body: { message: errMsg },
-    };
-  }
-
-  const smoochGatewayIntegrations = cxIntegrations.filter((integration) => integration.type === 'smooch');
-  if (!smoochGatewayIntegrations.length) {
-    try {
-      await axios({
-        method: 'post',
-        url: cxIntegrationsUrl,
-        data: {
-          name: 'smooch',
-          type: 'smooch',
-          active: true,
-          properties: {},
-        },
-        auth: cxAuth,
-      });
-    } catch (error) {
-      const errMsg = 'An Error has occured creating CxEngage integrations';
-
-      log.error(errMsg, logContext, error);
-
-      return {
-        status: 500,
-        body: { message: errMsg },
-      };
-    }
   }
 
   log.info('user created a new smooch app', {
