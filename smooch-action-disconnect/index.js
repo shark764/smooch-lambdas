@@ -33,7 +33,7 @@ exports.handler = async (event) => {
     smoochUserId: userId,
   };
 
-  log.info('smooch-action-disconnect was called', { ...logContext });
+  log.info('smooch-action-disconnect was called', logContext);
 
   let cxAuthSecret;
   try {
@@ -120,11 +120,17 @@ exports.handler = async (event) => {
       ...logContext,
       metadata,
     });
+
+    // Create Transcript
+    await createMessagingTranscript({
+      logContext,
+    });
+
+    return;
   }
 
   const { id: resourceId } = parameters.resource;
   logContext.resourceId = resourceId;
-
   log.info('Resource disconnect - removing participant', logContext);
 
   const { participants } = metadata;
@@ -173,11 +179,6 @@ exports.handler = async (event) => {
       throw error;
     }
   }
-
-  // Create Transcript
-  await createMessagingTranscript({
-    logContext,
-  });
 
   // Flow Action Response
   await sendFlowActionResponse({
@@ -264,13 +265,13 @@ async function createMessagingTranscript({ logContext }) {
     smoochUserId: userId,
   } = logContext;
   const QueueName = `${AWS_REGION}-${ENVIRONMENT}-create-messaging-transcript`;
-  const { QueueUrl } = await sqs.getQueueUrl({ QueueName });
-  const payload = {
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const payload = JSON.stringify({
     tenantId,
     interactionId,
     appId,
     userId,
-  };
+  });
 
   const sqsMessageAction = {
     MessageBody: payload,
