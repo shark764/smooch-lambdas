@@ -126,6 +126,14 @@ exports.handler = async (event) => {
       logContext,
     });
 
+    // Flow Action Response
+    await sendFlowActionResponse({
+      logContext,
+      actionId: id,
+      subId,
+      auth: cxAuth,
+    });
+
     return;
   }
 
@@ -178,14 +186,6 @@ exports.handler = async (event) => {
       log.error('An error occurred sending message', logContext, error);
       throw error;
     }
-
-    // Flow Action Response
-    await sendFlowActionResponse({
-      logContext,
-      actionId: id,
-      subId,
-      auth: cxAuth,
-    });
   }
 
   // Flow Action Response

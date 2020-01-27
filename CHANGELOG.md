@@ -1,3 +1,6 @@
+## 1.4.2
+* CXV1-21147 - Move action response to customer disconnect.
+
 ## 1.4.1
 * CXV1-21147 - Send "Agent Connected" message to agents.
 * CXV1-21147 - Send flow response on customer disconnect.
