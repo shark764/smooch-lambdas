@@ -1,3 +1,7 @@
+## 1.4.1
+* CXV1-21147 - Send "Agent Connected" message to agents.
+* CXV1-21147 - Send flow response on customer disconnect.
+
 ## 1.4.0
 * CXV1-21399 - Remove "smooch" integration creation from digital channels app create
 

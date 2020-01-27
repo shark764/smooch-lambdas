@@ -2,6 +2,7 @@ const SmoochCore = require('smooch-core');
 const log = require('serenova-js-utils/lambda/log');
 const AWS = require('aws-sdk');
 const axios = require('axios');
+const uuidv1 = require('uuid/v1');
 
 const {
   AWS_REGION,
@@ -110,8 +111,9 @@ exports.handler = async (event) => {
     firstName = 'Agent';
   }
 
+  let updatedMetadata;
   try {
-    const updatedMetadata = newMetadata.metadata;
+    updatedMetadata = newMetadata.metadata;
     updatedMetadata.participants.push({
       ...newMetadata.resource,
       firstName,
@@ -127,12 +129,35 @@ exports.handler = async (event) => {
     throw error;
   }
 
+  const connectedMessage = `${firstName} connected.`;
+
+  try {
+    updatedMetadata.participants.forEach(async (participant) => {
+      await sendMessageToParticipant({
+        tenantId,
+        interactionId,
+        resourceId: participant.resourceId,
+        sessionId: participant.sessionId,
+        messageType: 'received-message',
+        message: {
+          id: uuidv1(),
+          from: 'System',
+          timestamp: Date.now(),
+          type: 'system',
+          text: connectedMessage,
+        },
+      });
+    });
+  } catch (error) {
+    log.error('An error occurred sending message to participants', logContext, error);
+  }
+
   try {
     await smooch.appUsers.sendMessage({
       appId,
       userId,
       message: {
-        text: `${firstName} connected.`,
+        text: connectedMessage,
         role: 'appMaker',
         type: 'text',
         metadata: {
@@ -202,4 +227,39 @@ async function fetchUser({ tenantId, userId, auth }) {
     url,
     auth,
   });
+}
+
+async function sendMessageToParticipant({
+  interactionId,
+  tenantId,
+  sessionId,
+  resourceId,
+  message,
+  messageType,
+}) {
+  const parameters = {
+    resourceId,
+    sessionId,
+    tenantId,
+    interactionId,
+    messageType,
+    message,
+  };
+  const MessageBody = JSON.stringify({
+    tenantId,
+    interactionId,
+    actionId: uuidv1(),
+    subId: uuidv1(),
+    type: 'send-message',
+    ...parameters,
+  });
+  const QueueName = `${tenantId}_${resourceId}`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+
+  const sendSQSParams = {
+    MessageBody,
+    QueueUrl,
+  };
+
+  await sqs.sendMessage(sendSQSParams).promise();
 }
