@@ -23,6 +23,14 @@
         "Effect": "Allow",
         "Resource": "arn:aws:dynamodb:*:*:table/*-smooch"
     }, {
+        "Sid": "SmoochInteractionDynamo",
+        "Action": [
+            "dynamodb:GetItem",
+            "dynamodb:PutItem"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:dynamodb:*:*:table/*-smooch-interactions"
+    }, {
         "Sid": "GetSecrets",
         "Action": "secretsmanager:GetSecretValue",
         "Effect": "Allow",

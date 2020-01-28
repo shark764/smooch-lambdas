@@ -1,9 +1,10 @@
 {
   "name": "smooch-lambdas",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "dependencies": {},
   "scripts": {
     "build": "node install.js && node zip.js",
+    "zip": "node zip.js",
     "test": "eslint .",
     "postinstall": "node install.js",
     "precommit": "npm test",

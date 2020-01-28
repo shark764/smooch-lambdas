@@ -18,6 +18,13 @@
         "Effect": "Allow",
         "Resource": "*"
     }, {
+        "Sid": "SmoochInteractionDynamo",
+        "Action": [
+            "dynamodb:DeleteItem"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:dynamodb:*:*:table/*-smooch-interactions"
+    }, {
         "Sid": "GetSecrets",
         "Action": "secretsmanager:GetSecretValue",
         "Effect": "Allow",

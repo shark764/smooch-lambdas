@@ -1,3 +1,6 @@
+## 1.5.0
+* CXV1-21147 - Create new interaction on customer message when no interaction exists.
+
 ## 1.4.2
 * CXV1-21147 - Move action response to customer disconnect.
 

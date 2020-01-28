@@ -28,9 +28,8 @@ exports.handler = async (event) => {
   } = body;
   const { _id: appId } = app;
   const { properties, _id: userId } = appUser;
-  const { interactionId, tenantId } = properties;
+  const { tenantId, customer } = properties;
   const logContext = {
-    interactionId,
     tenantId,
     smoochAppId: appId,
     smoochUserId: userId,
@@ -51,7 +50,6 @@ exports.handler = async (event) => {
     return;
   }
   const { platform } = client;
-
   logContext.smoochPlatform = platform;
 
   let cxAuthSecret;
@@ -60,14 +58,31 @@ exports.handler = async (event) => {
       SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
     }).promise();
   } catch (error) {
-    const errMsg = 'An Error has occurred trying to retrieve cx credentials';
-
-    log.error(errMsg, logContext, error);
-
+    log.error('An Error has occurred trying to retrieve cx credentials', logContext, error);
     throw error;
   }
-
   const auth = JSON.parse(cxAuthSecret.SecretString);
+
+  let smoochInteractionRecord;
+  try {
+    smoochInteractionRecord = await docClient
+      .get({
+        TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+        Key: {
+          SmoochUserId: userId,
+        },
+      })
+      .promise();
+  } catch (error) {
+    log.error('Failed to get smooch interaction record', logContext, error);
+    throw error;
+  }
+  log.debug('Smooch interaction record', { ...logContext, smoochInteractionRecord });
+  const interactionItem = smoochInteractionRecord && smoochInteractionRecord.Item;
+  const hasInteractionItem = interactionItem && Object.entries(interactionItem).length !== 0;
+  const interactionId = interactionItem && interactionItem.InteractionId;
+  logContext.hasInteractionItem = hasInteractionItem;
+  logContext.interactionId = interactionId;
 
   switch (trigger) {
     case 'message:appUser': {
@@ -90,7 +105,7 @@ exports.handler = async (event) => {
           log.debug('Platform received: web', logContext);
           switch (type) {
             case 'formResponse': {
-              log.debug('Web type received: formResponse', logContext);
+              log.debug('Web type received: formResponse', { ...logContext, form: message });
               await handleFormResponse({
                 appId,
                 userId,
@@ -105,19 +120,36 @@ exports.handler = async (event) => {
             }
             case 'text': {
               log.debug('Web type received: text', logContext);
-              if (!interactionId) {
-                log.info('Web type received: text, but no interaction yet. Ignoring.', logContext);
-                break;
+              if (hasInteractionItem && interactionId) {
+                await sendCustomerMessageToParticipants({
+                  appId,
+                  userId,
+                  tenantId,
+                  interactionId,
+                  message,
+                  auth,
+                  logContext,
+                });
+              } else if (!hasInteractionItem) {
+                try {
+                  await createInteraction({
+                    appId,
+                    userId,
+                    tenantId,
+                    source: 'web',
+                    integrationId,
+                    customer,
+                    smoochMessageId: message._id,
+                    auth,
+                    logContext,
+                  });
+                } catch (error) {
+                  log.error('Failed to create an interaction', logContext, error);
+                  throw error;
+                }
+              } else {
+                log.info('Web type received: text, but interaction is being created by something else. Ignoring.', logContext);
               }
-              await sendCustomerMessageToParticipants({
-                appId,
-                userId,
-                tenantId,
-                interactionId,
-                message,
-                auth,
-                logContext,
-              });
               break;
             }
             default: {
@@ -192,8 +224,8 @@ async function handleFormResponse({
   auth,
   logContext,
 }) {
-  if (!interactionId) {
-    const customer = form
+  if (form.name.includes('Web User ')) {
+    let customer = form
       && form.fields
       && form.fields[0]
       && (form.fields[0].text || form.fields[0].email);
@@ -202,11 +234,10 @@ async function handleFormResponse({
         'Prechat form submitted with no customer identifier (form.field[0].text)',
         { ...logContext, form },
       );
-      return;
+      customer = form.name;
     }
 
     let accountSecrets;
-
     try {
       accountSecrets = await secretsClient
         .getSecretValue({
@@ -240,51 +271,7 @@ async function handleFormResponse({
       throw error;
     }
 
-    let webIntegration;
-
-    try {
-      webIntegration = await docClient
-        .get({
-          TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
-          Key: {
-            'tenant-id': tenantId,
-            id: integrationId,
-          },
-        })
-        .promise();
-    } catch (error) {
-      log.error(
-        'Failed to retrieve Smooch integration from DynamoDB',
-        logContext,
-        error,
-      );
-      throw error;
-    }
-
-    const { 'contact-point': contactPoint } = webIntegration.Item;
-    const newInteractionId = uuidv4();
-    let interaction;
-
-    try {
-      const { data } = await createInteraction({
-        interactionId: newInteractionId,
-        appId,
-        userId,
-        tenantId,
-        source: 'web',
-        contactPoint,
-        customer,
-        auth,
-        logContext,
-      });
-      interaction = data;
-      log.debug('Created interaction', { ...logContext, interaction });
-    } catch (error) {
-      log.error('Failed to create an interaction', logContext, error);
-    }
-
     let smoochUser;
-
     try {
       smoochUser = await smooch.appUsers.update({
         appId,
@@ -292,38 +279,32 @@ async function handleFormResponse({
         appUser: {
           givenName: customer,
           properties: {
-            interactionId: newInteractionId,
             customer,
           },
         },
       });
     } catch (error) {
       log.error('Error updating Smooch appUser', logContext, error);
-
-      try {
-        await endInteraction({ interactionId: newInteractionId, tenantId });
-        log.info('Ended interaction', logContext);
-      } catch (err) {
-        log.fatal('Error ending interaction', logContext, err);
-      }
-
-      try {
-        smooch.appUsers.sendMessage({
-          appId,
-          userId,
-          message: {
-            role: 'appMaker',
-            type: 'text',
-            text: 'We could not connect you to an agent. Please try again.',
-          },
-        });
-      } catch (msgError) {
-        log.error('Error sending a new message', logContext, msgError);
-      }
-
-      return;
+      throw error;
     }
-    log.debug('Updated Smooch appUser', { ...logContext, smoochUser });
+    log.debug('Updated Smooch appUser name', { ...logContext, smoochUser });
+
+    try {
+      await createInteraction({
+        appId,
+        userId,
+        tenantId,
+        source: 'web',
+        integrationId,
+        customer,
+        smoochMessageId: form._id,
+        auth,
+        logContext,
+      });
+    } catch (error) {
+      log.error('Failed to create an interaction', logContext, error);
+      throw error;
+    }
   } else {
     const { name } = form.fields[0]; // Form name/type
     switch (name) {
@@ -429,21 +410,61 @@ async function handleCollectMessageResponse({
 }
 
 async function createInteraction({
-  interactionId,
   appId,
   userId,
   tenantId,
   source,
-  contactPoint,
+  integrationId,
   customer,
   logContext,
   auth,
+  smoochMessageId,
 }) {
+  const creatingInteractionParams = {
+    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+    Item: {
+      SmoochUserId: userId,
+      CreatingSmoochMessageId: smoochMessageId,
+    },
+    ConditionExpression: 'attribute_not_exists(SmoochUserId) OR (attribute_exists(SmoochUserId) AND attribute_not_exists(InteractionId) AND CreatingSmoochMessageId = :m)',
+    ExpressionAttributeValues: {
+      ':m': smoochMessageId,
+    },
+  };
+  try {
+    await docClient.put(creatingInteractionParams).promise();
+  } catch (error) {
+    log.info('Was not able to put row in for creating interaction. Assuming another message is already creating it.', logContext, error);
+    return;
+  }
+
   const customerNames = customer.split(' ');
   const firstName = customerNames.shift();
   const lastName = customerNames.join(' ');
+  const interactionId = uuidv4();
 
-  const interaction = {
+  let webIntegration;
+  try {
+    webIntegration = await docClient
+      .get({
+        TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+        Key: {
+          'tenant-id': tenantId,
+          id: integrationId,
+        },
+      })
+      .promise();
+  } catch (error) {
+    log.error(
+      'Failed to retrieve Smooch integration from DynamoDB',
+      logContext,
+      error,
+    );
+    throw error;
+  }
+  const { 'contact-point': contactPoint } = webIntegration.Item;
+
+  const interactionParams = {
     tenantId,
     id: interactionId,
     customer,
@@ -466,30 +487,31 @@ async function createInteraction({
       participants: [],
     },
   };
-  log.debug('Creating interaction', { ...logContext, interaction });
+  log.debug('Creating interaction', { ...logContext, interactionParams });
 
-  return axios({
+  const { data } = await axios({
     method: 'post',
     url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions`,
-    data: interaction,
+    data: interactionParams,
     auth,
   });
-}
 
-async function endInteraction({ tenantId, interactionId }) {
-  log.debug('Ending interaction', { tenantId, interactionId });
+  log.info('Created interaction', { ...logContext, interaction: data, interactionId });
 
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-end-interaction`;
-  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
-  const payload = JSON.stringify({
-    tenantId,
-    interactionId,
-  });
-  const sqsMessageAction = {
-    MessageBody: payload,
-    QueueUrl,
+  const smoochInteractionParams = {
+    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+    Item: {
+      SmoochUserId: userId,
+      InteractionId: interactionId,
+    },
   };
-  await sqs.sendMessage(sqsMessageAction).promise();
+  try {
+    await docClient.put(smoochInteractionParams).promise();
+  } catch (error) {
+    log.fatal('An error occurred updating the interaction id on the state table', { ...logContext, interactionId });
+    return;
+  }
+  log.debug('Updated smooch interactions state table with interaction', { ...logContext, interactionId });
 }
 
 async function sendCustomerMessageToParticipants({

@@ -7,6 +7,7 @@ const SmoochCore = require('smooch-core');
 AWS.config.update({ region: process.env.AWS_REGION });
 const secretsClient = new AWS.SecretsManager();
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
+const docClient = new AWS.DynamoDB.DocumentClient();
 
 const {
   AWS_REGION,
@@ -125,6 +126,20 @@ exports.handler = async (event) => {
     await createMessagingTranscript({
       logContext,
     });
+
+    const smoochParams = {
+      TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+      Key: {
+        SmoochUserId: userId,
+      },
+    };
+    try {
+      await docClient.delete(smoochParams).promise();
+    } catch (error) {
+      log.error('An error occurred updating the interaction id on the state table', logContext);
+      throw error;
+    }
+    log.debug('Removed interaction from state table', logContext);
 
     // Flow Action Response
     await sendFlowActionResponse({
