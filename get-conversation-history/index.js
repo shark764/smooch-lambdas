@@ -114,6 +114,7 @@ exports.handler = async (event) => {
       body: { message: errMsg },
     };
   }
+  log.debug('Got messages from Smooch', { ...logContext, smoochMessages: messages });
 
   messages = messages.messages
     // Keep formResponses that have metadata (collect-message responses)

@@ -103,6 +103,7 @@ exports.handler = async (event) => {
           subId,
           actionId,
           from,
+          type: 'system',
         },
       },
     });
