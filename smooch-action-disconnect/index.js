@@ -87,7 +87,33 @@ exports.handler = async (event) => {
 
   // Customer disconnect (has no resource attached to the disconnect signal)
   if (!parameters.resource || !parameters.resource.id) {
-    log.info('Customer Disconnect - removing all participants', logContext);
+    log.info('Customer Disconnect', logContext);
+
+    const smoochParams = {
+      TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+      Key: {
+        SmoochUserId: userId,
+      },
+      ConditionExpression: 'attribute_exists(SmoochUserId)',
+    };
+    try {
+      await docClient.delete(smoochParams).promise();
+    } catch (error) {
+      log.info('An error occurred removing the interaction id on the state table. Assuming a previous disconnect has already done this.', logContext, error);
+      await sendFlowActionResponse({
+        logContext,
+        actionId: id,
+        subId,
+        auth: cxAuth,
+      });
+      return;
+    }
+    log.debug('Removed interaction from state table', logContext);
+
+    // Create Transcript
+    await createMessagingTranscript({
+      logContext,
+    });
 
     try {
       metadata.participants.forEach(async (participant) => {
@@ -106,40 +132,8 @@ exports.handler = async (event) => {
         });
       });
     } catch (error) {
-      log.error('An error occurred sending message', logContext, error);
-      throw error;
+      log.error('An error occurred sending message to agents', logContext, error);
     }
-
-    metadata.participants = [];
-    try {
-      await updateInteractionMetadata({ tenantId, interactionId, metadata });
-    } catch (error) {
-      log.error('Error updating interaction metadata', logContext, error);
-      throw error;
-    }
-    log.debug('Removed all participants from interaction metadata', {
-      ...logContext,
-      metadata,
-    });
-
-    // Create Transcript
-    await createMessagingTranscript({
-      logContext,
-    });
-
-    const smoochParams = {
-      TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
-      Key: {
-        SmoochUserId: userId,
-      },
-    };
-    try {
-      await docClient.delete(smoochParams).promise();
-    } catch (error) {
-      log.error('An error occurred updating the interaction id on the state table', logContext);
-      throw error;
-    }
-    log.debug('Removed interaction from state table', logContext);
 
     // Flow Action Response
     await sendFlowActionResponse({
