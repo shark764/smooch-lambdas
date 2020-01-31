@@ -26,7 +26,8 @@
         "Sid": "SmoochInteractionDynamo",
         "Action": [
             "dynamodb:GetItem",
-            "dynamodb:PutItem"
+            "dynamodb:PutItem",
+            "dynamodb:UpdateItem"
         ],
         "Effect": "Allow",
         "Resource": "arn:aws:dynamodb:*:*:table/*-smooch-interactions"

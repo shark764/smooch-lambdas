@@ -561,6 +561,11 @@ async function sendCustomerMessageToParticipants({
       }),
     );
     await sendReportingEvent({ logContext });
+    await updateSmoochClientLastActivity({
+      latestCustomerMessageTimestamp: message.received * 1000,
+      userId: logContext.smoochUserId,
+      logContext,
+    });
   } catch (error) {
     log.error('Error sending message to participants', logContext, error);
     throw error;
@@ -693,4 +698,26 @@ async function sendFlowActionResponse({
     QueueUrl,
   };
   await sqs.sendMessage(sqsMessageAction).promise();
+}
+
+async function updateSmoochClientLastActivity({
+  latestCustomerMessageTimestamp, userId, logContext,
+}) {
+  const params = {
+    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+    Key: {
+      SmoochUserId: userId,
+    },
+    UpdateExpression: 'set LatestCustomerMessageTimestamp = :t',
+    ExpressionAttributeValues: {
+      ':t': latestCustomerMessageTimestamp,
+    },
+    ReturnValues: 'UPDATED_NEW',
+  };
+  try {
+    const data = await docClient.update(params).promise();
+    log.debug('Updated lastCustomerMessageTimestamp', { ...logContext, updated: data });
+  } catch (error) {
+    log.error('An error ocurred updating the latest customer activity', logContext, error);
+  }
 }

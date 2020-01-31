@@ -1,3 +1,6 @@
+## 1.6.0
+* CXV1-21338 - Perform Customer Disconnect when the customer hasn't been active for more than 5 minutes.
+  
 ## 1.5.4
 * CXV1-21460 - Add TTL to smooch interactions.
 

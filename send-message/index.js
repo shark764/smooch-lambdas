@@ -9,6 +9,7 @@ const AWS = require('aws-sdk');
 
 const secretsClient = new AWS.SecretsManager();
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
+const docClient = new AWS.DynamoDB.DocumentClient();
 
 const {
   AWS_REGION,
@@ -157,6 +158,13 @@ exports.handler = async (event) => {
 
   log.info('Sent smooch message successfully', { ...logContext, smoochMessage: messageSent });
 
+  const shouldCheck = await shouldCheckIfClientIsDisconnected({ userId, logContext });
+  if (shouldCheck) {
+    await checkIfClientIsDisconnected({
+      latestAgentMessageTimestamp: messageSent.timestamp, userId, logContext,
+    });
+  }
+
   try {
     await sendReportingEvent({ logContext });
   } catch (error) {
@@ -196,4 +204,56 @@ async function sendReportingEvent({
   };
 
   await sqs.sendMessage(sqsMessageAction).promise();
+}
+
+async function checkIfClientIsDisconnected({ latestAgentMessageTimestamp, userId, logContext }) {
+  const { tenantId } = logContext;
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-smooch-client-disconnect-checker`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const MessageBody = JSON.stringify({
+    tenantId,
+    userId,
+    latestAgentMessageTimestamp,
+  });
+  const sqsMessageAction = {
+    MessageBody,
+    QueueUrl,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
+}
+
+async function shouldCheckIfClientIsDisconnected({ userId, logContext }) {
+  let smoochInteractionRecord;
+  try {
+    smoochInteractionRecord = await docClient
+      .get({
+        TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+        Key: {
+          SmoochUserId: userId,
+        },
+      })
+      .promise();
+  } catch (error) {
+    log.error('Failed to get smooch interaction record', logContext, error);
+    throw error;
+  }
+
+  const interactionItem = smoochInteractionRecord && smoochInteractionRecord.Item;
+  const hasInteractionItem = interactionItem && Object.entries(interactionItem).length !== 0;
+  const LatestCustomerMessageTimestamp = interactionItem
+    && interactionItem.LatestCustomerMessageTimestamp;
+  const LatestAgentMessageTimestamp = interactionItem
+    && interactionItem.LatestAgentMessageTimestamp;
+
+  if (!hasInteractionItem) {
+    return false;
+  }
+  // No customer messages, or no agent messages. Check if client is active
+  if (!LatestCustomerMessageTimestamp || !LatestAgentMessageTimestamp) {
+    return true;
+  }
+  if (LatestCustomerMessageTimestamp > LatestAgentMessageTimestamp) {
+    return true;
+  }
+  return false;
 }

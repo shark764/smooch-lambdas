@@ -1,0 +1,13 @@
+{
+  "name": "smooch-client-disconnect-checker",
+  "version": "1.0.0",
+  "description": "Ends the interaction after X minutes of customer inactivity",
+  "repository": {},
+  "license": "UNLICENSED",
+  "dependencies": {
+    "aws-sdk": "^2.585.0",
+    "axios": "^0.19.0",
+    "serenova-js-utils": "1.7.1",
+    "uuid": "^3.3.3"
+  }
+}

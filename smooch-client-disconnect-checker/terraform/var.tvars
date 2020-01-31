@@ -1,0 +1,10 @@
+include_queue = "true"
+delay_seconds = 300
+timeout = 30
+memory_size = 128
+zip_path="smooch-client-disconnect-checker/smooch-client-disconnect-checker.zip"
+handler = "index.handler"
+environmentVars = {
+  "ENVIRONMENT" = "${ENVIRONMENT}",
+  "DOMAIN" = "${DOMAIN}"
+}
