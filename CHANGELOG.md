@@ -1,3 +1,6 @@
+## 1.5.4
+* CXV1-21460 - Add TTL to smooch interactions.
+
 ## 1.5.3
 * CXV1-21451 - Remove disconnect message from customer disconnect.
 

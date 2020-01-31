@@ -9,6 +9,8 @@ const uuidv1 = require('uuid/v1');
 const axios = require('axios');
 const log = require('serenova-js-utils/lambda/log');
 
+const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 60 * 60;
+
 const {
   AWS_REGION,
   ENVIRONMENT,
@@ -425,6 +427,7 @@ async function createInteraction({
     Item: {
       SmoochUserId: userId,
       CreatingSmoochMessageId: smoochMessageId,
+      TTL: Date.now() + SEVEN_DAYS_IN_SECONDS,
     },
     ConditionExpression: 'attribute_not_exists(SmoochUserId) OR (attribute_exists(SmoochUserId) AND attribute_not_exists(InteractionId) AND CreatingSmoochMessageId = :m)',
     ExpressionAttributeValues: {
