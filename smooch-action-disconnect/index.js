@@ -115,26 +115,6 @@ exports.handler = async (event) => {
       logContext,
     });
 
-    try {
-      metadata.participants.forEach(async (participant) => {
-        await smooch.appUsers.sendMessage({
-          appId,
-          userId,
-          message: {
-            text: `${participant['first-name']} disconnected.`,
-            role: 'appMaker',
-            type: 'text',
-            metadata: {
-              type: 'system',
-              from: 'System',
-            },
-          },
-        });
-      });
-    } catch (error) {
-      log.error('An error occurred sending message to agents', logContext, error);
-    }
-
     // Flow Action Response
     await sendFlowActionResponse({
       logContext,

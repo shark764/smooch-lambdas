@@ -1,3 +1,6 @@
+## 1.5.3
+* CXV1-21451 - Remove disconnect message from customer disconnect.
+
 ## 1.5.2
 * CXV1-21451 - Only process the first customer disconnect received. Prevents double agent disconnect messages and double transcript creation.
 
