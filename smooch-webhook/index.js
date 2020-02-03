@@ -509,7 +509,7 @@ async function createInteraction({
     },
   };
   try {
-    await docClient.put(smoochInteractionParams).promise();
+    await docClient.update(smoochInteractionParams).promise();
   } catch (error) {
     log.fatal('An error occurred updating the interaction id on the state table', { ...logContext, interactionId });
     return;

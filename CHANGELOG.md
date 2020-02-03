@@ -1,3 +1,6 @@
+## 1.6.3
+* CXV1-21460 - Fix smooch interactions TTL getting overwritten.
+
 ## 1.6.2
 * CXV1-21338 - Update latest customer activity on read/typing event.
 
