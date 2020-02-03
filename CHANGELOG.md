@@ -1,3 +1,6 @@
+## 1.6.5
+* CXV1-21487 - Make application log levels indexable.
+
 ## 1.6.4
 * CXV1-21460 - Actually fix smooch interactions TTL getting overwritten.
 
