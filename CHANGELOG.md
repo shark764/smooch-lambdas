@@ -1,3 +1,6 @@
+## 1.6.2
+* CXV1-21338 - Update latest customer activity on read/typing event.
+
 ## 1.6.1
 * CXV1-21338 - Fix queue_delay_seconds var.
 

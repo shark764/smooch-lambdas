@@ -615,6 +615,12 @@ async function sendConversationEvent({
         await sqs.sendMessage(sqsMessageAction).promise();
       }),
     );
+
+    await updateSmoochClientLastActivity({
+      latestCustomerMessageTimestamp: timestamp,
+      userId: logContext.smoochUserId,
+      logContext,
+    });
   } catch (error) {
     log.error(
       'Error sending conversation event to participants',
