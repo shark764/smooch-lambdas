@@ -1,3 +1,6 @@
+## 1.6.1
+* CXV1-21338 - Fix queue_delay_seconds var.
+
 ## 1.6.0
 * CXV1-21338 - Perform Customer Disconnect when the customer hasn't been active for more than 5 minutes.
   
