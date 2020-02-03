@@ -336,6 +336,10 @@ async function handleCollectMessageResponse({
   auth,
   logContext,
 }) {
+  if (!interactionId) {
+    log.info('No interaction ID. Ignoring collect message response.', logContext);
+    return;
+  }
   const { data: metadata } = await getMetadata({ tenantId, interactionId, auth });
   const { collectActions: pendingActions } = metadata;
   const { actionId, subId } = form.quotedMessage.content.metadata;
@@ -503,9 +507,12 @@ async function createInteraction({
 
   const smoochInteractionParams = {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
-    Item: {
+    Key: {
       SmoochUserId: userId,
-      InteractionId: interactionId,
+    },
+    UpdateExpression: 'set InteractionId = :i',
+    ExpressionAttributeValues: {
+      ':i': interactionId,
     },
   };
   try {

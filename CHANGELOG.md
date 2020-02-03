@@ -1,3 +1,6 @@
+## 1.6.4
+* CXV1-21460 - Actually fix smooch interactions TTL getting overwritten.
+
 ## 1.6.3
 * CXV1-21460 - Fix smooch interactions TTL getting overwritten.
 
