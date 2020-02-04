@@ -431,7 +431,7 @@ async function createInteraction({
     Item: {
       SmoochUserId: userId,
       CreatingSmoochMessageId: smoochMessageId,
-      TTL: Date.now() + SEVEN_DAYS_IN_SECONDS,
+      TTL: Math.floor(Date.now() / 1000) + SEVEN_DAYS_IN_SECONDS,
     },
     ConditionExpression: 'attribute_not_exists(SmoochUserId) OR (attribute_exists(SmoochUserId) AND attribute_not_exists(InteractionId) AND CreatingSmoochMessageId = :m)',
     ExpressionAttributeValues: {

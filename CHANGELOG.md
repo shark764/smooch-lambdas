@@ -1,3 +1,6 @@
+## 1.6.6
+* CXV1-21460 - Fix smooch interactions TTL to not be 50,000 years in the future.
+
 ## 1.6.5
 * CXV1-21487 - Make application log levels indexable.
 
