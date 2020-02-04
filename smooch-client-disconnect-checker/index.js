@@ -77,6 +77,7 @@ exports.handler = async (event) => {
     await performCustomerDisconnect({
       tenantId, interactionId, logContext, cxAuth,
     });
+    await deleteCustomerInteraction({ userId, logContext });
   } else {
     log.info(
       'Last customer message is newer. Customer is active.',
@@ -112,4 +113,22 @@ async function performCustomerDisconnect({
     );
     throw error;
   }
+}
+
+async function deleteCustomerInteraction({ userId, logContext }) {
+  const smoochParams = {
+    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+    Key: {
+      SmoochUserId: userId,
+    },
+    ConditionExpression: 'attribute_exists(SmoochUserId)',
+  };
+
+  try {
+    await docClient.delete(smoochParams).promise();
+  } catch (error) {
+    log.info('An error occurred removing the interaction id on the state table. Assuming a previous disconnect has already done this.', logContext, error);
+  }
+
+  log.debug('Removed interaction from state table', logContext);
 }

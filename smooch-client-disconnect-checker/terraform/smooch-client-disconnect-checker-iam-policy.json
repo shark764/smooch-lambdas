@@ -20,6 +20,7 @@
     }, {
         "Sid": "SmoochInteractionDynamo",
         "Action": [
+            "dynamodb:DeleteItem",
             "dynamodb:GetItem"
         ],
         "Effect": "Allow",
