@@ -1,3 +1,6 @@
+## 1.7.1
+* CXV1-21338 - Check for configurable disconnect timeout.
+
 ## 1.7.0 
 * CXV1-21425 - Add images and files support
 

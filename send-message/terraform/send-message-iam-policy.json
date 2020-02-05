@@ -18,6 +18,11 @@
         "Effect": "Allow",
         "Resource": "*"
     },{
+        "Sid": "SmoochDynamo",
+        "Action": "dynamodb:GetItem",
+        "Effect": "Allow",
+        "Resource": "arn:aws:dynamodb:*:*:table/*-smooch"
+    },{
         "Sid": "SmoochInteractionDynamo",
         "Action": [
             "dynamodb:GetItem"

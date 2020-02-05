@@ -494,6 +494,7 @@ async function createInteraction({
       appId,
       userId,
       customer,
+      smoochIntegrationId: integrationId,
       participants: [],
     },
   };
