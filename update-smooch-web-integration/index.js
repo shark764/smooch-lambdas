@@ -14,41 +14,26 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
 const bodySchema = Joi.object({
   name: Joi.string(),
-
   prechatCapture: Joi.string()
     .required()
     .valid('name', 'email'),
-
   contactPoint: Joi.string(),
-
   description: Joi.string().allow(''),
-
+  clientDisconnectMinutes: Joi.number().min(1).max(1440),
   brandColor: Joi.string(),
-
   whitelistedUrls: Joi.array()
     .items(Joi.string()),
-
   businessName: Joi.string(),
-
   businessIconUrl: Joi.string(),
-
   fixedIntroPane: Joi.boolean(),
-
   conversationColor: Joi.string(),
-
   backgroundImageUrl: Joi.string(),
-
   actionColor: Joi.string(),
-
   displayStyle: Joi.string()
     .valid('button', 'tab'),
-
   buttonWidth: Joi.string(),
-
   buttonHeight: Joi.string(),
-
   buttonIconUrl: Joi.string(),
-
   appId: Joi.string(),
 });
 const paramsSchema = Joi.object({
@@ -243,24 +228,36 @@ exports.handler = async (event) => {
     };
   }
 
+  const {
+    name,
+    description,
+    contactPoint,
+    clientDisconnectMinutes,
+  } = body;
   let updateExpression = '';
   const expressionAttribute = {};
   const expressionAttributeNames = {};
-  if (body.name) {
+  if (name) {
     updateExpression += 'set #name = :n';
-    expressionAttribute[':n'] = body.name;
+    expressionAttribute[':n'] = name;
     expressionAttributeNames['#name'] = 'name';
   }
-  if (body.description) {
-    if (body.name) updateExpression += ',';
+  if (description) {
+    if (name) updateExpression += ',';
     updateExpression += 'description = :d';
-    expressionAttribute[':d'] = body.description;
+    expressionAttribute[':d'] = description;
   }
-  if (body.contactPoint) {
-    if (body.name || body.description) updateExpression += ',';
+  if (contactPoint) {
+    if (name || description) updateExpression += ',';
     updateExpression += '#contactPoint = :c';
-    expressionAttribute[':c'] = body.contactPoint;
+    expressionAttribute[':c'] = contactPoint;
     expressionAttributeNames['#contactPoint'] = 'contact-point';
+  }
+  if (clientDisconnectMinutes) {
+    if (name || description || contactPoint) updateExpression += ',';
+    updateExpression += '#clientDisconnectMinutes = :c';
+    expressionAttribute[':c'] = clientDisconnectMinutes;
+    expressionAttributeNames['#clientDisconnectMinutes'] = 'client-disconnect-minutes';
   }
 
   let dynamoValue = {};

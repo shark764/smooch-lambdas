@@ -23,31 +23,20 @@ const bodySchema = Joi.object({
   name: Joi.string()
     .required(),
   description: Joi.string().allow(''),
-
+  clientDisconnectMinutes: Joi.number().min(1).max(1440),
   brandColor: Joi.string(),
-
   whitelistedUrls: Joi.array()
     .items(Joi.string()),
-
   businessName: Joi.string(),
-
   businessIconUrl: Joi.string(),
-
   fixedIntroPane: Joi.boolean(),
-
   conversationColor: Joi.string(),
-
   backgroundImageUrl: Joi.string(),
-
   actionColor: Joi.string(),
-
   displayStyle: Joi.string()
     .valid('button', 'tab'),
-
   buttonWidth: Joi.string(),
-
   buttonHeight: Joi.string(),
-
   buttonIconUrl: Joi.string(),
 });
 const paramsSchema = Joi.object({
@@ -105,9 +94,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const { appId, contactPoint } = body;
   let defaultPrechatCapture;
-
   if (body.prechatCapture === 'name') {
     defaultPrechatCapture = [{
       type: 'text',
@@ -153,8 +140,8 @@ exports.handler = async (event) => {
     };
   }
 
+  const { appId } = body;
   let smooch;
-
   try {
     const appKeys = JSON.parse(appSecrets.SecretString);
     smooch = new SmoochCore({
@@ -210,14 +197,18 @@ exports.handler = async (event) => {
   }
 
   let updateExpression = `set #type = :t, #appId = :appId, #contactPoint = :contactPoint,
+  #clientDisconnectMinutes = :clientDisconnectMinutes, 
   #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
   created = :created, updated = :updated`;
+
+  const { name, contactPoint, clientDisconnectMinutes } = body;
 
   const expressionAttributeValues = {
     ':t': 'web',
     ':appId': appId,
     ':contactPoint': contactPoint,
-    ':name': body.name,
+    ':name': name,
+    ':clientDisconnectMinutes': clientDisconnectMinutes,
     ':createdBy': identity['user-id'],
     ':updatedBy': identity['user-id'],
     ':created': (new Date()).toISOString(),
@@ -237,6 +228,7 @@ exports.handler = async (event) => {
       '#type': 'type',
       '#appId': 'app-id',
       '#contactPoint': 'contact-point',
+      '#clientDisconnectMinutes': 'client-disconnect-minutes',
       '#createdBy': 'created-by',
       '#updatedBy': 'updated-by',
       '#name': 'name',

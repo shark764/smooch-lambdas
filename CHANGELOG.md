@@ -1,3 +1,6 @@
+## 1.8.0
+* CXV1-21338 - Add clientDisconnectMinutes to web integration create and update
+
 ## 1.7.1
 * CXV1-21338 - Check for configurable disconnect timeout.
 
