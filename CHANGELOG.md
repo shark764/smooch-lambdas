@@ -1,3 +1,6 @@
+## 1.7.0 
+* CXV1-21425 - Add images and files support
+
 ## 1.6.7
 * CXV1-21338 - Delete interaction for inactive customer.
 

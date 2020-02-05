@@ -120,13 +120,16 @@ exports.handler = async (event) => {
               });
               break;
             }
-            case 'text': {
-              log.debug('Web type received: text', logContext);
+            case 'text':
+            case 'image':
+            case 'file': {
+              log.debug(`Web type received: ${type}`, logContext);
               if (hasInteractionItem && interactionId) {
                 await sendCustomerMessageToParticipants({
                   appId,
                   userId,
                   tenantId,
+                  contentType: type,
                   interactionId,
                   message,
                   auth,
@@ -527,6 +530,7 @@ async function createInteraction({
 async function sendCustomerMessageToParticipants({
   tenantId,
   interactionId,
+  contentType,
   message,
   auth,
   logContext,
@@ -551,9 +555,15 @@ async function sendCustomerMessageToParticipants({
           message: {
             id: message._id,
             from: message.name,
+            contentType,
             timestamp: message.received * 1000,
             type: 'customer',
             text: message.text,
+            file: {
+              mediaUrl: message.mediaUrl,
+              mediaType: message.mediaType,
+              mediaSize: message.mediaSize,
+            },
           },
         });
         const QueueName = `${tenantId}_${resourceId}`;
