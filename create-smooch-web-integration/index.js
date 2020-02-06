@@ -23,7 +23,7 @@ const bodySchema = Joi.object({
   name: Joi.string()
     .required(),
   description: Joi.string().allow(''),
-  clientDisconnectMinutes: Joi.number().min(1).max(1440),
+  clientDisconnectMinutes: Joi.number().min(1).max(1440).allow(null),
   brandColor: Joi.string(),
   whitelistedUrls: Joi.array()
     .items(Joi.string()),
