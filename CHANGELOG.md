@@ -1,3 +1,6 @@
+## 1.8.2
+* CXV1-21338 - Fix clientDisconnectMinutes on web integration update
+
 ## 1.8.1
 * CXV1-21338 - Fix clientDisconnectMinutes on web integration create
 
