@@ -196,43 +196,53 @@ exports.handler = async (event) => {
     };
   }
 
+  const {
+    name,
+    contactPoint,
+    description,
+    clientDisconnectMinutes,
+  } = body;
+
   let updateExpression = `set #type = :t, #appId = :appId, #contactPoint = :contactPoint,
-  #clientDisconnectMinutes = :clientDisconnectMinutes, 
   #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
   created = :created, updated = :updated`;
 
-  const { name, contactPoint, clientDisconnectMinutes } = body;
+  const expressionAttributeNames = {
+    '#type': 'type',
+    '#appId': 'app-id',
+    '#contactPoint': 'contact-point',
+    '#createdBy': 'created-by',
+    '#updatedBy': 'updated-by',
+    '#name': 'name',
+  };
 
   const expressionAttributeValues = {
     ':t': 'web',
     ':appId': appId,
     ':contactPoint': contactPoint,
     ':name': name,
-    ':clientDisconnectMinutes': clientDisconnectMinutes,
     ':createdBy': identity['user-id'],
     ':updatedBy': identity['user-id'],
     ':created': (new Date()).toISOString(),
     ':updated': (new Date()).toISOString(),
   };
 
-  if (body.description) {
+  if (description) {
     updateExpression += ', description = :description';
-    expressionAttributeValues[':description'] = body.description;
+    expressionAttributeValues[':description'] = description;
+  }
+
+  if (clientDisconnectMinutes) {
+    updateExpression += ', #clientDisconnectMinutes = :clientDisconnectMinutes';
+    expressionAttributeNames['#clientDisconnectMinutes'] = 'client-disconnect-minutes';
+    expressionAttributeValues[':clientDisconnectMinutes'] = clientDisconnectMinutes;
   }
 
   const updateParams = {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
     Key: { 'tenant-id': tenantId, id: smoochIntegration._id },
     UpdateExpression: updateExpression,
-    ExpressionAttributeNames: {
-      '#type': 'type',
-      '#appId': 'app-id',
-      '#contactPoint': 'contact-point',
-      '#clientDisconnectMinutes': 'client-disconnect-minutes',
-      '#createdBy': 'created-by',
-      '#updatedBy': 'updated-by',
-      '#name': 'name',
-    },
+    ExpressionAttributeNames: expressionAttributeNames,
     ExpressionAttributeValues: expressionAttributeValues,
     ReturnValues: 'ALL_NEW',
   };
