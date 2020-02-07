@@ -635,7 +635,7 @@ async function sendConversationEvent({
     );
 
     await updateSmoochClientLastActivity({
-      latestCustomerMessageTimestamp: timestamp,
+      latestCustomerMessageTimestamp: timestamp * 1000,
       userId: logContext.smoochUserId,
       logContext,
     });

@@ -224,11 +224,12 @@ async function checkIfClientIsDisconnected({
   const { tenantId } = logContext;
   const QueueName = `${AWS_REGION}-${ENVIRONMENT}-smooch-client-disconnect-checker`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
-  const DelaySeconds = disconnectTimeoutInMinutes * 60;
+  const DelaySeconds = Math.min(disconnectTimeoutInMinutes, 15) * 60;
   const MessageBody = JSON.stringify({
     tenantId,
     userId,
     latestAgentMessageTimestamp,
+    disconnectTimeoutInMinutes,
   });
   const sqsMessageAction = {
     MessageBody,

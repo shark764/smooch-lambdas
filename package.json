@@ -1,6 +1,6 @@
 {
   "name": "smooch-lambdas",
-  "version": "1.8.5",
+  "version": "1.8.6",
   "dependencies": {},
   "scripts": {
     "build": "node install.js && node zip.js",
@@ -11,9 +11,9 @@
     "prepush": "npm test"
   },
   "jest": {
-      "reporters": [
-        "<rootDir>/utils/no-logs-reporter.js",
-        "<rootDir>/utils/summary-reporter.js"
+    "reporters": [
+      "<rootDir>/utils/no-logs-reporter.js",
+      "<rootDir>/utils/summary-reporter.js"
     ],
     "verbose": false
   },

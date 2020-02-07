@@ -12,12 +12,14 @@ const {
 AWS.config.update({ region: process.env.AWS_REGION });
 const secretsClient = new AWS.SecretsManager();
 const docClient = new AWS.DynamoDB.DocumentClient();
+const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 
 exports.handler = async (event) => {
   const {
     tenantId,
     userId, // Smooch User/Customer ID
     latestAgentMessageTimestamp,
+    disconnectTimeoutInMinutes,
   } = JSON.parse(event.Records[0].body);
   const logContext = { tenantId, smoochUserId: userId };
 
@@ -63,7 +65,25 @@ exports.handler = async (event) => {
     return;
   }
 
-  if (!LatestCustomerMessageTimestamp) {
+  // how much time has passed between latest agent message and now.
+  const timeDifference = Math.abs(
+    new Date(
+      Math.round((new Date()).getTime()),
+    )
+    - new Date(
+      latestAgentMessageTimestamp,
+    ),
+  );
+  const timeDifferenceInMinutes = Math.floor((timeDifference / 1000) / 60);
+  if (timeDifferenceInMinutes < disconnectTimeoutInMinutes) {
+    const newTimeout = disconnectTimeoutInMinutes - timeDifferenceInMinutes;
+    await checkIfClientIsDisconnected({
+      latestAgentMessageTimestamp,
+      disconnectTimeoutInMinutes: newTimeout,
+      userId,
+      logContext,
+    });
+  } else if (!LatestCustomerMessageTimestamp) {
     log.info('Customer is inactive', logContext);
     await performCustomerDisconnect({
       tenantId, interactionId, logContext, cxAuth,
@@ -131,4 +151,25 @@ async function deleteCustomerInteraction({ userId, logContext }) {
   }
 
   log.debug('Removed interaction from state table', logContext);
+}
+
+async function checkIfClientIsDisconnected({
+  latestAgentMessageTimestamp, disconnectTimeoutInMinutes, userId, logContext,
+}) {
+  const { tenantId } = logContext;
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-smooch-client-disconnect-checker`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const DelaySeconds = Math.min(disconnectTimeoutInMinutes, 15) * 60;
+  const MessageBody = JSON.stringify({
+    tenantId,
+    userId,
+    latestAgentMessageTimestamp,
+    disconnectTimeoutInMinutes,
+  });
+  const sqsMessageAction = {
+    MessageBody,
+    QueueUrl,
+    DelaySeconds,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
 }
