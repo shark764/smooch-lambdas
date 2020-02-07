@@ -253,7 +253,7 @@ exports.handler = async (event) => {
     expressionAttribute[':c'] = contactPoint;
     expressionAttributeNames['#contactPoint'] = 'contact-point';
   }
-  if (clientDisconnectMinutes) {
+  if (clientDisconnectMinutes !== undefined) {
     if (name || description || contactPoint) updateExpression += ',';
     updateExpression += '#clientDisconnectMinutes = :cdm';
     expressionAttribute[':cdm'] = clientDisconnectMinutes;
