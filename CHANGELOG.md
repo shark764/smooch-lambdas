@@ -1,3 +1,6 @@
+## 1.8.5
+* CXV1-21499 - Put back agent disconnect message in customer disconnect.
+
 ## 1.8.4
 * CXV1-21338 - Actually fix setting clientDisconnectMinutes to null on web integration update
 
