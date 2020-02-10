@@ -126,6 +126,12 @@ exports.handler = async (event) => {
       text: getMessageText(message),
       type: message.role === 'appMaker' ? message.metadata.type : 'customer',
       from: message.role === 'appMaker' ? message.metadata.from : customer,
+      file: {
+        mediaUrl: message.mediaUrl,
+        mediaType: message.mediaType,
+        mediaSize: message.mediaSize,
+      },
+      contentType: message.type,
       resourceId: message.role === 'appMaker' ? message.metadata.resourceId : null,
       timestamp: message.received * 1000,
     }));

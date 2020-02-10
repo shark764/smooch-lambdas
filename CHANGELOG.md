@@ -1,3 +1,6 @@
+## 1.9.0
+* CXV1-21425 - Add images and files support on get conversation history.
+
 ## 1.8.7
 * CXV1-21338 - Customer read indicator doesn't count as client activity.
 
