@@ -126,12 +126,16 @@ async function performCustomerDisconnect({
     });
     log.info('Performed Customer Disconnect', { ...logContext, response: data });
   } catch (error) {
-    log.error(
-      'An Error has occurred trying to send customer interrupt',
-      logContext,
-      error,
-    );
-    throw error;
+    if (error.response.status === 404) {
+      log.debug('Already received a first customer disconnect', { ...logContext, response: error.response });
+    } else {
+      log.error(
+        'An Error has occurred trying to send customer interrupt',
+        logContext,
+        error,
+      );
+      throw error;
+    }
   }
 }
 
