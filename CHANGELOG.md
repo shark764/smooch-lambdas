@@ -1,3 +1,6 @@
+## 1.8.7
+* CXV1-21338 - Customer read indicator doesn't count as client activity.
+
 ## 1.8.6
 * CXV1-21338 - Put disconnect check back on queue if timeout hasn't ended
 * CXV1-21338 - Fix conversation events timestamp on client activity.

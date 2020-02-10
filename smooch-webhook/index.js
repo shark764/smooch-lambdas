@@ -634,11 +634,13 @@ async function sendConversationEvent({
       }),
     );
 
-    await updateSmoochClientLastActivity({
-      latestCustomerMessageTimestamp: timestamp * 1000,
-      userId: logContext.smoochUserId,
-      logContext,
-    });
+    if (conversationEvent !== 'conversation-read') {
+      await updateSmoochClientLastActivity({
+        latestCustomerMessageTimestamp: timestamp * 1000,
+        userId: logContext.smoochUserId,
+        logContext,
+      });
+    }
   } catch (error) {
     log.error(
       'Error sending conversation event to participants',
