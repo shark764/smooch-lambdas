@@ -1,10 +1,8 @@
-const { validateTenantPermissions, validatePlatformPermissions } = require('serenova-js-utils/lambda/api');
+const { validateTenantPermissions } = require('serenova-js-utils/lambda/api');
 
-jest.mock('aws-sdk');
 jest.mock('serenova-js-utils/lambda/api');
 
 validateTenantPermissions.mockReturnValue(true);
-validatePlatformPermissions.mockReturnValue(true);
 
 beforeAll(() => {
   global.process.env = {
@@ -22,7 +20,7 @@ const event = {
   },
 };
 
-const mockQuery = jest.fn()
+const mockQuery = jest.fn(() => {})
   .mockImplementation(() => ({
     promise: () => ({
       Count: 1,
@@ -43,8 +41,8 @@ jest.mock('aws-sdk', () => ({
 
 const { handler } = require('../index');
 
-describe('get-smooch-apps', () => {
-  describe('Everything is successful', async () => {
+describe('get-smooch-web-integrations', () => {
+  describe('Everything  is successful', async () => {
     let result;
     beforeAll(async () => {
       result = await handler(event);
@@ -55,9 +53,6 @@ describe('get-smooch-apps', () => {
     it('sends back arguments with which validateTenantPermissions was called', async () => {
       expect(validateTenantPermissions.mock.calls).toMatchSnapshot();
     });
-    it('sends back arguments with which validatePlatformPermissions was called', async () => {
-      expect(validatePlatformPermissions.mock.calls).toMatchSnapshot();
-    });
     it('sends back arguments with which mockQuery was called', async () => {
       expect(mockQuery.mock.calls).toMatchSnapshot();
     });
@@ -65,7 +60,6 @@ describe('get-smooch-apps', () => {
 
   it('sends back a 400 error when there are not enough permissions', async () => {
     validateTenantPermissions.mockReturnValueOnce(false);
-    validatePlatformPermissions.mockReturnValueOnce(false);
     const result = await handler(event);
     expect(result).toMatchSnapshot();
   });
