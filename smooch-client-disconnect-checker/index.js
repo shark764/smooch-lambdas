@@ -88,6 +88,7 @@ exports.handler = async (event) => {
     await performCustomerDisconnect({
       tenantId, interactionId, logContext, cxAuth,
     });
+    await deleteCustomerInteraction({ userId, logContext });
   } else if (LatestCustomerMessageTimestamp < latestAgentMessageTimestamp) {
     log.info('Customer is inactive. Last customer message is older than latest agent message', {
       ...logContext,

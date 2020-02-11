@@ -1,3 +1,6 @@
+## 1.9.2
+* CXV1-21338 - Delete customer interaction when they don't have messages and are inactive.
+
 ## 1.9.1
 * CXV1-21338 - Don't retry customer-interrupt on response status 404.
 
