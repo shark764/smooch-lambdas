@@ -1,3 +1,6 @@
+## 1.11.0
+* CXV1-21427 - Move artifact creation to right before the interaction is created.
+
 ## 1.10.0
 * CXV1-21426 - New lambda to send attachments from Skylight to Smooch.
 

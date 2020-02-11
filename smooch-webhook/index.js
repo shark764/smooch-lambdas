@@ -474,6 +474,31 @@ async function createInteraction({
   }
   const { 'contact-point': contactPoint } = webIntegration.Item;
 
+  let artifactId;
+  try {
+    const response = await axios({
+      method: 'post',
+      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts`,
+      data: {
+        artifactType: 'messaging-transcript',
+      },
+      auth,
+    });
+    log.debug('Created Artifact', {
+      ...logContext,
+      interactionId,
+      artifact: response.data,
+    });
+    ({ artifactId } = response.data);
+  } catch (error) {
+    log.error(
+      'Error creating artifact',
+      { ...logContext, interactionId },
+      error,
+    );
+    throw error;
+  }
+
   const interactionParams = {
     tenantId,
     id: interactionId,
@@ -488,6 +513,7 @@ async function createInteraction({
         firstName,
         lastName,
       },
+      artifactId,
     },
     metadata: {
       source,
@@ -495,10 +521,11 @@ async function createInteraction({
       userId,
       customer,
       smoochIntegrationId: integrationId,
+      artifactId,
       participants: [],
     },
   };
-  log.debug('Creating interaction', { ...logContext, interactionParams });
+  log.debug('Creating interaction', { ...logContext, artifactId, interactionParams });
 
   const { data } = await axios({
     method: 'post',
@@ -507,7 +534,12 @@ async function createInteraction({
     auth,
   });
 
-  log.info('Created interaction', { ...logContext, interaction: data, interactionId });
+  log.info('Created interaction', {
+    ...logContext,
+    artifactId,
+    interaction: data,
+    interactionId,
+  });
 
   const smoochInteractionParams = {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,

@@ -15,7 +15,7 @@ const {
 
 exports.handler = async (event) => {
   const {
-    tenantId, interactionId, appId, userId,
+    tenantId, interactionId, artifactId, appId, userId,
   } = JSON.parse(
     event.Records[0].body,
   );
@@ -23,6 +23,7 @@ exports.handler = async (event) => {
   const logContext = {
     tenantId,
     interactionId,
+    artifactId,
     smoochAppId: appId,
     smoochUserId: userId,
   };
@@ -149,22 +150,10 @@ function getPreviousTimestamp({ previous }) {
 }
 
 async function persistArchivedHistory(type, logContext, transcript, cxAuth) {
-  let artifact;
-  try {
-    const { data } = await createArtifact(logContext, type, cxAuth);
-    log.debug('Created Artifact', { ...logContext, artifact: data });
-    artifact = data;
-  } catch (error) {
-    log.error('Error creating artifact', { ...logContext, transcript }, error);
-    throw error;
-  }
-
-  const { artifactId } = artifact;
   let artifactFile;
   try {
     const { data } = await uploadArtifactFile(
       logContext,
-      artifactId,
       transcript,
       cxAuth,
     );
@@ -174,7 +163,6 @@ async function persistArchivedHistory(type, logContext, transcript, cxAuth) {
       'Error persisting artifact history',
       {
         ...logContext,
-        artifactId,
         artifactFile,
       },
       error,
@@ -184,25 +172,12 @@ async function persistArchivedHistory(type, logContext, transcript, cxAuth) {
 
   log.info('Successfully created messaging transcript artifact', {
     ...logContext,
-    artifactId,
     artifactFile,
   });
 }
 
-async function createArtifact({ tenantId, interactionId }, type, auth) {
-  return axios({
-    method: 'post',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts`,
-    data: {
-      artifactType: type,
-    },
-    auth,
-  });
-}
-
 async function uploadArtifactFile(
-  { tenantId, interactionId },
-  artifactId,
+  { tenantId, interactionId, artifactId },
   transcript,
   auth,
 ) {

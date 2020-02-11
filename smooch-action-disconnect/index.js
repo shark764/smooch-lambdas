@@ -25,7 +25,7 @@ exports.handler = async (event) => {
     metadata,
     parameters,
   } = JSON.parse(event.Records[0].body);
-  const { 'app-id': appId, 'user-id': userId } = metadata;
+  const { 'app-id': appId, 'user-id': userId, 'artifact-id': artifactId } = metadata;
 
   const logContext = {
     tenantId,
@@ -34,7 +34,7 @@ exports.handler = async (event) => {
     smoochUserId: userId,
   };
 
-  log.info('smooch-action-disconnect was called', logContext);
+  log.info('smooch-action-disconnect was called', { ...logContext, artifactId });
 
   let cxAuthSecret;
   try {
@@ -113,6 +113,7 @@ exports.handler = async (event) => {
     // Create Transcript
     await createMessagingTranscript({
       logContext,
+      artifactId,
     });
 
     try {
@@ -274,7 +275,7 @@ async function sendFlowActionResponse({ logContext, actionId, subId }) {
   await sqs.sendMessage(sqsMessageAction).promise();
 }
 
-async function createMessagingTranscript({ logContext }) {
+async function createMessagingTranscript({ logContext, artifactId }) {
   const {
     tenantId,
     interactionId,
@@ -286,6 +287,7 @@ async function createMessagingTranscript({ logContext }) {
   const payload = JSON.stringify({
     tenantId,
     interactionId,
+    artifactId,
     appId,
     userId,
   });
