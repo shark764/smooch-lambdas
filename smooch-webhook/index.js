@@ -568,10 +568,12 @@ async function sendCustomerMessageToParticipants({
   auth,
   logContext,
 }) {
+  let artifactId;
   try {
     const { data } = await getMetadata({ tenantId, interactionId, auth });
     log.debug('Got interaction metadata', { ...logContext, interaction: data });
     const { participants } = data;
+    ({ artifactId } = data);
 
     await Promise.all(
       participants.map(async (participant) => {
@@ -610,16 +612,28 @@ async function sendCustomerMessageToParticipants({
         await sqs.sendMessage(sqsMessageAction).promise();
       }),
     );
-    await sendReportingEvent({ logContext });
-    await updateSmoochClientLastActivity({
-      latestCustomerMessageTimestamp: message.received * 1000,
-      userId: logContext.smoochUserId,
-      logContext,
-    });
   } catch (error) {
     log.error('Error sending message to participants', logContext, error);
     throw error;
   }
+
+  try {
+    await uploadArtifactFile(logContext, artifactId, message, auth);
+  } catch (error) {
+    log.error('Error uploading file to artifact', logContext, error);
+  }
+
+  try {
+    await sendReportingEvent({ logContext });
+  } catch (error) {
+    log.error('An error ocurred sending the reporting event', logContext, error);
+  }
+
+  await updateSmoochClientLastActivity({
+    latestCustomerMessageTimestamp: message.received * 1000,
+    userId: logContext.smoochUserId,
+    logContext,
+  });
 }
 
 async function sendConversationEvent({
@@ -709,6 +723,45 @@ async function updateInteractionMetadata({
     QueueUrl,
   };
   await sqs.sendMessage(sqsMessageAction).promise();
+}
+
+async function uploadArtifactFile(
+  { tenantId, interactionId },
+  artifactId,
+  message,
+  auth,
+) {
+  const smoochFile = await axios({
+    method: 'get',
+    url: message.mediaUrl,
+    responseType: 'arraybuffer',
+  });
+  log.trace('Got file from Smooch', { tenantId, interactionId, message });
+
+  const form = new FormData();
+  form.append('content', Buffer.from(smoochFile.data), {
+    filename: decodeURIComponent(message.mediaUrl).split('/')[
+      message.mediaUrl.split('/').length - 1
+    ],
+    contentType: message.mediaType,
+    metadata: {
+      messageId: message._id,
+    },
+  });
+
+  log.debug('Uploading artifact using old upload route', {
+    tenantId,
+    interactionId,
+    artifactId,
+    smoochFileMessage: message,
+  });
+  return axios({
+    method: 'post',
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
+    data: form,
+    auth,
+    headers: form.getHeaders(),
+  });
 }
 
 async function sendReportingEvent({

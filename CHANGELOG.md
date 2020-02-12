@@ -1,3 +1,6 @@
+## 1.12.0
+* CXV1-21427 - Save customer attachments to the artifact.
+
 ## 1.11.0
 * CXV1-21427 - Move artifact creation to right before the interaction is created.
 
