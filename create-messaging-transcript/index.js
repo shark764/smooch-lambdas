@@ -247,6 +247,12 @@ function formatMessages({ messages }, tenantId) {
         },
         body: {
           text: getMessageText(message),
+          contentType: message.type,
+          file: {
+            mediaUrl: message.mediaUrl,
+            mediaType: message.mediaType,
+            mediaSize: message.mediaSize,
+          },
         },
         from:
           (message.metadata && message.metadata.resourceId) || message.authorId,

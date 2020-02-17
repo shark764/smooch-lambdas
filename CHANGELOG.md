@@ -1,6 +1,9 @@
+## 1.13.0
+* CXV1-15797 - Save attachments to the transcript.
+
 ## 1.12.1
 * CXV1-21674 - Create interaction transcript when ending the interaction.
-  
+
 ## 1.12.0
 * CXV1-21427 - Save customer attachments to the artifact.
 
