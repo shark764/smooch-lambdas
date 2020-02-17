@@ -1,3 +1,6 @@
+## 1.12.1
+* CXV1-21674 - Create interaction transcript when ending the interaction.
+  
 ## 1.12.0
 * CXV1-21427 - Save customer attachments to the artifact.
 
@@ -6,7 +9,7 @@
 
 ## 1.10.0
 * CXV1-21426 - New lambda to send attachments from Skylight to Smooch.
-
+  
 ## 1.9.2
 * CXV1-21338 - Delete customer interaction when they don't have messages and are inactive.
 

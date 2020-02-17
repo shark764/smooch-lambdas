@@ -85,20 +85,14 @@ exports.handler = async (event) => {
     });
   } else if (!LatestCustomerMessageTimestamp) {
     log.info('Customer is inactive', logContext);
-    await performCustomerDisconnect({
-      tenantId, interactionId, logContext, cxAuth,
-    });
-    await deleteCustomerInteraction({ userId, logContext });
+    await disconnectClient({ logContext, cxAuth });
   } else if (LatestCustomerMessageTimestamp < latestAgentMessageTimestamp) {
     log.info('Customer is inactive. Last customer message is older than latest agent message', {
       ...logContext,
       LatestCustomerMessageTimestamp,
       latestAgentMessageTimestamp,
     });
-    await performCustomerDisconnect({
-      tenantId, interactionId, logContext, cxAuth,
-    });
-    await deleteCustomerInteraction({ userId, logContext });
+    await disconnectClient({ logContext, cxAuth });
   } else {
     log.info(
       'Last customer message is newer. Customer is active.',
@@ -107,9 +101,8 @@ exports.handler = async (event) => {
   }
 };
 
-async function performCustomerDisconnect({
-  tenantId, interactionId, logContext, cxAuth,
-}) {
+async function performCustomerDisconnect({ logContext, cxAuth }) {
+  const { tenantId, interactionId } = logContext;
   log.info(
     'Performing Customer Disconnect',
     logContext,
@@ -140,11 +133,12 @@ async function performCustomerDisconnect({
   }
 }
 
-async function deleteCustomerInteraction({ userId, logContext }) {
+async function deleteCustomerInteraction({ logContext }) {
+  const { smoochUserId } = logContext;
   const smoochParams = {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
     Key: {
-      SmoochUserId: userId,
+      SmoochUserId: smoochUserId,
     },
     ConditionExpression: 'attribute_exists(SmoochUserId)',
   };
@@ -177,4 +171,45 @@ async function checkIfClientIsDisconnected({
     DelaySeconds,
   };
   await sqs.sendMessage(sqsMessageAction).promise();
+}
+
+async function createMessagingTranscript({ logContext, cxAuth }) {
+  const {
+    tenantId,
+    interactionId,
+    smoochUserId: userId,
+  } = logContext;
+  const { data: { appId } } = await getMetadata({ tenantId, interactionId, cxAuth });
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-create-messaging-transcript`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const payload = JSON.stringify({
+    tenantId,
+    interactionId,
+    appId,
+    userId,
+  });
+
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
+  };
+
+  await sqs.sendMessage(sqsMessageAction).promise();
+}
+
+async function getMetadata({ tenantId, interactionId, cxAuth: auth }) {
+  return axios({
+    method: 'get',
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
+    auth,
+  });
+}
+
+
+async function disconnectClient({ logContext, cxAuth }) {
+  await performCustomerDisconnect({ logContext, cxAuth });
+  log.info('Deleting customer interaction');
+  await deleteCustomerInteraction({ logContext });
+  log.info('Creating interaction transcript', logContext);
+  await createMessagingTranscript({ logContext, cxAuth });
 }
