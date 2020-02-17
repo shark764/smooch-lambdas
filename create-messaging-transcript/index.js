@@ -246,6 +246,7 @@ function formatMessages({ messages }, tenantId) {
             || 'System',
         },
         body: {
+          id: message._id,
           text: getMessageText(message),
           contentType: message.type,
           file: {

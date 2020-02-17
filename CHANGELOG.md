@@ -1,3 +1,6 @@
+## 1.13.1
+* CXV1-15797 - Add message id to the message body saved in the transcript.
+
 ## 1.13.0
 * CXV1-15797 - Save attachments to the transcript.
 
