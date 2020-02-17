@@ -11,7 +11,7 @@ const secretsClient = new AWS.SecretsManager();
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const docClient = new AWS.DynamoDB.DocumentClient();
 
-/* const s3 = new AWS.S3(); */
+const s3 = new AWS.S3();
 
 const {
   AWS_REGION,
@@ -29,8 +29,6 @@ exports.handler = async (event) => {
     'last-name': lastName,
   } = identity;
   const from = `${firstName} ${lastName}`;
-  const agentMessageId = '0000-0000';
-  const message = 'ESTE MENSAJE ES SOLO PARA SABER SI ESTA ONDA SIRVE XD';
 
   const logContext = {
     tenantId,
@@ -38,41 +36,8 @@ exports.handler = async (event) => {
     resourceId,
   };
 
-  /* await Promise.all(
-    Object.keys(multipartParams).map(async (multipart) => {
-      const { 'aws-bucket': awsBucket, 'aws-key': awsKey } = multipartParams[
-        multipart
-      ];
-      let fileSent;
-      try {
-        fileSent = await retrieveObject({
-          logContext,
-          awsBucket,
-          awsKey,
-        });
-        log.info('SHOW ME WHAT IS IN IT', {
-          ...logContext,
-          fileSent,
-        });
-
-
-        // Handle send file to smooch and then to participants
-
-      } catch (error) {
-        const errMsg = 'Could not retrieve file from S3';
-        log.error(errMsg, logContext, error);
-
-        return {
-          status: 500,
-          body: { message: errMsg },
-        };
-      }
-    }),
-  ); */
-
   log.info('send-attachment was called', {
     ...logContext,
-    message,
     from,
     smoochApiUrl,
     multipartParams,
@@ -140,7 +105,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const { appId, userId } = interactionMetadata;
+  const { appId, userId, artifactId } = interactionMetadata;
   logContext.smoochAppId = appId;
 
   let smooch;
@@ -160,14 +125,76 @@ exports.handler = async (event) => {
     };
   }
 
+  /**
+   * Send file to customer
+   */
+  const multipart = Object.keys(multipartParams)[0];
+  const {
+    'content-type': contentType,
+    'aws-bucket': awsBucket,
+    'aws-key': awsKey,
+    filename,
+  } = multipartParams[multipart];
+
+  let s3Stream;
+  let awsFile;
+  try {
+    s3Stream = await retrieveObject({
+      awsBucket,
+      awsKey,
+    });
+    awsFile = generateFormDataFromStream({
+      s3Stream,
+      filename,
+      contentType,
+    });
+  } catch (error) {
+    const errMsg = 'Could not retrieve file from S3';
+    log.error(errMsg, logContext, error);
+
+    return {
+      status: 500,
+      body: { message: errMsg },
+    };
+  }
+
+  let fileSent;
+  try {
+    fileSent = await smooch.attachments.create({
+      appId,
+      props: {
+        for: 'message',
+        access: 'public',
+        appUserId: userId,
+      },
+      source: awsFile,
+    });
+  } catch (error) {
+    const errMsg = 'Could not send file to customer';
+    log.error(errMsg, logContext, error);
+
+    return {
+      status: 500,
+      body: { message: errMsg },
+    };
+  }
+
   let messageSent;
+  let filetype;
+  const { mediaUrl, mediaType } = fileSent;
+  if (mediaType.startsWith('image/')) {
+    filetype = 'image';
+  } else {
+    filetype = 'file';
+  }
   try {
     messageSent = await smooch.appUsers.sendMessage({
       appId,
       userId,
       message: {
-        text: message,
-        type: 'text',
+        text: filename,
+        type: filetype,
+        mediaUrl,
         role: 'appMaker',
         metadata: {
           type: 'agent',
@@ -188,21 +215,37 @@ exports.handler = async (event) => {
     };
   }
 
-  messageSent = {
+  const attachmentSent = {
     id: messageSent.message._id,
     text: messageSent.message.text,
     type: 'agent',
     from,
-    agentMessageId,
     resourceId,
+    fileSent,
+    messageSent,
     timestamp: messageSent.message.received * 1000,
   };
 
-  log.info('Sent smooch message successfully', {
+  log.info('Sent smooch attachment successfully', {
     ...logContext,
-    smoochMessage: messageSent,
+    smoochMessage: attachmentSent,
   });
 
+  try {
+    await uploadArtifactFile(
+      logContext,
+      artifactId,
+      { s3Stream, filename, contentType },
+      attachmentSent,
+      cxAuth,
+    );
+  } catch (error) {
+    log.error('Error uploading file to artifact', logContext, error);
+  }
+
+  /**
+   * Check for client activity
+   */
   const disconnectTimeoutInMinutes = await getClientInactivityTimeout({
     logContext,
   });
@@ -228,7 +271,7 @@ exports.handler = async (event) => {
       disconnectTimeoutInMinutes,
     });
     await checkIfClientIsDisconnected({
-      latestAgentMessageTimestamp: messageSent.timestamp,
+      latestAgentMessageTimestamp: attachmentSent.timestamp,
       disconnectTimeoutInMinutes,
       userId,
       logContext,
@@ -243,7 +286,7 @@ exports.handler = async (event) => {
 
   return {
     status: 200,
-    body: { message: messageSent, interactionId },
+    body: { message: attachmentSent, interactionId },
   };
 };
 
@@ -274,26 +317,56 @@ async function sendReportingEvent({ logContext }) {
   await sqs.sendMessage(sqsMessageAction).promise();
 }
 
-/**
- * THIS FUNCTION WILL BE REWRITTEN, IT SHOULDN'T GET ACTUALLY THE OBJECT
- * JUST THE SIGNED_URL OF IT
- */
-/* async function retrieveObject({ logContext, awsBucket, awsKey }) {
+async function retrieveObject({ awsBucket, awsKey }) {
   const params = {
     Bucket: awsBucket,
     Key: awsKey,
   };
 
-  const data = await s3.getObject(params).promise();
+  const s3Stream = await s3.getObject(params).promise();
+  return s3Stream.Body;
+}
 
-  log.info('THIS IS JUST TO SHOW THE FILE ==>', {
-    ...logContext,
-    params,
-    data,
+function generateFormDataFromStream({ s3Stream, filename, contentType }) {
+  const formData = new FormData();
+  formData.append('source', s3Stream, {
+    filename,
+    contentType,
   });
 
-  return data.Body.toString('utf-8');
-} */
+  return formData;
+}
+
+async function uploadArtifactFile(
+  { tenantId, interactionId },
+  artifactId,
+  { s3Stream, filename, contentType },
+  attachment,
+  auth,
+) {
+  const form = new FormData();
+  form.append('content', s3Stream, {
+    filename,
+    contentType,
+    metadata: {
+      messageId: attachment.id,
+    },
+  });
+
+  log.debug('Uploading artifact using old upload route', {
+    tenantId,
+    interactionId,
+    artifactId,
+    smoochFileMessage: attachment,
+  });
+  return axios({
+    method: 'post',
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
+    data: form,
+    auth,
+    headers: form.getHeaders(),
+  });
+}
 
 async function checkIfClientIsDisconnected({
   latestAgentMessageTimestamp,

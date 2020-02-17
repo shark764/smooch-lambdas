@@ -1,3 +1,6 @@
+## 1.13.2
+* CXV1-21426 - Add attachments from Skylight to artifact.
+  
 ## 1.13.1
 * CXV1-15797 - Add message id to the message body saved in the transcript.
 
