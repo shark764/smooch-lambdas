@@ -744,10 +744,8 @@ async function uploadArtifactFile(
       message.mediaUrl.split('/').length - 1
     ],
     contentType: message.mediaType,
-    metadata: {
-      messageId: message._id,
-    },
   });
+  form.append('content.metadata', JSON.stringify({ messageId: message._id }));
 
   log.debug('Uploading artifact using old upload route', {
     tenantId,

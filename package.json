@@ -1,6 +1,6 @@
 {
   "name": "smooch-lambdas",
-  "version": "1.13.3",
+  "version": "1.13.4",
   "dependencies": {},
   "scripts": {
     "build": "node install.js && node zip.js",
@@ -8,8 +8,7 @@
     "lint": "eslint . --fix",
     "test": "eslint . && jest",
     "postinstall": "node install.js",
-    "precommit": "npm test",
-    "prepush": "npm test"
+    "precommit": "npm test"
   },
   "jest": {
     "reporters": [

@@ -1,3 +1,6 @@
+## 1.13.4
+* CXV1-21427 - Save message id on artifact metadata for mapping to transcript message.
+
 ## 1.13.3
 * CXV1-15797 - Use artifact url instead of smooch mediaUrl in transcript.
   

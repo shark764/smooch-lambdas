@@ -348,10 +348,8 @@ async function uploadArtifactFile(
   form.append('content', s3Stream, {
     filename,
     contentType,
-    metadata: {
-      messageId: attachment.id,
-    },
   });
+  form.append('content.metadata', JSON.stringify({ messageId: attachment.id }));
 
   log.debug('Uploading artifact using old upload route', {
     tenantId,
