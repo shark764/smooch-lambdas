@@ -126,9 +126,10 @@ exports.handler = async (event) => {
     // will be fetched if this value if not undefined.
     previousTimestamp = getPreviousTimestamp(previousMessages);
   }
+  const { data: { files } } = await getArtifactFile(logContext, cxAuth);
 
   // Transcript will have the total of messages
-  const transcript = await formatMessages(messages, tenantId);
+  const transcript = await formatMessages(messages, tenantId, files);
 
   await persistArchivedHistory(
     'messaging-transcript',
@@ -202,6 +203,14 @@ async function uploadArtifactFile(
   });
 }
 
+async function getArtifactFile({ tenantId, interactionId, artifactId }, auth) {
+  return axios({
+    method: 'get',
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
+    auth,
+  });
+}
+
 function getMessageText(message) {
   if (message.role === 'appMaker' && message.type === 'form') {
     return message.fields[0].label; // collect-message
@@ -214,7 +223,13 @@ function getMessageText(message) {
   return message.text; // normal messages
 }
 
-function formatMessages({ messages }, tenantId) {
+function getTranscriptFileUrl(message, transcriptFiles) {
+  const file = transcriptFiles.find((f) => f.metadata
+    && f.metadata.messageId === message._id);
+  return file && file.url;
+}
+
+function formatMessages({ messages }, tenantId, transcriptFiles) {
   return messages
     .filter(
       (message) => (message.type === 'formResponse'
@@ -250,7 +265,7 @@ function formatMessages({ messages }, tenantId) {
           text: getMessageText(message),
           contentType: message.type,
           file: {
-            mediaUrl: message.mediaUrl,
+            mediaUrl: (message.type === 'file' || message.type === 'image') ? getTranscriptFileUrl(message, transcriptFiles) : undefined,
             mediaType: message.mediaType,
             mediaSize: message.mediaSize,
           },

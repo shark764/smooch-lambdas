@@ -1,3 +1,6 @@
+## 1.13.3
+* CXV1-15797 - Use artifact url instead of smooch mediaUrl in transcript.
+  
 ## 1.13.2
 * CXV1-21426 - Add attachments from Skylight to artifact.
   
