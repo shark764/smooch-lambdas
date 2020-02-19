@@ -179,7 +179,7 @@ async function createMessagingTranscript({ logContext, cxAuth }) {
     interactionId,
     smoochUserId: userId,
   } = logContext;
-  const { data: { appId } } = await getMetadata({ tenantId, interactionId, cxAuth });
+  const { data: { appId, artifactId } } = await getMetadata({ tenantId, interactionId, cxAuth });
   const QueueName = `${AWS_REGION}-${ENVIRONMENT}-create-messaging-transcript`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const payload = JSON.stringify({
@@ -187,6 +187,7 @@ async function createMessagingTranscript({ logContext, cxAuth }) {
     interactionId,
     appId,
     userId,
+    artifactId,
   });
 
   const sqsMessageAction = {

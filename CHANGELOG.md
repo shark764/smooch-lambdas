@@ -1,3 +1,6 @@
+## 1.13.5
+* CXV1-21674 - Send artifactId to transcript creation on disconnect checker
+
 ## 1.13.4
 * CXV1-21427 - Save message id on artifact metadata for mapping to transcript message.
 
