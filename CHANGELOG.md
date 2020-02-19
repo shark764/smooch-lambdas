@@ -1,3 +1,6 @@
+## 1.13.6
+* CXV1-21426 - Fixing message response to skylight when the attachment was successfully sent.
+
 ## 1.13.5
 * CXV1-21674 - Send artifactId to transcript creation on disconnect checker
 

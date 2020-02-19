@@ -215,20 +215,23 @@ exports.handler = async (event) => {
     };
   }
 
-  const attachmentSent = {
+  messageSent = {
     id: messageSent.message._id,
     text: messageSent.message.text,
     type: 'agent',
+    contentType: messageSent.message.type,
+    file: {
+      mediaType,
+      mediaUrl,
+    },
     from,
     resourceId,
-    fileSent,
-    messageSent,
     timestamp: messageSent.message.received * 1000,
   };
 
   log.info('Sent smooch attachment successfully', {
     ...logContext,
-    smoochMessage: attachmentSent,
+    smoochMessage: messageSent,
   });
 
   try {
@@ -236,7 +239,7 @@ exports.handler = async (event) => {
       logContext,
       artifactId,
       { s3Stream, filename, contentType },
-      attachmentSent,
+      messageSent,
       cxAuth,
     );
   } catch (error) {
@@ -271,7 +274,7 @@ exports.handler = async (event) => {
       disconnectTimeoutInMinutes,
     });
     await checkIfClientIsDisconnected({
-      latestAgentMessageTimestamp: attachmentSent.timestamp,
+      latestAgentMessageTimestamp: messageSent.timestamp,
       disconnectTimeoutInMinutes,
       userId,
       logContext,
@@ -286,7 +289,7 @@ exports.handler = async (event) => {
 
   return {
     status: 200,
-    body: { message: attachmentSent, interactionId },
+    body: { message: messageSent, interactionId },
   };
 };
 
@@ -341,7 +344,7 @@ async function uploadArtifactFile(
   { tenantId, interactionId },
   artifactId,
   { s3Stream, filename, contentType },
-  attachment,
+  message,
   auth,
 ) {
   const form = new FormData();
@@ -349,13 +352,13 @@ async function uploadArtifactFile(
     filename,
     contentType,
   });
-  form.append('content.metadata', JSON.stringify({ messageId: attachment.id }));
+  form.append('content.metadata', JSON.stringify({ messageId: message.id }));
 
   log.debug('Uploading artifact using old upload route', {
     tenantId,
     interactionId,
     artifactId,
-    smoochFileMessage: attachment,
+    smoochFileMessage: message,
   });
   return axios({
     method: 'post',
