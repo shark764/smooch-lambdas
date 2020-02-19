@@ -188,6 +188,8 @@ async function uploadArtifactFile(
     contentType: 'application/json',
   });
 
+  form.append('content.metadata', JSON.stringify({ transcript: true }));
+
   log.debug('Uploading artifact using old upload route', {
     tenantId,
     interactionId,

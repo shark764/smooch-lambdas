@@ -1,3 +1,6 @@
+## 1.13.7
+* CXV1-21427 - Save transcript validator on transcript file metadata.
+
 ## 1.13.6
 * CXV1-21426 - Fixing message response to skylight when the attachment was successfully sent.
 
