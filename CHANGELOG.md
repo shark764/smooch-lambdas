@@ -1,3 +1,6 @@
+## 1.14.0
+* Add delete-smooch-attachments lambda.
+
 ## 1.13.7
 * CXV1-21427 - Save transcript validator on transcript file metadata.
 
