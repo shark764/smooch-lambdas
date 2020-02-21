@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`end-interaction Everthing is successful passes in the correct arguments to axios 1`] = `
+Array [
+  Array [
+    Object {
+      "auth": Object {
+        "password": "password",
+        "username": "username",
+      },
+      "data": Object {
+        "interrupt": Object {},
+        "interruptType": "customer-disconnect",
+        "source": "smooch",
+      },
+      "method": "post",
+      "url": "https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/667802d8-2260-436c-958a-2ee0f71f73f0/interrupts?id=7534c040-534d-11ea-8aa0-c32d6a748e46",
+    },
+  ],
+]
+`;
+
+exports[`end-interaction Everthing is successful passes in the correct arguments to mockGetSecretValue 1`] = `
+Array [
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-cx",
+    },
+  ],
+]
+`;
+
+exports[`end-interaction throws an error when there is a problem retrieving cx credentials 1`] = `"Error retrieving cx credentials"`;
+
+exports[`end-interaction throws an error when there is problem ending the interaction 1`] = `"Error ending the interaction"`;
