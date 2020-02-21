@@ -42,7 +42,7 @@ jest.mock('aws-sdk', () => ({
 const { handler } = require('../index');
 
 describe('get-smooch-web-integrations', () => {
-  describe('Everything  is successful', async () => {
+  describe('Everything  is successful', () => {
     let result;
     beforeAll(async () => {
       result = await handler(event);
