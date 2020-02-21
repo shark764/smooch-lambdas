@@ -1,3 +1,6 @@
+## 1.14.1
+* Add queue policy file to delete-smooch-attachments lambda's queue.
+
 ## 1.14.0
 * Add delete-smooch-attachments lambda.
 
