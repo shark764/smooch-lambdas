@@ -1,14 +1,18 @@
 {
+  "Version": "2012-10-17",
   "Sid": "TrustCWEAttachmentDeletionEvent",
-  "Effect": "Allow",
-  "Principal": {
-     "Service": "events.amazonaws.com"
-  },
-  "Action": "sqs:SendMessage",
-  "Resource": "arn:aws:sqs:*:*:delete-smooch-attachments",
-  "Condition": {
-    "ArnEquals": {
-      "aws:SourceArn": "arn:aws:events:*:*:rule/DeleteAttachment-*"
+  "Statement": {
+    "Sid": "TrustCWEAttachmentDeletionEvent",
+    "Effect": "Allow",
+    "Principal": {
+      "Service": "events.amazonaws.com"
+    },
+    "Action": "sqs:SendMessage",
+    "Resource": "arn:aws:sqs:*:*:delete-smooch-attachments",
+    "Condition": {
+      "ArnEquals": {
+        "aws:SourceArn": "arn:aws:events:*:*:rule/DeleteAttachment-*"
+      }
     }
   }
 }

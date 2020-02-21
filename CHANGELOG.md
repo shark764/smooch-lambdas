@@ -1,3 +1,6 @@
+## 1.14.2
+* Update queue policy file formatting.
+
 ## 1.14.1
 * Add queue policy file to delete-smooch-attachments lambda's queue.
 
