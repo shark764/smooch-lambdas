@@ -1,3 +1,6 @@
+## 1.14.3
+* Update delete-smooch-attachments queue permissions.
+
 ## 1.14.2
 * Update queue policy file formatting.
 
