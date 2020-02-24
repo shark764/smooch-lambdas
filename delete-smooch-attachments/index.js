@@ -28,6 +28,7 @@ exports.handler = async (event) => {
     interactionId,
     smoochAppId,
     smoochUserId,
+    smoochMessageId,
   };
 
   log.info('delete-smooch-attachments was called', logContext);
@@ -63,8 +64,8 @@ exports.handler = async (event) => {
 
   try {
     messages = await smooch.appUsers.getMessages({
-      smoochAppId,
-      smoochUserId,
+      appId: smoochAppId,
+      userId: smoochUserId,
     });
   } catch (error) {
     const errMsg = 'An error occurred fetching interaction messages';

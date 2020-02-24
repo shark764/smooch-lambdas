@@ -4,14 +4,12 @@
   "Statement": {
     "Sid": "TrustCWEAttachmentDeletionEvent",
     "Effect": "Allow",
-    "Principal": {
-      "Service": "events.amazonaws.com"
-    },
+    "Principal": "*",
     "Action": "sqs:SendMessage",
     "Resource": "arn:aws:sqs:*:*:*-delete-smooch-attachments",
     "Condition": {
       "ArnEquals": {
-        "aws:SourceArn": "arn:aws:events:*:*:rule/DeleteAttachment-*"
+        "aws:SourceArn": "arn:aws:events:*:*:rule/DeleteSmoochAttachment-*"
       }
     }
   }

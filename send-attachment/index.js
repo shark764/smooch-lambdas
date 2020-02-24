@@ -235,6 +235,19 @@ exports.handler = async (event) => {
     smoochMessage: messageSent,
   });
 
+  log.debug('Scheduling Smooch Attachment deletion', {
+    tenantId,
+    interactionId,
+    artifactId,
+  });
+  await scheduleSmoochAttachmentDeletion({
+    tenantId,
+    interactionId,
+    smoochMessageId: messageSent.id,
+    smoochAppId: appId,
+    smoochUserId: userId,
+  });
+
   try {
     await uploadArtifactFile(
       logContext,
@@ -452,4 +465,28 @@ async function getClientInactivityTimeout({ logContext }) {
   } = smoochIntegration;
 
   return clientDisconnectMinutes;
+}
+
+async function scheduleSmoochAttachmentDeletion({
+  tenantId, interactionId, smoochMessageId, smoochUserId, smoochAppId,
+}) {
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-schedule-lambda-trigger`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const MessageBody = JSON.stringify({
+    tenantId,
+    interactionId,
+    ruleName: `DeleteSmoochAttachment-${smoochMessageId}`,
+    triggerInMs: 43200000, // 12 hours
+    targetQueueName: `${AWS_REGION}-${ENVIRONMENT}-delete-smooch-attachments`,
+    additionalParams: {
+      smoochAppId,
+      smoochUserId,
+      smoochMessageId,
+    },
+  });
+  const sqsMessageAction = {
+    MessageBody,
+    QueueUrl,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
 }

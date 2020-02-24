@@ -40,14 +40,14 @@ exports[`delete-smooch-attachments Everything is successful File is found passes
 Array [
   Array [
     Object {
-      "smoochAppId": "667802d8-2260-436c-958a-2ee0f71f73f1",
-      "smoochUserId": "667802d8-2260-436c-958a-2ee0f71f73f2",
+      "appId": "667802d8-2260-436c-958a-2ee0f71f73f1",
+      "userId": "667802d8-2260-436c-958a-2ee0f71f73f2",
     },
   ],
   Array [
     Object {
-      "smoochAppId": "667802d8-2260-436c-958a-2ee0f71f73f1",
-      "smoochUserId": "667802d8-2260-436c-958a-2ee0f71f73f2",
+      "appId": "667802d8-2260-436c-958a-2ee0f71f73f1",
+      "userId": "667802d8-2260-436c-958a-2ee0f71f73f2",
     },
   ],
 ]

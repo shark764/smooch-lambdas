@@ -1,3 +1,6 @@
+## 1.15.0
+* CXV1-21428 - Remove Smooch Attachment after 12 hours.
+
 ## 1.14.4
 * CXV1-15797 - Return Smooch file status text to send-attachment error response.
 
