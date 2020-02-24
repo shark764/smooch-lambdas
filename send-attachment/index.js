@@ -170,7 +170,8 @@ exports.handler = async (event) => {
       source: awsFile,
     });
   } catch (error) {
-    const errMsg = 'Could not send file to customer';
+    const errMsg = error.response && error.response.statusText ? error.response.statusText : 'Could not send file to customer';
+
     log.error(errMsg, logContext, error);
 
     return {

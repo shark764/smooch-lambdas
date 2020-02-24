@@ -1,3 +1,6 @@
+## 1.14.4
+* CXV1-15797 - Return Smooch file status text to send-attachment error response.
+
 ## 1.14.3
 * Update delete-smooch-attachments queue permissions.
 
