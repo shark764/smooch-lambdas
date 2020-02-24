@@ -20,7 +20,7 @@ const paramsSchema = Joi.object({
 });
 const lambdaPermissions = ['WEB_INTEGRATIONS_APP_READ'];
 
-AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
+AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event) => {

@@ -6,16 +6,11 @@
     "build": "node install.js && node zip.js",
     "zip": "node zip.js",
     "lint": "eslint . --fix",
-    "test": "eslint . && jest",
+    "test": "eslint . && jest --coverage",
+    "jest": "jest",
+    "jest:coverage": "jest --coverage",
     "postinstall": "node install.js",
     "precommit": "npm test"
-  },
-  "jest": {
-    "reporters": [
-      "<rootDir>/utils/no-logs-reporter.js",
-      "<rootDir>/utils/summary-reporter.js"
-    ],
-    "verbose": false
   },
   "author": "SerenovaLLC",
   "license": "UNLICENSED",

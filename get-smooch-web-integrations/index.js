@@ -13,7 +13,7 @@ const paramsSchema = Joi.object({
   'remote-addr': Joi.any(),
   auth: Joi.any(),
 });
-AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
+AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const lambdaPermissions = ['WEB_INTEGRATIONS_APP_READ'];
 

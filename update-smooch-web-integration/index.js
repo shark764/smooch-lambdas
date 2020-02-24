@@ -9,7 +9,7 @@ const log = require('serenova-js-utils/lambda/log');
 const string = require('serenova-js-utils/strings');
 const { validateTenantPermissions } = require('serenova-js-utils/lambda/api');
 
-AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
+AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
 const bodySchema = Joi.object({

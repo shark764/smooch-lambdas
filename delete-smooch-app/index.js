@@ -10,7 +10,7 @@ const Joi = require('@hapi/joi');
 const log = require('serenova-js-utils/lambda/log');
 const { validatePlatformPermissions } = require('serenova-js-utils/lambda/api');
 
-AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
+AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid().required(),
