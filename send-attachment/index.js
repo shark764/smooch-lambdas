@@ -129,6 +129,7 @@ exports.handler = async (event) => {
    * Send file to customer
    */
   const multipart = Object.keys(multipartParams)[0];
+  const { agentMessageId } = multipartParams;
   const {
     'content-type': contentType,
     'aws-bucket': awsBucket,
@@ -170,7 +171,9 @@ exports.handler = async (event) => {
       source: awsFile,
     });
   } catch (error) {
-    const errMsg = error.response && error.response.statusText ? error.response.statusText : 'Could not send file to customer';
+    const errMsg = error.response && error.response.statusText
+      ? error.response.statusText
+      : 'Could not send file to customer';
 
     log.error(errMsg, logContext, error);
 
@@ -193,7 +196,6 @@ exports.handler = async (event) => {
       appId,
       userId,
       message: {
-        text: filename,
         type: filetype,
         mediaUrl,
         role: 'appMaker',
@@ -206,7 +208,9 @@ exports.handler = async (event) => {
       },
     });
   } catch (error) {
-    const errMsg = 'An error occurred sending message';
+    const errMsg = error.response && error.response.statusText
+      ? error.response.statusText
+      : 'An error occurred sending message';
 
     log.error(errMsg, logContext, error);
 
@@ -226,6 +230,7 @@ exports.handler = async (event) => {
       mediaUrl,
     },
     from,
+    agentMessageId,
     resourceId,
     timestamp: messageSent.message.received * 1000,
   };
@@ -425,19 +430,17 @@ async function shouldCheckIfClientIsDisconnected({ userId, logContext }) {
 
   const interactionItem = smoochInteractionRecord && smoochInteractionRecord.Item;
   const hasInteractionItem = interactionItem && Object.entries(interactionItem).length !== 0;
-  const LatestCustomerMessageTimestamp = interactionItem
-    && interactionItem.LatestCustomerMessageTimestamp;
-  const LatestAgentMessageTimestamp = interactionItem
-    && interactionItem.LatestAgentMessageTimestamp;
+  const latestCustomerMsgTs = interactionItem && interactionItem.LatestCustomerMessageTimestamp;
+  const latestAgentMsgTs = interactionItem && interactionItem.LatestAgentMessageTimestamp;
 
   if (!hasInteractionItem) {
     return false;
   }
   // No customer messages, or no agent messages. Check if client is active
-  if (!LatestCustomerMessageTimestamp || !LatestAgentMessageTimestamp) {
+  if (!latestCustomerMsgTs || !latestAgentMsgTs) {
     return true;
   }
-  if (LatestCustomerMessageTimestamp > LatestAgentMessageTimestamp) {
+  if (latestCustomerMsgTs > latestAgentMsgTs) {
     return true;
   }
   return false;
@@ -468,7 +471,11 @@ async function getClientInactivityTimeout({ logContext }) {
 }
 
 async function scheduleSmoochAttachmentDeletion({
-  tenantId, interactionId, smoochMessageId, smoochUserId, smoochAppId,
+  tenantId,
+  interactionId,
+  smoochMessageId,
+  smoochUserId,
+  smoochAppId,
 }) {
   const QueueName = `${AWS_REGION}-${ENVIRONMENT}-schedule-lambda-trigger`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();

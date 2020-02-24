@@ -1,3 +1,6 @@
+## 1.15.1
+* CXV1-21720 - Adding value to response to handle pending message state for sending attachments.
+
 ## 1.15.0
 * CXV1-21428 - Remove Smooch Attachment after 12 hours.
 
