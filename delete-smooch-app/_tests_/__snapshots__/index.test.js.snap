@@ -1,0 +1,184 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`delete-smooch-app Everthing is successful passes in the correct arguments to SmoochCore() 1`] = `
+Array [
+  Array [
+    Object {
+      "keyId": "app-id",
+      "scope": "account",
+      "secret": "SECRET",
+      "serviceUrl": "mock-smooch-api-url",
+    },
+  ],
+]
+`;
+
+exports[`delete-smooch-app Everthing is successful passes in the correct arguments to docClient.delete() 1`] = `
+Array [
+  Array [
+    Object {
+      "Key": Object {
+        "id": "5e31c81640a22c000f5d7f28",
+        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+      },
+      "TableName": "us-east-1-dev-smooch",
+    },
+  ],
+]
+`;
+
+exports[`delete-smooch-app Everthing is successful passes in the correct arguments to secretsClient.getSecretValue() 1`] = `
+Array [
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-account",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+]
+`;
+
+exports[`delete-smooch-app Everthing is successful passes in the correct arguments to smooch.apps.delete() 1`] = `
+Array [
+  Array [
+    "5e31c81640a22c000f5d7f28",
+  ],
+]
+`;
+
+exports[`delete-smooch-app Everthing is successful passes in the correct arguments to smooch.integrations.list() 1`] = `
+Array [
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7f28",
+    },
+  ],
+]
+`;
+
+exports[`delete-smooch-app Everthing is successful passes in the correct arguments to validatePlatformPermissions 1`] = `
+Array [
+  Array [
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "PLATFORM_DIGITAL_CHANNELS_APP",
+    ],
+  ],
+]
+`;
+
+exports[`delete-smooch-app Everthing is successful sends back status 200 when the app is deleted successfully 1`] = `
+Object {
+  "body": Object {
+    "deleted": true,
+    "message": "The app with for tenant 66d83870-30df-4a3b-8801-59edff162034 and appId 5e31c81640a22c000f5d7f28 has been deleted successfully",
+  },
+  "status": 200,
+}
+`;
+
+exports[`delete-smooch-app sends back status 400 when integrations are found for the app 1`] = `
+Object {
+  "body": Object {
+    "message": "Integrations found for this app",
+  },
+  "status": 400,
+}
+`;
+
+exports[`delete-smooch-app sends back status 400 when there are invalid parameters 1`] = `
+Object {
+  "body": Object {
+    "message": "Error: invalid params value \\"id\\" is required",
+  },
+  "status": 400,
+}
+`;
+
+exports[`delete-smooch-app sends back status 400 when there are not enough permissions 1`] = `
+Object {
+  "body": Object {
+    "message": "Error not enough permissions",
+  },
+  "status": 400,
+}
+`;
+
+exports[`delete-smooch-app sends back status 400 when there is an error retrieving integrations 1`] = `
+Object {
+  "body": Object {
+    "message": "An error occured trying to retrieve integrations",
+  },
+  "status": 400,
+}
+`;
+
+exports[`delete-smooch-app sends back status 500 when there is an error deleting app keys (thrown by putSecretValue) 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to delete app keys",
+  },
+  "status": 500,
+}
+`;
+
+exports[`delete-smooch-app sends back status 500 when there is an error deleting app keys 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to delete app keys",
+  },
+  "status": 500,
+}
+`;
+
+exports[`delete-smooch-app sends back status 500 when there is an error deleting records in DynamoDB 1`] = `
+Object {
+  "body": Object {
+    "deleted": false,
+    "message": "An Error has occurred trying to delete a record in DynamoDB",
+  },
+  "status": 500,
+}
+`;
+
+exports[`delete-smooch-app sends back status 500 when there is an error deleting the app 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to delete an app",
+  },
+  "status": 500,
+}
+`;
+
+exports[`delete-smooch-app sends back status 500 when there is an error retrieving digital channels credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to retrieve digital channels credentials",
+  },
+  "status": 500,
+}
+`;
+
+exports[`delete-smooch-app sends back status 500 when there is an error validating digital channels credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to validate digital channels credentials",
+  },
+  "status": 500,
+}
+`;
+
+exports[`delete-smooch-app when secret-old and secret is not provided 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to delete app keys",
+  },
+  "status": 500,
+}
+`;
