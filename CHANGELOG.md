@@ -1,3 +1,6 @@
+## 1.15.2
+* CXV1-21778 - Check disconnect event against current interaction before disconnecting client.
+
 ## 1.15.1
 * CXV1-21720 - Adding value to response to handle pending message state for sending attachments.
 

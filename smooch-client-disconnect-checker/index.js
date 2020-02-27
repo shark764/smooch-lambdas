@@ -16,12 +16,13 @@ const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 
 exports.handler = async (event) => {
   const {
+    interactionId: interactionIdToCheck,
     tenantId,
     userId, // Smooch User/Customer ID
     latestAgentMessageTimestamp,
     disconnectTimeoutInMinutes,
   } = JSON.parse(event.Records[0].body);
-  const logContext = { tenantId, smoochUserId: userId };
+  const logContext = { interactionIdToCheck, tenantId, smoochUserId: userId };
 
   let cxAuthSecret;
   try {
@@ -62,6 +63,11 @@ exports.handler = async (event) => {
 
   if (!hasInteractionItem || !interactionId) {
     log.info('No active interaction for user', logContext);
+    return;
+  }
+
+  if (interactionIdToCheck !== interactionId) {
+    log.info('Check Event for an old interaction. Not disconnecting client.', logContext);
     return;
   }
 
@@ -155,11 +161,12 @@ async function deleteCustomerInteraction({ logContext }) {
 async function checkIfClientIsDisconnected({
   latestAgentMessageTimestamp, disconnectTimeoutInMinutes, userId, logContext,
 }) {
-  const { tenantId } = logContext;
+  const { tenantId, interactionId } = logContext;
   const QueueName = `${AWS_REGION}-${ENVIRONMENT}-smooch-client-disconnect-checker`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const DelaySeconds = Math.min(disconnectTimeoutInMinutes, 15) * 60;
   const MessageBody = JSON.stringify({
+    interactionId,
     tenantId,
     userId,
     latestAgentMessageTimestamp,
