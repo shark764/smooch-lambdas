@@ -64,6 +64,8 @@ Array [
 ]
 `;
 
+exports[`delete-smooch-attachments an error when there is a problem retrieving digital channels credentials (thrown by SmoochCore) 1`] = `"received is not a function"`;
+
 exports[`delete-smooch-attachments throws an error when there is a problem retrieving digital channels credentials (SmoochCore) 1`] = `"Error retrieving digital channels credentials"`;
 
 exports[`delete-smooch-attachments throws an error when there is a problem retrieving digital channels credentials 1`] = `"Error retrieving digital channels credentials"`;

@@ -125,4 +125,15 @@ describe('delete-smooch-attachments', () => {
       expect(Promise.reject(new Error('Error trying to delete smooch attachment'))).rejects.toThrowErrorMatchingSnapshot();
     }
   });
+
+  it('an error when there is a problem retrieving digital channels credentials (thrown by SmoochCore)', async () => {
+    try {
+      mockSmoochCore.mockImplementationOnce(() => {
+        throw new Error('SmoochCore');
+      });
+      await handler(event);
+    } catch (error) {
+      expect(new Error('Error retrieving digital channels')).toThrowErrorMatchingSnapshot();
+    }
+  });
 });

@@ -1,15 +1,33 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`get-smooch-web-integration Everything is successful sends back arguments with which mockGetIntegrations was called 1`] = `
+exports[`get-smooch-web-integration Everything is successful passes in the correct arguments to SmoochCore 1`] = `
 Array [
   Array [
-    undefined,
-    "667802d8-2260-436c-958a-2ee0f71f73f0",
+    Object {
+      "keyId": undefined,
+      "scope": "app",
+      "secret": undefined,
+      "serviceUrl": "mock-smooch-api-url",
+    },
   ],
 ]
 `;
 
-exports[`get-smooch-web-integration Everything is successful sends back arguments with which mockGetSecretValue was called 1`] = `
+exports[`get-smooch-web-integration Everything is successful passes in the correct arguments to decClient.get() 1`] = `
+Array [
+  Array [
+    Object {
+      "Key": Object {
+        "id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+      },
+      "TableName": "us-east-1-dev-smooch",
+    },
+  ],
+]
+`;
+
+exports[`get-smooch-web-integration Everything is successful passes in the correct arguments to secretsClient.getSecretValue() 1`] = `
 Array [
   Array [
     Object {
@@ -19,7 +37,16 @@ Array [
 ]
 `;
 
-exports[`get-smooch-web-integration Everything is successful sends back arguments with which validateTenantPermissions was called 1`] = `
+exports[`get-smooch-web-integration Everything is successful passes in the correct arguments to smooch.integrations.get() 1`] = `
+Array [
+  Array [
+    undefined,
+    "667802d8-2260-436c-958a-2ee0f71f73f0",
+  ],
+]
+`;
+
+exports[`get-smooch-web-integration Everything is successful passes in the correct arguments to validateTenantPermissions 1`] = `
 Array [
   Array [
     "66d83870-30df-4a3b-8801-59edff162034",
@@ -41,9 +68,9 @@ Object {
         "app-id": "5e31c81640a22c000f5d7f28",
         "type": "",
       },
-      "actionColor": "##1be54c",
-      "brandColor": "##1b3de5",
-      "conversationColor": "##e53f1b",
+      "actionColor": "#1be54c",
+      "brandColor": "#1b3de5",
+      "conversationColor": "#e53f1b",
       "prechatCapture": "smooch",
       "whitelistedUrls": Array [
         "url1",
@@ -55,7 +82,7 @@ Object {
 }
 `;
 
-exports[`get-smooch-web-integration sends back a 400 error when there are invalid parameters 1`] = `
+exports[`get-smooch-web-integration sends back status 400 error when there are invalid parameters 1`] = `
 Object {
   "body": Object {
     "message": "Error: invalid params value \\"id\\" is required",
@@ -115,5 +142,24 @@ Object {
     "message": "An Error has occurred trying to fetch a web integration",
   },
   "status": 500,
+}
+`;
+
+exports[`get-smooch-web-integration when brandcolor, conversationcolor and actioncolor is not provided 1`] = `
+Object {
+  "body": Object {
+    "result": Object {
+      "0": Object {
+        "app-id": "5e31c81640a22c000f5d7f28",
+        "type": "",
+      },
+      "prechatCapture": "smooch",
+      "whitelistedUrls": Array [
+        "url1",
+        "url2",
+      ],
+    },
+  },
+  "status": 200,
 }
 `;

@@ -45,9 +45,9 @@ jest.mock('aws-sdk', () => ({
 
 const mockGetIntegrations = jest.fn(() => ({
   integration: {
-    brandColor: '#1b3de5',
-    conversationColor: '#e53f1b',
-    actionColor: '#1be54c',
+    brandColor: '1b3de5',
+    conversationColor: 'e53f1b',
+    actionColor: '1be54c',
     prechatCapture: {
       fields: [{ name: 'smooch' }],
     },
@@ -61,11 +61,13 @@ const mockGetIntegrations = jest.fn(() => ({
   },
 }));
 
-jest.mock('smooch-core', () => jest.fn(() => ({
+const mockSmoochCore = jest.fn(() => ({
   integrations: {
     get: mockGetIntegrations,
   },
-})));
+}));
+
+jest.mock('smooch-core', () => mockSmoochCore);
 
 beforeAll(() => {
   global.process.env = {
@@ -87,20 +89,28 @@ describe('get-smooch-web-integration', () => {
       expect(result).toMatchSnapshot();
     });
 
-    it('sends back arguments with which validateTenantPermissions was called', async () => {
-      expect(validateTenantPermissions.mock.calls).toMatchSnapshot();
-    });
-
-    it('sends back arguments with which mockGetSecretValue was called', async () => {
+    it('passes in the correct arguments to secretsClient.getSecretValue()', async () => {
       expect(mockGetSecretValue.mock.calls).toMatchSnapshot();
     });
 
-    it('sends back arguments with which mockGetIntegrations was called', async () => {
+    it('passes in the correct arguments to validateTenantPermissions', async () => {
+      expect(validateTenantPermissions.mock.calls).toMatchSnapshot();
+    });
+
+    it('passes in the correct arguments to decClient.get()', async () => {
+      expect(mockGet.mock.calls).toMatchSnapshot();
+    });
+
+    it('passes in the correct arguments to SmoochCore', async () => {
+      expect(mockSmoochCore.mock.calls).toMatchSnapshot();
+    });
+
+    it('passes in the correct arguments to smooch.integrations.get()', async () => {
       expect(mockGetIntegrations.mock.calls).toMatchSnapshot();
     });
   });
 
-  it('sends back a 400 error when there are invalid parameters', async () => {
+  it('sends back status 400 error when there are invalid parameters', async () => {
     const mockevent = {
       params: {
         'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
@@ -149,6 +159,25 @@ describe('get-smooch-web-integration', () => {
 
   it('sends back status 500 when there is error fetching web integration', async () => {
     mockGetIntegrations.mockRejectedValueOnce(new Error());
+    const result = await handler(event);
+    expect(result).toMatchSnapshot();
+  });
+
+  it('when brandcolor, conversationcolor and actioncolor is not provided', async () => {
+    mockGetIntegrations.mockImplementationOnce(() => ({
+      integration: {
+        prechatCapture: {
+          fields: [{ name: 'smooch' }],
+        },
+        originWhitelist: ['url1', 'url2'],
+        whitelistedUrls: [],
+        integrationOrder: '',
+        _id: '667802d8-2260-436c-958a-2ee0f71f73f0',
+        displayName: 'smooch',
+        status: 'done',
+        type: 'web',
+      },
+    }));
     const result = await handler(event);
     expect(result).toMatchSnapshot();
   });

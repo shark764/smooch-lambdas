@@ -14,7 +14,8 @@ const mockGetSecretValue = jest.fn(() => {})
   .mockImplementation(() => ({
     promise: () => ({
       SecretString: JSON.stringify({
-        SecretId: 'us-east-1-dev-smooch',
+        '5e31c81640a22c000f5d7f28-id': 'id',
+        '5e31c81640a22c000f5d7f28-secret': 'secret',
       }),
     }),
   }));
@@ -46,16 +47,18 @@ axios.mockImplementation(() => ({
   },
 }));
 
+const mockSmoochCore = jest.fn().mockImplementation(() => ({
+  appUsers: {
+    getMessages: mockGetMessages,
+  },
+}));
+
 jest.mock('aws-sdk', () => ({
   SecretsManager: jest.fn().mockImplementation(() => ({ getSecretValue: mockGetSecretValue })),
 }));
 
 
-jest.mock('smooch-core', () => jest.fn(() => ({
-  appUsers: {
-    getMessages: mockGetMessages,
-  },
-})));
+jest.mock('smooch-core', () => mockSmoochCore);
 
 global.process.env = {
   AWS_REGION: 'us-east-1',
@@ -71,11 +74,11 @@ describe('get-conversation-history', () => {
     beforeAll(async () => {
       await handler(event);
     });
-    it('passes in the correct arguments to mockGetSecretValue ', async () => {
+    it('passes in the correct arguments to secretsClient.getSecretValue()', async () => {
       expect(mockGetSecretValue.mock.calls).toMatchSnapshot();
     });
 
-    it('passes in the correct arguments to mockGetMessages ', async () => {
+    it('passes in the correct arguments to smooch.appUsers.getMessages()', async () => {
       expect(mockGetMessages.mock.calls).toMatchSnapshot();
     });
   });
@@ -126,7 +129,7 @@ describe('get-conversation-history', () => {
   });
 
   it('when no filter is applied', async () => {
-    mockGetMessages.mockImplementation(() => ({
+    mockGetMessages.mockImplementationOnce(() => ({
       messages: [
         {
           role: '',
@@ -155,7 +158,7 @@ describe('get-conversation-history', () => {
   });
 
   it("messages are mapped for the role not equal to 'appMaker'", async () => {
-    mockGetMessages.mockImplementation(() => ({
+    mockGetMessages.mockImplementationOnce(() => ({
       messages: [
         {
           role: '',
@@ -169,7 +172,7 @@ describe('get-conversation-history', () => {
   });
 
   it("messages are mapped for the role 'appMaker' and type 'form'", async () => {
-    mockGetMessages.mockImplementation(() => ({
+    mockGetMessages.mockImplementationOnce(() => ({
       messages: [
         {
           role: 'appMaker',
@@ -186,17 +189,26 @@ describe('get-conversation-history', () => {
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back status 500 if there is a error retrieving digital channels credentials', async () => {
-    mockGetSecretValue.mockRejectedValueOnce(new Error());
+  it('sends back status 500 when there is a problem fetching interaction messages', async () => {
+    mockGetMessages.mockRejectedValueOnce(new Error());
     const result = await handler(event);
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back status 500 if there is a error retrieving cx credentials', async () => {
+  it('sends back status 500 if there is an error retrieving digital channels credentials (error by SmoochCore)', async () => {
+    mockSmoochCore.mockImplementationOnce(() => {
+      throw new Error('SmoochCore');
+    });
+    const result = await handler(event);
+    expect(result).toMatchSnapshot();
+  });
+
+  it('sends back status 500 if there is an error retrieving cx credentials', async () => {
     mockGetSecretValue.mockImplementationOnce(() => ({
       promise: () => ({
         SecretString: JSON.stringify({
-          SecretId: 'us-east-1-dev-smooch',
+          '5e31c81640a22c000f5d7f28-id': 'id',
+          '5e31c81640a22c000f5d7f28-secret': 'secret',
         }),
       }),
     }));
@@ -205,13 +217,13 @@ describe('get-conversation-history', () => {
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back status 500 when there is a error in retrieving the interaction metadata', async () => {
+  it('sends back status 500 when there is an error in retrieving the interaction metadata', async () => {
     axios.mockRejectedValueOnce(new Error());
     const result = await handler(event);
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back status 500 when there is a error retrieving digital channels credentials', async () => {
+  it('sends back status 500 when there is an error retrieving digital channels credentials (error by getSecretValue())', async () => {
     mockGetSecretValue.mockRejectedValueOnce(new Error());
     const result = await handler(event);
     expect(result).toMatchSnapshot();

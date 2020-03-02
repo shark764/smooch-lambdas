@@ -52,25 +52,38 @@ describe('get-smooch-apps', () => {
     it('sends back status 200 if the code runs without error ', async () => {
       expect(result).toMatchSnapshot();
     });
-    it('sends back arguments with which validateTenantPermissions was called', async () => {
+    it('passes in the correct arguments to validateTenantPermissions', async () => {
       expect(validateTenantPermissions.mock.calls).toMatchSnapshot();
     });
-    it('sends back arguments with which validatePlatformPermissions was called', async () => {
+    it('passes in the correct arguments to validatePlatformPermissions', async () => {
       expect(validatePlatformPermissions.mock.calls).toMatchSnapshot();
     });
-    it('sends back arguments with which mockQuery was called', async () => {
+    it('passes in the correct arguments to docClient.query()', async () => {
       expect(mockQuery.mock.calls).toMatchSnapshot();
     });
   });
 
-  it('sends back a 400 error when there are not enough permissions', async () => {
+  it('sends back status 400 when there are invalid params value', async () => {
+    const mockEvent = {
+      params: {
+        'tenant-id': '',
+      },
+      identity: {
+        'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0',
+      },
+    };
+    const result = await handler(mockEvent);
+    expect(result).toMatchSnapshot();
+  });
+
+  it('sends back status 400 when there are not enough permissions', async () => {
     validateTenantPermissions.mockReturnValueOnce(false);
     validatePlatformPermissions.mockReturnValueOnce(false);
     const result = await handler(event);
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back a 500 error when there is a problem fetching apps in DynamoDB', async () => {
+  it('sends back status 500 when there is a problem fetching apps in DynamoDB', async () => {
     mockQuery.mockRejectedValueOnce(new Error());
     const result = await handler(event);
     expect(result).toMatchSnapshot();
