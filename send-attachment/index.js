@@ -10,6 +10,7 @@ const AWS = require('aws-sdk');
 const secretsClient = new AWS.SecretsManager();
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const docClient = new AWS.DynamoDB.DocumentClient();
+const MAX_FILE_SIZE = 26007375;
 
 const s3 = new AWS.S3();
 
@@ -140,6 +141,16 @@ exports.handler = async (event) => {
   let s3Stream;
   let awsFile;
   try {
+    const fileSize = await sizeOf(awsKey, awsBucket);
+    if (fileSize > MAX_FILE_SIZE) {
+      const errMsg = 'File is too large';
+      log.warn(errMsg, { ...logContext, fileSize });
+
+      return {
+        status: 413,
+        body: { message: errMsg },
+      };
+    }
     s3Stream = await retrieveObject({
       awsBucket,
       awsKey,
@@ -497,4 +508,10 @@ async function scheduleSmoochAttachmentDeletion({
     QueueUrl,
   };
   await sqs.sendMessage(sqsMessageAction).promise();
+}
+
+async function sizeOf(key, bucket) {
+  const { ContentLength } = await s3.headObject({ Key: key, Bucket: bucket }).promise();
+
+  return ContentLength;
 }

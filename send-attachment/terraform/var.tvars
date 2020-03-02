@@ -1,5 +1,5 @@
 timeout = 30
-memory_size = 128
+memory_size = 256
 zip_path="send-attachment/send-attachment.zip"
 handler = "index.handler"
 environmentVars = {

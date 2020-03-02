@@ -1,3 +1,6 @@
+## 1.5.4
+* CXV1-21723 - Add file size restriction and increase memory for send-attachment.
+
 ## 1.5.3
 * CXV1-21800 - Fix errors trying to upload artifact file for non-attachment messages
 
