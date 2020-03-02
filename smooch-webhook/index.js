@@ -617,10 +617,12 @@ async function sendCustomerMessageToParticipants({
     throw error;
   }
 
-  try {
-    await uploadArtifactFile(logContext, artifactId, message, auth);
-  } catch (error) {
-    log.error('Error uploading file to artifact', logContext, error);
+  if (message.type === 'file' || message.type === 'image') {
+    try {
+      await uploadArtifactFile(logContext, artifactId, message, auth);
+    } catch (error) {
+      log.error('Error uploading file to artifact', logContext, error);
+    }
   }
 
   try {

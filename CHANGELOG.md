@@ -1,3 +1,6 @@
+## 1.5.3
+* CXV1-21800 - Fix errors trying to upload artifact file for non-attachment messages
+
 ## 1.15.2
 * CXV1-21778 - Check disconnect event against current interaction before disconnecting client.
 
