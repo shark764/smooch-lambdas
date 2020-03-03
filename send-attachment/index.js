@@ -10,7 +10,7 @@ const AWS = require('aws-sdk');
 const secretsClient = new AWS.SecretsManager();
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const docClient = new AWS.DynamoDB.DocumentClient();
-const MAX_FILE_SIZE = 15623782;
+const MAX_FILE_SIZE = 26214400;
 
 const s3 = new AWS.S3();
 
@@ -182,9 +182,17 @@ exports.handler = async (event) => {
       source: awsFile,
     });
   } catch (error) {
-    const errMsg = error.response && error.response.statusText
-      ? error.response.statusText
-      : 'Could not send file to customer';
+    let errMsg;
+
+    if (error.response && error.response.statusText && error.response.status) {
+      if (error.response.status === 413) {
+        errMsg = 'File is too large';
+      } else {
+        errMsg = error.response.statusText;
+      }
+    } else {
+      errMsg = 'Could not send file to customer';
+    }
 
     log.error(errMsg, logContext, error);
 

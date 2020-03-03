@@ -1,3 +1,6 @@
+## 1.5.6
+* CXV1-21723 - Increase max file size to 25MB for send-attachment.
+
 ## 1.5.5
 * CXV1-21723 - Decrease max file size for send-attachment.
 
