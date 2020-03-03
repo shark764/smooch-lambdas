@@ -1,13 +1,16 @@
-## 1.5.6
+## 1.15.7
+* Remove artifact file url from transcript file url
+
+## 1.15.6
 * CXV1-21723 - Increase max file size to 25MB for send-attachment.
 
-## 1.5.5
+## 1.15.5
 * CXV1-21723 - Decrease max file size for send-attachment.
 
-## 1.5.4
+## 1.15.4
 * CXV1-21723 - Add file size restriction and increase memory for send-attachment.
 
-## 1.5.3
+## 1.15.3
 * CXV1-21800 - Fix errors trying to upload artifact file for non-attachment messages
 
 ## 1.15.2
