@@ -1,3 +1,6 @@
+## 1.5.5
+* CXV1-21723 - Decrease max file size for send-attachment.
+
 ## 1.5.4
 * CXV1-21723 - Add file size restriction and increase memory for send-attachment.
 

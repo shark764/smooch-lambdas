@@ -10,7 +10,7 @@ const AWS = require('aws-sdk');
 const secretsClient = new AWS.SecretsManager();
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const docClient = new AWS.DynamoDB.DocumentClient();
-const MAX_FILE_SIZE = 26007375;
+const MAX_FILE_SIZE = 15623782;
 
 const s3 = new AWS.S3();
 
