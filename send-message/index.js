@@ -133,6 +133,7 @@ exports.handler = async (event) => {
           from,
           firstName,
           resourceId,
+          interactionId,
         },
       },
     });

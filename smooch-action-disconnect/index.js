@@ -128,6 +128,7 @@ exports.handler = async (event) => {
             metadata: {
               type: 'system',
               from: 'System',
+              interactionId,
             },
           },
         });
@@ -189,6 +190,7 @@ exports.handler = async (event) => {
           metadata: {
             type: 'system',
             from: 'System',
+            interactionId,
           },
         },
       });

@@ -101,6 +101,7 @@ exports.handler = async (event) => {
         metadata: {
           type: 'system',
           from,
+          interactionId,
         },
       },
     });

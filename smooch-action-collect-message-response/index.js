@@ -104,6 +104,7 @@ exports.handler = async (event) => {
           actionId,
           from,
           type: 'system',
+          interactionId,
         },
       },
     });

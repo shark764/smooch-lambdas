@@ -1,3 +1,6 @@
+## 1.15.8
+* CXV1-21818 - Adding interactionId to messages send to smooch.
+
 ## 1.15.7
 * Remove artifact file url from transcript file url
 
