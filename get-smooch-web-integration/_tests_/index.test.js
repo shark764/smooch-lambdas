@@ -81,32 +81,53 @@ const { handler } = require('../index');
 
 describe('get-smooch-web-integration', () => {
   describe('Everything is successful', () => {
-    let result;
-    beforeAll(async () => {
-      result = await handler(event);
-    });
-    it('sends back status 200 if the code runs without error', async () => {
+    it('when brandcolor, conversationcolor and actioncolor is not provided', async () => {
+      mockGetIntegrations.mockImplementationOnce(() => ({
+        integration: {
+          prechatCapture: {
+            fields: [{ name: 'smooch' }],
+          },
+          originWhitelist: ['url1', 'url2'],
+          whitelistedUrls: [],
+          integrationOrder: '',
+          _id: '667802d8-2260-436c-958a-2ee0f71f73f0',
+          displayName: 'smooch',
+          status: 'done',
+          type: 'web',
+        },
+      }));
+      const result = await handler(event);
       expect(result).toMatchSnapshot();
     });
 
-    it('passes in the correct arguments to secretsClient.getSecretValue()', async () => {
-      expect(mockGetSecretValue.mock.calls).toMatchSnapshot();
+    it('sends back status 200 if the code runs without error', async () => {
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
     });
+    describe('Walkthrough', () => {
+      beforeAll(async () => {
+        await handler(event);
+      });
 
-    it('passes in the correct arguments to validateTenantPermissions', async () => {
-      expect(validateTenantPermissions.mock.calls).toMatchSnapshot();
-    });
+      it('passes in the correct arguments to secretsClient.getSecretValue()', async () => {
+        expect(mockGetSecretValue.mock.calls).toMatchSnapshot();
+      });
 
-    it('passes in the correct arguments to decClient.get()', async () => {
-      expect(mockGet.mock.calls).toMatchSnapshot();
-    });
+      it('passes in the correct arguments to validateTenantPermissions', async () => {
+        expect(validateTenantPermissions.mock.calls).toMatchSnapshot();
+      });
 
-    it('passes in the correct arguments to SmoochCore', async () => {
-      expect(mockSmoochCore.mock.calls).toMatchSnapshot();
-    });
+      it('passes in the correct arguments to decClient.get()', async () => {
+        expect(mockGet.mock.calls).toMatchSnapshot();
+      });
 
-    it('passes in the correct arguments to smooch.integrations.get()', async () => {
-      expect(mockGetIntegrations.mock.calls).toMatchSnapshot();
+      it('passes in the correct arguments to SmoochCore', async () => {
+        expect(mockSmoochCore.mock.calls).toMatchSnapshot();
+      });
+
+      it('passes in the correct arguments to smooch.integrations.get()', async () => {
+        expect(mockGetIntegrations.mock.calls).toMatchSnapshot();
+      });
     });
   });
 
@@ -159,25 +180,6 @@ describe('get-smooch-web-integration', () => {
 
   it('sends back status 500 when there is error fetching web integration', async () => {
     mockGetIntegrations.mockRejectedValueOnce(new Error());
-    const result = await handler(event);
-    expect(result).toMatchSnapshot();
-  });
-
-  it('when brandcolor, conversationcolor and actioncolor is not provided', async () => {
-    mockGetIntegrations.mockImplementationOnce(() => ({
-      integration: {
-        prechatCapture: {
-          fields: [{ name: 'smooch' }],
-        },
-        originWhitelist: ['url1', 'url2'],
-        whitelistedUrls: [],
-        integrationOrder: '',
-        _id: '667802d8-2260-436c-958a-2ee0f71f73f0',
-        displayName: 'smooch',
-        status: 'done',
-        type: 'web',
-      },
-    }));
     const result = await handler(event);
     expect(result).toMatchSnapshot();
   });

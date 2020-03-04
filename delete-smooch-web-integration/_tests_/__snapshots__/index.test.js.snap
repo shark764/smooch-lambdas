@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`delete-smooch-web-integration Everthing is successful passes in the correct arguments to SmoochCore 1`] = `
+exports[`delete-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to SmoochCore 1`] = `
 Array [
+  Array [
+    Object {
+      "keyId": "id",
+      "scope": "app",
+      "secret": "secret",
+      "serviceUrl": "mock-smooch-api-url",
+    },
+  ],
   Array [
     Object {
       "keyId": "id",
@@ -13,8 +21,17 @@ Array [
 ]
 `;
 
-exports[`delete-smooch-web-integration Everthing is successful passes in the correct arguments to docClient.delete() 1`] = `
+exports[`delete-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to docClient.delete() 1`] = `
 Array [
+  Array [
+    Object {
+      "Key": Object {
+        "id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+      },
+      "TableName": "us-east-1-dev-smooch",
+    },
+  ],
   Array [
     Object {
       "Key": Object {
@@ -27,8 +44,17 @@ Array [
 ]
 `;
 
-exports[`delete-smooch-web-integration Everthing is successful passes in the correct arguments to docClient.get() 1`] = `
+exports[`delete-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to docClient.get() 1`] = `
 Array [
+  Array [
+    Object {
+      "Key": Object {
+        "id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+      },
+      "TableName": "us-east-1-dev-smooch",
+    },
+  ],
   Array [
     Object {
       "Key": Object {
@@ -41,8 +67,13 @@ Array [
 ]
 `;
 
-exports[`delete-smooch-web-integration Everthing is successful passes in the correct arguments to secretClient.getSecretValue() 1`] = `
+exports[`delete-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to secretClient.getSecretValue() 1`] = `
 Array [
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
   Array [
     Object {
       "SecretId": "us-east-1-dev-smooch-app",
@@ -51,8 +82,14 @@ Array [
 ]
 `;
 
-exports[`delete-smooch-web-integration Everthing is successful passes in the correct arguments to smooch.integrations.delete() 1`] = `
+exports[`delete-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to smooch.integrations.delete() 1`] = `
 Array [
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7f28",
+      "integrationId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+  ],
   Array [
     Object {
       "appId": "5e31c81640a22c000f5d7f28",
@@ -62,8 +99,17 @@ Array [
 ]
 `;
 
-exports[`delete-smooch-web-integration Everthing is successful passes in the correct arguments to validateTenantPermissions 1`] = `
+exports[`delete-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to validateTenantPermissions 1`] = `
 Array [
+  Array [
+    "66d83870-30df-4a3b-8801-59edff162034",
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "WEB_INTEGRATIONS_APP_UPDATE",
+    ],
+  ],
   Array [
     "66d83870-30df-4a3b-8801-59edff162034",
     Object {

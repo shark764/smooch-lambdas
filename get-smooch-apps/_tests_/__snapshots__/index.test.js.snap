@@ -1,7 +1,22 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`get-smooch-apps Everything is successful passes in the correct arguments to docClient.query() 1`] = `
+exports[`get-smooch-apps Everything is successful Walkthrough passes in the correct arguments to docClient.query() 1`] = `
 Array [
+  Array [
+    Object {
+      "ExpressionAttributeNames": Object {
+        "#integrationType": "type",
+        "#tenantId": "tenant-id",
+      },
+      "ExpressionAttributeValues": Object {
+        ":t": "66d83870-30df-4a3b-8801-59edff162034",
+        ":type": "app",
+      },
+      "IndexName": "tenant-id-type-index",
+      "KeyConditionExpression": "#tenantId = :t and #integrationType = :type",
+      "TableName": "us-east-1-dev-smooch",
+    },
+  ],
   Array [
     Object {
       "ExpressionAttributeNames": Object {
@@ -20,8 +35,16 @@ Array [
 ]
 `;
 
-exports[`get-smooch-apps Everything is successful passes in the correct arguments to validatePlatformPermissions 1`] = `
+exports[`get-smooch-apps Everything is successful Walkthrough passes in the correct arguments to validatePlatformPermissions 1`] = `
 Array [
+  Array [
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "PLATFORM_DIGITAL_CHANNELS_APP",
+    ],
+  ],
   Array [
     Object {
       "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
@@ -33,8 +56,17 @@ Array [
 ]
 `;
 
-exports[`get-smooch-apps Everything is successful passes in the correct arguments to validateTenantPermissions 1`] = `
+exports[`get-smooch-apps Everything is successful Walkthrough passes in the correct arguments to validateTenantPermissions 1`] = `
 Array [
+  Array [
+    "66d83870-30df-4a3b-8801-59edff162034",
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "DIGITAL_CHANNELS_APP_READ",
+    ],
+  ],
   Array [
     "66d83870-30df-4a3b-8801-59edff162034",
     Object {

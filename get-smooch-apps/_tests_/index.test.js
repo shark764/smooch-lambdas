@@ -45,21 +45,23 @@ const { handler } = require('../index');
 
 describe('get-smooch-apps', () => {
   describe('Everything is successful', () => {
-    let result;
-    beforeAll(async () => {
-      result = await handler(event);
-    });
     it('sends back status 200 if the code runs without error ', async () => {
+      const result = await handler(event);
       expect(result).toMatchSnapshot();
     });
-    it('passes in the correct arguments to validateTenantPermissions', async () => {
-      expect(validateTenantPermissions.mock.calls).toMatchSnapshot();
-    });
-    it('passes in the correct arguments to validatePlatformPermissions', async () => {
-      expect(validatePlatformPermissions.mock.calls).toMatchSnapshot();
-    });
-    it('passes in the correct arguments to docClient.query()', async () => {
-      expect(mockQuery.mock.calls).toMatchSnapshot();
+    describe('Walkthrough', () => {
+      beforeAll(async () => {
+        await handler(event);
+      });
+      it('passes in the correct arguments to validateTenantPermissions', async () => {
+        expect(validateTenantPermissions.mock.calls).toMatchSnapshot();
+      });
+      it('passes in the correct arguments to validatePlatformPermissions', async () => {
+        expect(validatePlatformPermissions.mock.calls).toMatchSnapshot();
+      });
+      it('passes in the correct arguments to docClient.query()', async () => {
+        expect(mockQuery.mock.calls).toMatchSnapshot();
+      });
     });
   });
 

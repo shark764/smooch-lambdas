@@ -126,7 +126,7 @@ describe('delete-smooch-attachments', () => {
     }
   });
 
-  it('an error when there is a problem retrieving digital channels credentials (thrown by SmoochCore)', async () => {
+  it('throws an error when there is a problem retrieving digital channels credentials (thrown by SmoochCore)', async () => {
     try {
       mockSmoochCore.mockImplementationOnce(() => {
         throw new Error('SmoochCore');

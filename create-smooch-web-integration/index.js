@@ -104,7 +104,7 @@ exports.handler = async (event) => {
       minSize: 1,
       maxSize: 128,
     }];
-  } else if (body.prechatCapture === 'email') {
+  } else {
     defaultPrechatCapture = [{
       type: 'email',
       name: 'email',
@@ -113,15 +113,6 @@ exports.handler = async (event) => {
       minSize: 1,
       maxSize: 128,
     }];
-  } else {
-    const errMsg = 'Bad request: body.prechatCapture invalid value';
-
-    log.warn(errMsg, logContext);
-
-    return {
-      status: 400,
-      body: { message: errMsg },
-    };
   }
 
   let appSecrets;

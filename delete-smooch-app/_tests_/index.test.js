@@ -79,36 +79,61 @@ const { handler } = require('../index');
 
 describe('delete-smooch-app', () => {
   describe('Everthing is successful', () => {
-    let result;
-    beforeAll(async () => {
-      result = await handler(event);
-    });
-    it('passes in the correct arguments to validatePlatformPermissions', async () => {
-      expect(validatePlatformPermissions.mock.calls).toMatchSnapshot();
-    });
-
-    it('passes in the correct arguments to secretsClient.getSecretValue()', async () => {
-      expect(mockGetSecretValue.mock.calls).toMatchSnapshot();
-    });
-
-    it('passes in the correct arguments to SmoochCore()', async () => {
-      expect(mockSmoochCore.mock.calls).toMatchSnapshot();
-    });
-
-    it('passes in the correct arguments to smooch.integrations.list()', async () => {
-      expect(mockList.mock.calls).toMatchSnapshot();
-    });
-
-    it('passes in the correct arguments to docClient.delete()', async () => {
-      expect(mockDelete.mock.calls).toMatchSnapshot();
-    });
-
-    it('passes in the correct arguments to smooch.apps.delete()', async () => {
-      expect(mockDeleteSmooch.mock.calls).toMatchSnapshot();
+    it('when secret-old and secret is not provided', async () => {
+      mockGetSecretValue.mockImplementationOnce(() => ({
+        promise: () => ({
+          SecretString: JSON.stringify({
+            id: 'app-id',
+            secret: 'SECRET',
+          }),
+        }),
+      }));
+      mockGetSecretValue.mockImplementationOnce(() => ({
+        promise: () => ({
+          SecretString: JSON.stringify({
+            '5e31c81640a22c000f5d7f28-id': 'id',
+            '5e31c81640a22c000f5d7f28-id-old': 'id-old',
+            id: 'app-id',
+            secret: 'SECRET',
+          }),
+        }),
+      }));
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
     });
 
     it('sends back status 200 when the app is deleted successfully', async () => {
+      const result = await handler(event);
       expect(result).toMatchSnapshot();
+    });
+
+    describe('Walkthrough', () => {
+      beforeAll(async () => {
+        await handler(event);
+      });
+      it('passes in the correct arguments to validatePlatformPermissions', async () => {
+        expect(validatePlatformPermissions.mock.calls).toMatchSnapshot();
+      });
+
+      it('passes in the correct arguments to secretsClient.getSecretValue()', async () => {
+        expect(mockGetSecretValue.mock.calls).toMatchSnapshot();
+      });
+
+      it('passes in the correct arguments to SmoochCore()', async () => {
+        expect(mockSmoochCore.mock.calls).toMatchSnapshot();
+      });
+
+      it('passes in the correct arguments to smooch.integrations.list()', async () => {
+        expect(mockList.mock.calls).toMatchSnapshot();
+      });
+
+      it('passes in the correct arguments to docClient.delete()', async () => {
+        expect(mockDelete.mock.calls).toMatchSnapshot();
+      });
+
+      it('passes in the correct arguments to smooch.apps.delete()', async () => {
+        expect(mockDeleteSmooch.mock.calls).toMatchSnapshot();
+      });
     });
   });
   it('sends back status 400 when there are invalid parameters', async () => {
@@ -208,29 +233,6 @@ describe('delete-smooch-app', () => {
       }),
     }));
     mockPutSecretValue.mockRejectedValueOnce(new Error());
-    const result = await handler(event);
-    expect(result).toMatchSnapshot();
-  });
-
-  it('when secret-old and secret is not provided', async () => {
-    mockGetSecretValue.mockImplementationOnce(() => ({
-      promise: () => ({
-        SecretString: JSON.stringify({
-          id: 'app-id',
-          secret: 'SECRET',
-        }),
-      }),
-    }));
-    mockGetSecretValue.mockImplementationOnce(() => ({
-      promise: () => ({
-        SecretString: JSON.stringify({
-          '5e31c81640a22c000f5d7f28-id': 'id',
-          '5e31c81640a22c000f5d7f28-id-old': 'id-old',
-          id: 'app-id',
-          secret: 'SECRET',
-        }),
-      }),
-    }));
     const result = await handler(event);
     expect(result).toMatchSnapshot();
   });

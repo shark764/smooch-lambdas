@@ -1,0 +1,550 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`create-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to SmoochCore 1`] = `
+Array [
+  Array [
+    Object {
+      "keyId": "id",
+      "scope": "app",
+      "secret": "secret",
+      "serviceUrl": "mock-smooch-api-url",
+    },
+  ],
+  Array [
+    Object {
+      "keyId": "id",
+      "scope": "app",
+      "secret": "secret",
+      "serviceUrl": "mock-smooch-api-url",
+    },
+  ],
+  Array [
+    Object {
+      "keyId": "id",
+      "scope": "app",
+      "secret": "secret",
+      "serviceUrl": "mock-smooch-api-url",
+    },
+  ],
+  Array [
+    Object {
+      "keyId": "id",
+      "scope": "app",
+      "secret": "secret",
+      "serviceUrl": "mock-smooch-api-url",
+    },
+  ],
+  Array [
+    Object {
+      "keyId": "id",
+      "scope": "app",
+      "secret": "secret",
+      "serviceUrl": "mock-smooch-api-url",
+    },
+  ],
+]
+`;
+
+exports[`create-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to docClient.update() 1`] = `
+Array [
+  Array [
+    Object {
+      "ExpressionAttributeNames": Object {
+        "#appId": "app-id",
+        "#clientDisconnectMinutes": "client-disconnect-minutes",
+        "#contactPoint": "contact-point",
+        "#createdBy": "created-by",
+        "#name": "name",
+        "#type": "type",
+        "#updatedBy": "updated-by",
+      },
+      "ExpressionAttributeValues": Object {
+        ":appId": "5e31c81640a22c000f5d7f28",
+        ":clientDisconnectMinutes": 150,
+        ":contactPoint": "contact-point",
+        ":created": "January 1 1970",
+        ":createdBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        ":description": "description",
+        ":name": "smooch",
+        ":t": "web",
+        ":updated": "January 1 1970",
+        ":updatedBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      },
+      "Key": Object {
+        "id": "667802d8-2260-436c-958a-2ee0f71f73f1",
+        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+      },
+      "ReturnValues": "ALL_NEW",
+      "TableName": "us-east-1-dev-smooch",
+      "UpdateExpression": "set #type = :t, #appId = :appId, #contactPoint = :contactPoint,
+  #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
+  created = :created, updated = :updated, description = :description, #clientDisconnectMinutes = :clientDisconnectMinutes",
+    },
+  ],
+  Array [
+    Object {
+      "ExpressionAttributeNames": Object {
+        "#appId": "app-id",
+        "#clientDisconnectMinutes": "client-disconnect-minutes",
+        "#contactPoint": "contact-point",
+        "#createdBy": "created-by",
+        "#name": "name",
+        "#type": "type",
+        "#updatedBy": "updated-by",
+      },
+      "ExpressionAttributeValues": Object {
+        ":appId": "5e31c81640a22c000f5d7f28",
+        ":clientDisconnectMinutes": 150,
+        ":contactPoint": "contact-point",
+        ":created": "January 1 1970",
+        ":createdBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        ":description": "description",
+        ":name": "smooch",
+        ":t": "web",
+        ":updated": "January 1 1970",
+        ":updatedBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      },
+      "Key": Object {
+        "id": "667802d8-2260-436c-958a-2ee0f71f73f1",
+        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+      },
+      "ReturnValues": "ALL_NEW",
+      "TableName": "us-east-1-dev-smooch",
+      "UpdateExpression": "set #type = :t, #appId = :appId, #contactPoint = :contactPoint,
+  #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
+  created = :created, updated = :updated, description = :description, #clientDisconnectMinutes = :clientDisconnectMinutes",
+    },
+  ],
+  Array [
+    Object {
+      "ExpressionAttributeNames": Object {
+        "#appId": "app-id",
+        "#contactPoint": "contact-point",
+        "#createdBy": "created-by",
+        "#name": "name",
+        "#type": "type",
+        "#updatedBy": "updated-by",
+      },
+      "ExpressionAttributeValues": Object {
+        ":appId": "5e31c81640a22c000f5d7f28",
+        ":contactPoint": "contact-point",
+        ":created": "January 1 1970",
+        ":createdBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        ":name": "smooch",
+        ":t": "web",
+        ":updated": "January 1 1970",
+        ":updatedBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      },
+      "Key": Object {
+        "id": "667802d8-2260-436c-958a-2ee0f71f73f1",
+        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+      },
+      "ReturnValues": "ALL_NEW",
+      "TableName": "us-east-1-dev-smooch",
+      "UpdateExpression": "set #type = :t, #appId = :appId, #contactPoint = :contactPoint,
+  #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
+  created = :created, updated = :updated",
+    },
+  ],
+  Array [
+    Object {
+      "ExpressionAttributeNames": Object {
+        "#appId": "app-id",
+        "#contactPoint": "contact-point",
+        "#createdBy": "created-by",
+        "#name": "name",
+        "#type": "type",
+        "#updatedBy": "updated-by",
+      },
+      "ExpressionAttributeValues": Object {
+        ":appId": "5e31c81640a22c000f5d7f28",
+        ":contactPoint": "contact-point",
+        ":created": "January 1 1970",
+        ":createdBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        ":name": "smooch",
+        ":t": "web",
+        ":updated": "January 1 1970",
+        ":updatedBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      },
+      "Key": Object {
+        "id": "667802d8-2260-436c-958a-2ee0f71f73f1",
+        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+      },
+      "ReturnValues": "ALL_NEW",
+      "TableName": "us-east-1-dev-smooch",
+      "UpdateExpression": "set #type = :t, #appId = :appId, #contactPoint = :contactPoint,
+  #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
+  created = :created, updated = :updated",
+    },
+  ],
+  Array [
+    Object {
+      "ExpressionAttributeNames": Object {
+        "#appId": "app-id",
+        "#contactPoint": "contact-point",
+        "#createdBy": "created-by",
+        "#name": "name",
+        "#type": "type",
+        "#updatedBy": "updated-by",
+      },
+      "ExpressionAttributeValues": Object {
+        ":appId": "5e31c81640a22c000f5d7f28",
+        ":contactPoint": "contact-point",
+        ":created": "January 1 1970",
+        ":createdBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        ":name": "smooch",
+        ":t": "web",
+        ":updated": "January 1 1970",
+        ":updatedBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      },
+      "Key": Object {
+        "id": "667802d8-2260-436c-958a-2ee0f71f73f1",
+        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+      },
+      "ReturnValues": "ALL_NEW",
+      "TableName": "us-east-1-dev-smooch",
+      "UpdateExpression": "set #type = :t, #appId = :appId, #contactPoint = :contactPoint,
+  #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
+  created = :created, updated = :updated",
+    },
+  ],
+]
+`;
+
+exports[`create-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to secretsClient.getSecretValue() 1`] = `
+Array [
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+]
+`;
+
+exports[`create-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to smooch.integrations.create() 1`] = `
+Array [
+  Array [
+    "5e31c81640a22c000f5d7f28",
+    Object {
+      "actionColor": "e5711b",
+      "backgroundImageUrl": "url",
+      "brandColor": "1be54c",
+      "businessIconUrl": undefined,
+      "businessName": "business-name",
+      "buttonHeight": "50",
+      "buttonIconUrl": "50",
+      "buttonWidth": "50",
+      "conversationColor": "cde51b",
+      "displayStyle": "tab",
+      "fixedIntroPane": true,
+      "integrationOrder": Array [],
+      "originWhitelist": null,
+      "prechatCapture": Object {
+        "enabled": true,
+        "fields": Array [
+          Object {
+            "label": "Name",
+            "maxSize": 128,
+            "minSize": 1,
+            "name": "name",
+            "placeholder": "",
+            "type": "text",
+          },
+        ],
+      },
+      "type": "web",
+    },
+  ],
+  Array [
+    "5e31c81640a22c000f5d7f28",
+    Object {
+      "actionColor": "e5711b",
+      "backgroundImageUrl": "url",
+      "brandColor": "1be54c",
+      "businessIconUrl": undefined,
+      "businessName": "business-name",
+      "buttonHeight": "50",
+      "buttonIconUrl": "50",
+      "buttonWidth": "50",
+      "conversationColor": "cde51b",
+      "displayStyle": "tab",
+      "fixedIntroPane": true,
+      "integrationOrder": Array [],
+      "originWhitelist": Array [
+        "url1",
+        "url2",
+      ],
+      "prechatCapture": Object {
+        "enabled": true,
+        "fields": Array [
+          Object {
+            "label": "Email",
+            "maxSize": 128,
+            "minSize": 1,
+            "name": "email",
+            "placeholder": "",
+            "type": "email",
+          },
+        ],
+      },
+      "type": "web",
+    },
+  ],
+  Array [
+    "5e31c81640a22c000f5d7f28",
+    Object {
+      "actionColor": "e5711b",
+      "backgroundImageUrl": "url",
+      "brandColor": "1be54c",
+      "businessIconUrl": undefined,
+      "businessName": "business-name",
+      "buttonHeight": "50",
+      "buttonIconUrl": "50",
+      "buttonWidth": "50",
+      "conversationColor": "cde51b",
+      "displayStyle": "tab",
+      "fixedIntroPane": true,
+      "integrationOrder": Array [],
+      "originWhitelist": Array [
+        "url1",
+        "url2",
+      ],
+      "prechatCapture": Object {
+        "enabled": true,
+        "fields": Array [
+          Object {
+            "label": "Email",
+            "maxSize": 128,
+            "minSize": 1,
+            "name": "email",
+            "placeholder": "",
+            "type": "email",
+          },
+        ],
+      },
+      "type": "web",
+    },
+  ],
+  Array [
+    "5e31c81640a22c000f5d7f28",
+    Object {
+      "actionColor": "e5711b",
+      "backgroundImageUrl": "url",
+      "brandColor": "1be54c",
+      "businessIconUrl": undefined,
+      "businessName": "business-name",
+      "buttonHeight": "50",
+      "buttonIconUrl": "50",
+      "buttonWidth": "50",
+      "conversationColor": "cde51b",
+      "displayStyle": "tab",
+      "fixedIntroPane": true,
+      "integrationOrder": Array [],
+      "originWhitelist": Array [
+        "url1",
+        "url2",
+      ],
+      "prechatCapture": Object {
+        "enabled": true,
+        "fields": Array [
+          Object {
+            "label": "Email",
+            "maxSize": 128,
+            "minSize": 1,
+            "name": "email",
+            "placeholder": "",
+            "type": "email",
+          },
+        ],
+      },
+      "type": "web",
+    },
+  ],
+  Array [
+    "5e31c81640a22c000f5d7f28",
+    Object {
+      "actionColor": "e5711b",
+      "backgroundImageUrl": "url",
+      "brandColor": "1be54c",
+      "businessIconUrl": undefined,
+      "businessName": "business-name",
+      "buttonHeight": "50",
+      "buttonIconUrl": "50",
+      "buttonWidth": "50",
+      "conversationColor": "cde51b",
+      "displayStyle": "tab",
+      "fixedIntroPane": true,
+      "integrationOrder": Array [],
+      "originWhitelist": Array [
+        "url1",
+        "url2",
+      ],
+      "prechatCapture": Object {
+        "enabled": true,
+        "fields": Array [
+          Object {
+            "label": "Email",
+            "maxSize": 128,
+            "minSize": 1,
+            "name": "email",
+            "placeholder": "",
+            "type": "email",
+          },
+        ],
+      },
+      "type": "web",
+    },
+  ],
+]
+`;
+
+exports[`create-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to validateTenantPermissions 1`] = `
+Array [
+  Array [
+    "66d83870-30df-4a3b-8801-59edff162034",
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "WEB_INTEGRATIONS_APP_UPDATE",
+    ],
+  ],
+  Array [
+    "66d83870-30df-4a3b-8801-59edff162034",
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "WEB_INTEGRATIONS_APP_UPDATE",
+    ],
+  ],
+  Array [
+    "66d83870-30df-4a3b-8801-59edff162034",
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "WEB_INTEGRATIONS_APP_UPDATE",
+    ],
+  ],
+  Array [
+    "66d83870-30df-4a3b-8801-59edff162034",
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "WEB_INTEGRATIONS_APP_UPDATE",
+    ],
+  ],
+  Array [
+    "66d83870-30df-4a3b-8801-59edff162034",
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "WEB_INTEGRATIONS_APP_UPDATE",
+    ],
+  ],
+]
+`;
+
+exports[`create-smooch-web-integration Everthing is successful sends back status 201 when the code runs without error 1`] = `
+Object {
+  "body": Object {
+    "result": Object {
+      "prechatCapture": "smooch",
+      "undefined": "done",
+      "whitelistedUrls": Array [
+        "url1",
+        "url2",
+      ],
+    },
+  },
+  "status": 201,
+}
+`;
+
+exports[`create-smooch-web-integration sends back status 400 when there are not enough permissions 1`] = `
+Object {
+  "body": Object {
+    "message": "Error not enough permissions",
+  },
+  "status": 400,
+}
+`;
+
+exports[`create-smooch-web-integration sends back status 400 when there is a invalid body value 1`] = `
+Object {
+  "body": Object {
+    "message": "Error: invalid body value \\"appId\\" is required",
+  },
+  "status": 400,
+}
+`;
+
+exports[`create-smooch-web-integration sends back status 400 when there is a invalid params value 1`] = `
+Object {
+  "body": Object {
+    "message": "Error: invalid params \\"id\\" is not allowed",
+  },
+  "status": 400,
+}
+`;
+
+exports[`create-smooch-web-integration sends back status 500 when there is a error creating web integration for tenant 1`] = `
+Object {
+  "body": Object {
+    "error": [Error],
+    "message": "An Error has occurred trying to create a web integration for tenant",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-smooch-web-integration sends back status 500 when there is a error retrieving digital channels credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to retrieve digital channels credentials",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-smooch-web-integration sends back status 500 when there is a error saving records in DynamoDB for tenant 1`] = `
+Object {
+  "body": Object {
+    "error": [TypeError: docClient.update(...).promise is not a function],
+    "message": "An Error has occurred trying to save a record in DynamoDB for tenant",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-smooch-web-integration sends back status 500 when there is a error validating digital channels credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to validate digital channels credentials",
+  },
+  "status": 500,
+}
+`;

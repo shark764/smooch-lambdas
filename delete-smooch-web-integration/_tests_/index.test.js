@@ -73,36 +73,37 @@ const { handler } = require('../index');
 
 describe('delete-smooch-web-integration', () => {
   describe('Everthing is successful', () => {
-    let result;
-    beforeAll(async () => {
-      result = await handler(event);
-    });
     it('sends back status 200 when the web integration is deleted successfully', async () => {
+      const result = await handler(event);
       expect(result).toMatchSnapshot();
     });
+    describe('Walkthrough', () => {
+      beforeAll(async () => {
+        await handler(event);
+      });
+      it('passes in the correct arguments to secretClient.getSecretValue()', async () => {
+        expect(mockGetSecretValue.mock.calls).toMatchSnapshot();
+      });
 
-    it('passes in the correct arguments to secretClient.getSecretValue()', async () => {
-      expect(mockGetSecretValue.mock.calls).toMatchSnapshot();
-    });
+      it('passes in the correct arguments to validateTenantPermissions', async () => {
+        expect(validateTenantPermissions.mock.calls).toMatchSnapshot();
+      });
 
-    it('passes in the correct arguments to validateTenantPermissions', async () => {
-      expect(validateTenantPermissions.mock.calls).toMatchSnapshot();
-    });
+      it('passes in the correct arguments to docClient.get()', async () => {
+        expect(mockGet.mock.calls).toMatchSnapshot();
+      });
 
-    it('passes in the correct arguments to docClient.get()', async () => {
-      expect(mockGet.mock.calls).toMatchSnapshot();
-    });
+      it('passes in the correct arguments to SmoochCore', async () => {
+        expect(mockSmoochCore.mock.calls).toMatchSnapshot();
+      });
 
-    it('passes in the correct arguments to SmoochCore', async () => {
-      expect(mockSmoochCore.mock.calls).toMatchSnapshot();
-    });
+      it('passes in the correct arguments to smooch.integrations.delete()', async () => {
+        expect(mockDeleteSmoochCore.mock.calls).toMatchSnapshot();
+      });
 
-    it('passes in the correct arguments to smooch.integrations.delete()', async () => {
-      expect(mockDeleteSmoochCore.mock.calls).toMatchSnapshot();
-    });
-
-    it('passes in the correct arguments to docClient.delete()', async () => {
-      expect(mockDelete.mock.calls).toMatchSnapshot();
+      it('passes in the correct arguments to docClient.delete()', async () => {
+        expect(mockDelete.mock.calls).toMatchSnapshot();
+      });
     });
   });
   it('sends back status 400 when there are invalid parameters', async () => {

@@ -1,7 +1,77 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`get-conversation-history Everthing is successful passes in the correct arguments to secretsClient.getSecretValue() 1`] = `
+exports[`get-conversation-history Everthing is successful Walkthrough passes in the correct arguments to secretsClient.getSecretValue() 1`] = `
 Array [
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-cx",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-cx",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-cx",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-cx",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-cx",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-cx",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-cx",
+    },
+  ],
   Array [
     Object {
       "SecretId": "us-east-1-dev-smooch-app",
@@ -15,8 +85,50 @@ Array [
 ]
 `;
 
-exports[`get-conversation-history Everthing is successful passes in the correct arguments to smooch.appUsers.getMessages() 1`] = `
+exports[`get-conversation-history Everthing is successful Walkthrough passes in the correct arguments to smooch.appUsers.getMessages() 1`] = `
 Array [
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7f28",
+      "userId": "667802d8-2260-436c-958a-2ee0f71f73f1",
+    },
+  ],
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7f28",
+      "userId": "667802d8-2260-436c-958a-2ee0f71f73f1",
+    },
+  ],
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7f28",
+      "userId": "667802d8-2260-436c-958a-2ee0f71f73f1",
+    },
+  ],
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7f28",
+      "userId": "667802d8-2260-436c-958a-2ee0f71f73f1",
+    },
+  ],
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7f28",
+      "userId": "667802d8-2260-436c-958a-2ee0f71f73f1",
+    },
+  ],
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7f28",
+      "userId": "667802d8-2260-436c-958a-2ee0f71f73f1",
+    },
+  ],
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7f28",
+      "userId": "667802d8-2260-436c-958a-2ee0f71f73f1",
+    },
+  ],
   Array [
     Object {
       "appId": "5e31c81640a22c000f5d7f28",
@@ -26,7 +138,7 @@ Array [
 ]
 `;
 
-exports[`get-conversation-history messages are filtered for metadata 1`] = `
+exports[`get-conversation-history Everthing is successful messages are filtered for metadata 1`] = `
 Object {
   "body": Object {
     "interactionId": "667802d8-2260-436c-958a-2ee0f71f73f0",
@@ -51,7 +163,7 @@ Object {
 }
 `;
 
-exports[`get-conversation-history messages are filtered for role 'appUser' and type not equal to 'formResponse' 1`] = `
+exports[`get-conversation-history Everthing is successful messages are filtered for role 'appUser' and type not equal to 'formResponse' 1`] = `
 Object {
   "body": Object {
     "interactionId": "667802d8-2260-436c-958a-2ee0f71f73f0",
@@ -76,7 +188,7 @@ Object {
 }
 `;
 
-exports[`get-conversation-history messages are filtered for type 'formResponse' and quoted messages and are also mapped for type 'formResponse' 1`] = `
+exports[`get-conversation-history Everthing is successful messages are filtered for type 'formResponse' and quoted messages and are also mapped for type 'formResponse' 1`] = `
 Object {
   "body": Object {
     "interactionId": "667802d8-2260-436c-958a-2ee0f71f73f0",
@@ -101,7 +213,7 @@ Object {
 }
 `;
 
-exports[`get-conversation-history messages are mapped for the role 'appMaker' 1`] = `
+exports[`get-conversation-history Everthing is successful messages are mapped for the role 'appMaker' 1`] = `
 Object {
   "body": Object {
     "interactionId": "667802d8-2260-436c-958a-2ee0f71f73f0",
@@ -126,7 +238,7 @@ Object {
 }
 `;
 
-exports[`get-conversation-history messages are mapped for the role 'appMaker' and type 'form' 1`] = `
+exports[`get-conversation-history Everthing is successful messages are mapped for the role 'appMaker' and type 'form' 1`] = `
 Object {
   "body": Object {
     "interactionId": "667802d8-2260-436c-958a-2ee0f71f73f0",
@@ -151,7 +263,7 @@ Object {
 }
 `;
 
-exports[`get-conversation-history messages are mapped for the role not equal to 'appMaker' 1`] = `
+exports[`get-conversation-history Everthing is successful messages are mapped for the role not equal to 'appMaker' 1`] = `
 Object {
   "body": Object {
     "interactionId": "667802d8-2260-436c-958a-2ee0f71f73f0",
@@ -171,6 +283,16 @@ Object {
         "type": "customer",
       },
     ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`get-conversation-history Everthing is successful when no filter is applied 1`] = `
+Object {
+  "body": Object {
+    "interactionId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    "messages": Array [],
   },
   "status": 200,
 }
@@ -218,15 +340,5 @@ Object {
     "message": "An Error has occurred trying to retrieve digital channels credentials",
   },
   "status": 500,
-}
-`;
-
-exports[`get-conversation-history when no filter is applied 1`] = `
-Object {
-  "body": Object {
-    "interactionId": "667802d8-2260-436c-958a-2ee0f71f73f0",
-    "messages": Array [],
-  },
-  "status": 200,
 }
 `;

@@ -71,124 +71,125 @@ const { handler } = require('../index');
 
 describe('get-conversation-history', () => {
   describe('Everthing is successful', () => {
-    beforeAll(async () => {
-      await handler(event);
-    });
-    it('passes in the correct arguments to secretsClient.getSecretValue()', async () => {
-      expect(mockGetSecretValue.mock.calls).toMatchSnapshot();
+    it("messages are filtered for type 'formResponse' and quoted messages and are also mapped for type 'formResponse'", async () => {
+      mockGetMessages.mockImplementationOnce(() => ({
+        messages: [
+          {
+            type: 'formResponse',
+            quotedMessage: {
+              content: {
+                metadata: 'meta-data',
+              },
+            },
+            fields: [{ text: 'collect-message response' }],
+          },
+        ],
+      }));
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
     });
 
-    it('passes in the correct arguments to smooch.appUsers.getMessages()', async () => {
-      expect(mockGetMessages.mock.calls).toMatchSnapshot();
+    it("messages are filtered for role 'appUser' and type not equal to 'formResponse'", async () => {
+      mockGetMessages.mockImplementationOnce(() => ({
+        messages: [
+          {
+            type: '',
+            role: 'appUser',
+          },
+        ],
+      }));
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
     });
-  });
-  it("messages are filtered for type 'formResponse' and quoted messages and are also mapped for type 'formResponse'", async () => {
-    mockGetMessages.mockImplementationOnce(() => ({
-      messages: [
-        {
-          type: 'formResponse',
-          quotedMessage: {
-            content: {
-              metadata: 'meta-data',
+
+    it('messages are filtered for metadata', async () => {
+      mockGetMessages.mockImplementationOnce(() => ({
+        messages: [
+          {
+            metadata: {
+              resourceId: '66d83870-30df-4a3a-8801-59edff162037',
+              from: '',
             },
           },
-          fields: [{ text: 'collect-message response' }],
-        },
-      ],
-    }));
-    const result = await handler(event);
-    expect(result).toMatchSnapshot();
-  });
+        ],
+      }));
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
 
-  it("messages are filtered for role 'appUser' and type not equal to 'formResponse'", async () => {
-    mockGetMessages.mockImplementationOnce(() => ({
-      messages: [
-        {
-          type: '',
-          role: 'appUser',
-        },
-      ],
-    }));
-    const result = await handler(event);
-    expect(result).toMatchSnapshot();
-  });
-
-  it('messages are filtered for metadata', async () => {
-    mockGetMessages.mockImplementationOnce(() => ({
-      messages: [
-        {
-          metadata: {
-            resourceId: '66d83870-30df-4a3a-8801-59edff162037',
-            from: '',
+    it('when no filter is applied', async () => {
+      mockGetMessages.mockImplementationOnce(() => ({
+        messages: [
+          {
+            role: '',
+            type: '',
           },
-        },
-      ],
-    }));
-    const result = await handler(event);
-    expect(result).toMatchSnapshot();
-  });
+        ],
+      }));
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
 
-  it('when no filter is applied', async () => {
-    mockGetMessages.mockImplementationOnce(() => ({
-      messages: [
-        {
-          role: '',
-          type: '',
-        },
-      ],
-    }));
-    const result = await handler(event);
-    expect(result).toMatchSnapshot();
-  });
-
-  it("messages are mapped for the role 'appMaker'", async () => {
-    mockGetMessages.mockImplementationOnce(() => ({
-      messages: [
-        {
-          role: 'appMaker',
-          metadata: {
-            type: 'agent',
-            from: '',
+    it("messages are mapped for the role 'appMaker'", async () => {
+      mockGetMessages.mockImplementationOnce(() => ({
+        messages: [
+          {
+            role: 'appMaker',
+            metadata: {
+              type: 'agent',
+              from: '',
+            },
           },
-        },
-      ],
-    }));
-    const result = await handler(event);
-    expect(result).toMatchSnapshot();
-  });
+        ],
+      }));
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
 
-  it("messages are mapped for the role not equal to 'appMaker'", async () => {
-    mockGetMessages.mockImplementationOnce(() => ({
-      messages: [
-        {
-          role: '',
-          metadata: {},
-          text: 'normal messages',
-        },
-      ],
-    }));
-    const result = await handler(event);
-    expect(result).toMatchSnapshot();
-  });
-
-  it("messages are mapped for the role 'appMaker' and type 'form'", async () => {
-    mockGetMessages.mockImplementationOnce(() => ({
-      messages: [
-        {
-          role: 'appMaker',
-          type: 'form',
-          metadata: {
-            type: 'agent',
-            from: '',
+    it("messages are mapped for the role not equal to 'appMaker'", async () => {
+      mockGetMessages.mockImplementationOnce(() => ({
+        messages: [
+          {
+            role: '',
+            metadata: {},
+            text: 'normal messages',
           },
-          fields: [{ label: 'collect-message' }],
-        },
-      ],
-    }));
-    const result = await handler(event);
-    expect(result).toMatchSnapshot();
-  });
+        ],
+      }));
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
 
+    it("messages are mapped for the role 'appMaker' and type 'form'", async () => {
+      mockGetMessages.mockImplementationOnce(() => ({
+        messages: [
+          {
+            role: 'appMaker',
+            type: 'form',
+            metadata: {
+              type: 'agent',
+              from: '',
+            },
+            fields: [{ label: 'collect-message' }],
+          },
+        ],
+      }));
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
+    describe('Walkthrough', () => {
+      beforeAll(async () => {
+        await handler(event);
+      });
+      it('passes in the correct arguments to secretsClient.getSecretValue()', async () => {
+        expect(mockGetSecretValue.mock.calls).toMatchSnapshot();
+      });
+
+      it('passes in the correct arguments to smooch.appUsers.getMessages()', async () => {
+        expect(mockGetMessages.mock.calls).toMatchSnapshot();
+      });
+    });
+  });
   it('sends back status 500 when there is a problem fetching interaction messages', async () => {
     mockGetMessages.mockRejectedValueOnce(new Error());
     const result = await handler(event);
