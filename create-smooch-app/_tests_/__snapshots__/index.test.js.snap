@@ -1,0 +1,263 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`create-smooch-app Everthing is successful Walkthrough passes in the correct arguments to SmoochCore 1`] = `
+Array [
+  Array [
+    Object {
+      "keyId": "5e31c81640a22c000f5d7c55",
+      "scope": "account",
+      "secret": "secret",
+      "serviceUrl": "mock-amooch-api-url",
+    },
+  ],
+]
+`;
+
+exports[`create-smooch-app Everthing is successful Walkthrough passes in the correct arguments to axios 1`] = `
+Array [
+  Array [
+    Object {
+      "headers": Object {
+        "Authorization": "given-auth",
+      },
+      "method": "get",
+      "url": "https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034",
+    },
+  ],
+]
+`;
+
+exports[`create-smooch-app Everthing is successful Walkthrough passes in the correct arguments to docClient.put() 1`] = `
+Array [
+  Array [
+    Object {
+      "Item": Object {
+        "created": "January 1 1970",
+        "created-by": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        "id": "5e31c81640a22c000f5d7f28",
+        "name": "smooch",
+        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+        "type": "app",
+        "updated": "January 1 1970",
+        "updated-by": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        "webhook-id": "5e31c81640a22c000f5d7c70",
+      },
+      "TableName": "us-east-1-dev-smooch",
+    },
+  ],
+]
+`;
+
+exports[`create-smooch-app Everthing is successful Walkthrough passes in the correct arguments to secretClient.getSecretValue() 1`] = `
+Array [
+  Object {
+    "SecretId": "us-east-1-dev-smooch-account",
+  },
+]
+`;
+
+exports[`create-smooch-app Everthing is successful Walkthrough passes in the correct arguments to secretClient.putSecretValue() 1`] = `
+Array [
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+      "SecretString": "{\\"id\\":\\"5e31c81640a22c000f5d7c55\\",\\"secret\\":\\"secret\\",\\"5e31c81640a22c000f5d7f28-id\\":\\"5e31c81640a22c000f5d7f29\\",\\"5e31c81640a22c000f5d7f28-secret\\":\\"secret\\"}",
+    },
+  ],
+]
+`;
+
+exports[`create-smooch-app Everthing is successful Walkthrough passes in the correct arguments to secretsClient.getSecretValue() 1`] = `
+Array [
+  Object {
+    "SecretId": "us-east-1-dev-smooch-app",
+  },
+]
+`;
+
+exports[`create-smooch-app Everthing is successful Walkthrough passes in the correct arguments to smooch.apps.create() 1`] = `
+Array [
+  Array [
+    Object {
+      "name": "smooch",
+    },
+  ],
+]
+`;
+
+exports[`create-smooch-app Everthing is successful Walkthrough passes in the correct arguments to smooch.apps.keys.create() 1`] = `
+Array [
+  Array [
+    "5e31c81640a22c000f5d7f28",
+    "5e31c81640a22c000f5d7f28",
+  ],
+]
+`;
+
+exports[`create-smooch-app Everthing is successful Walkthrough passes in the correct arguments to smooch.webhooks.create() 1`] = `
+Array [
+  Array [
+    "5e31c81640a22c000f5d7f28",
+    Object {
+      "includeClient": true,
+      "target": "https://us-east-1-dev-smooch-gateway.domain/webhook?tenantId=66d83870-30df-4a3b-8801-59edff162034",
+      "triggers": Array [
+        "message:appUser",
+        "conversation:read",
+        "typing:appUser",
+      ],
+    },
+  ],
+]
+`;
+
+exports[`create-smooch-app Everthing is successful Walkthrough passes in the correct arguments to validatePlatformPermissions 1`] = `
+Array [
+  Array [
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "PLATFORM_DIGITAL_CHANNELS_APP",
+    ],
+  ],
+]
+`;
+
+exports[`create-smooch-app Everthing is successful sends back status 200 when smooch app is created successfuly 1`] = `
+Object {
+  "body": Object {
+    "app": Object {
+      "_id": "5e31c81640a22c000f5d7f28",
+    },
+    "webhook": Object {
+      "_id": "5e31c81640a22c000f5d7c70",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`create-smooch-app sends back satus 400 when tenant is not found or is inactive 1`] = `
+Object {
+  "body": Object {
+    "message": "Error tenant not found or inactive",
+  },
+  "status": 400,
+}
+`;
+
+exports[`create-smooch-app sends back status 400 when tenant is not found 1`] = `
+Object {
+  "body": Object {
+    "message": "Tenant 66d83870-30df-4a3b-8801-59edff162034 not found",
+  },
+  "status": 400,
+}
+`;
+
+exports[`create-smooch-app sends back status 400 when there are invalid body values 1`] = `
+Object {
+  "body": Object {
+    "message": "Error: invalid body value \\"name\\" is required",
+  },
+  "status": 400,
+}
+`;
+
+exports[`create-smooch-app sends back status 400 when there are invalid param values 1`] = `
+Object {
+  "body": Object {
+    "message": "Error: invalid params value \\"tenant-id\\" is not allowed to be empty",
+  },
+  "status": 400,
+}
+`;
+
+exports[`create-smooch-app sends back status 400 when there are not enough permissions 1`] = `
+Object {
+  "body": Object {
+    "message": "Error not enough permissions",
+  },
+  "status": 400,
+}
+`;
+
+exports[`create-smooch-app sends back status 500 when there is a error (2) saving app credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred (2) trying to save App credentials",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-smooch-app sends back status 500 when there is a error creating App credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to create App credentials",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-smooch-app sends back status 500 when there is a error creating an app 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to create an App",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-smooch-app sends back status 500 when there is a error creating webhooks 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to create webhooks",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-smooch-app sends back status 500 when there is a error retrieving digital channels credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to retrieve digital channels credentials",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-smooch-app sends back status 500 when there is a error retrieving digital channels credentials 2`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to retrieve digital channels credentials",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-smooch-app sends back status 500 when there is a error retrieving tenant 1`] = `
+Object {
+  "body": "Unexpected error occurred retrieving tenant 66d83870-30df-4a3b-8801-59edff162034",
+  "status": 500,
+}
+`;
+
+exports[`create-smooch-app sends back status 500 when there is a error saving records in DynamoDB 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to save a record in DynamoDB",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-smooch-app sends back status error 500 when there is a error (1) saving app credentials  1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred (1) trying to save App credentials",
+  },
+  "status": 500,
+}
+`;
