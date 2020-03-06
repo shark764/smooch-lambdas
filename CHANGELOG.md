@@ -1,3 +1,6 @@
+## 1.15.9
+* Use latest sprockets to hopefully fix deploys
+
 ## 1.15.8
 * CXV1-21818 - Adding interactionId to messages send to smooch.
 

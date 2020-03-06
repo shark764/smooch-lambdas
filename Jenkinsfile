@@ -1,5 +1,5 @@
 #!groovy​
-@Library('sprockets@2.10.8') _
+@Library('sprockets') _
 
 node () {
     nodeCore.defaultPipeline()
