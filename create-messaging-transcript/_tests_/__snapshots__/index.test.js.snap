@@ -1,0 +1,147 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`create-messaging-transcript Everthing is successful Walkthrough passes in the correct arguments to SmoochCore 1`] = `
+Array [
+  Array [
+    Object {
+      "keyId": "id",
+      "scope": "app",
+      "secret": "secret",
+      "serviceUrl": "mock-smooch-api-url",
+    },
+  ],
+]
+`;
+
+exports[`create-messaging-transcript Everthing is successful Walkthrough passes in the correct arguments to axios 1`] = `
+Array [
+  Array [
+    Object {
+      "auth": Object {
+        "password": "paasword",
+        "username": "username",
+      },
+      "data": Object {
+        "append": [MockFunction] {
+          "calls": Array [
+            Array [
+              "content",
+              Object {
+                "data": Array [
+                  91,
+                  93,
+                ],
+                "type": "Buffer",
+              },
+              Object {
+                "contentType": "application/json",
+                "filename": "transcript.json",
+              },
+            ],
+            Array [
+              "content.metadata",
+              "{\\"transcript\\":true}",
+            ],
+          ],
+          "results": Array [
+            Object {
+              "type": "return",
+              "value": undefined,
+            },
+            Object {
+              "type": "return",
+              "value": undefined,
+            },
+          ],
+        },
+        "getHeaders": [MockFunction] {
+          "calls": Array [
+            Array [],
+          ],
+          "results": Array [
+            Object {
+              "type": "return",
+              "value": "mock from headers",
+            },
+          ],
+        },
+      },
+      "headers": "mock from headers",
+      "method": "post",
+      "url": "https://us-east-1-dev-edge.domain/v1/tenants/250faddb-9723-403a-9bd5-3ca710cb26e5/interactions/667802d8-2260-436c-958a-2ee0f71f73f0/artifacts/667802d8-2260-436c-958a-2ee0f71f73f1",
+    },
+  ],
+]
+`;
+
+exports[`create-messaging-transcript Everthing is successful Walkthrough passes in the correct arguments to secretClient.getSecretValue() to get cx credentials 1`] = `
+Array [
+  Object {
+    "SecretId": "us-east-1-dev-smooch-cx",
+  },
+]
+`;
+
+exports[`create-messaging-transcript Everthing is successful Walkthrough passes in the correct arguments to secretClient.getSecretValue() to get digital channels credentials 1`] = `
+Array [
+  Object {
+    "SecretId": "us-east-1-dev-smooch-app",
+  },
+]
+`;
+
+exports[`create-messaging-transcript Everthing is successful Walkthrough passes in the correct arguments to smooch.appUsers.getMessages() 1`] = `
+Array [
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7f28",
+      "userId": "667802d8-2260-436c-958a-2ee0f71f73f2",
+    },
+  ],
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7f28",
+      "query": Object {
+        "before": "100",
+      },
+      "userId": "667802d8-2260-436c-958a-2ee0f71f73f2",
+    },
+  ],
+]
+`;
+
+exports[`create-messaging-transcript Everthing is successful messages are filtered for metadata 1`] = `
+Array [
+  "[{\\"payload\\":{\\"metadata\\":{\\"name\\":\\"first-Name last-Name\\",\\"source\\":\\"smooch\\",\\"type\\":\\"TYPE\\",\\"first-name\\":\\"first-Name\\",\\"last-name\\":\\"last-Name\\"},\\"body\\":{\\"id\\":\\"5e31c81640a22c000f5d7f28\\",\\"contentType\\":\\"file\\",\\"file\\":{}},\\"tenant-id\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"to\\":null,\\"type\\":\\"message\\",\\"timestamp\\":\\"1970-01-01T00:00:50Z\\"},\\"channelId\\":null,\\"timestamp\\":\\"50000\\"}]",
+]
+`;
+
+exports[`create-messaging-transcript Everthing is successful messages are filtered for role 'appUser' and type '' 1`] = `
+Array [
+  "[{\\"payload\\":{\\"metadata\\":{\\"name\\":\\"system\\",\\"source\\":\\"smooch\\",\\"type\\":\\"customer\\",\\"first-name\\":\\"System\\",\\"last-name\\":\\"System\\"},\\"body\\":{\\"id\\":\\"5e31c81640a22c000f5d7f28\\",\\"contentType\\":\\"\\",\\"file\\":{}},\\"tenant-id\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"to\\":null,\\"type\\":\\"message\\",\\"timestamp\\":\\"1970-01-01T00:00:50Z\\"},\\"channelId\\":null,\\"timestamp\\":\\"50000\\"}]",
+]
+`;
+
+exports[`create-messaging-transcript Everthing is successful messages are filtered for type 'formResponse' and quotedMessage 1`] = `
+Array [
+  "[{\\"payload\\":{\\"metadata\\":{\\"name\\":\\"firstName lastName\\",\\"source\\":\\"smooch\\",\\"type\\":\\"customer\\",\\"first-name\\":\\"firstName\\",\\"last-name\\":\\"lastName\\"},\\"body\\":{\\"id\\":\\"5e31c81640a22c000f5d7f28\\",\\"text\\":\\"collect-message response\\",\\"contentType\\":\\"formResponse\\",\\"file\\":{}},\\"tenant-id\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"to\\":null,\\"type\\":\\"message\\",\\"timestamp\\":\\"1970-01-01T00:00:50Z\\"},\\"channelId\\":null,\\"timestamp\\":\\"50000\\"}]",
+]
+`;
+
+exports[`create-messaging-transcript Everthing is successful messages are mapped for role 'appMaker' and type 'form' 1`] = `
+Array [
+  "[{\\"payload\\":{\\"metadata\\":{\\"name\\":\\"firstName lastName\\",\\"source\\":\\"smooch\\",\\"first-name\\":\\"firstName\\",\\"last-name\\":\\"lastName\\"},\\"body\\":{\\"id\\":\\"5e31c81640a22c000f5d7f28\\",\\"text\\":\\"collect-message\\",\\"contentType\\":\\"form\\",\\"file\\":{}},\\"tenant-id\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"to\\":null,\\"type\\":\\"message\\",\\"timestamp\\":\\"1970-01-01T00:00:50Z\\"},\\"channelId\\":null,\\"timestamp\\":\\"50000\\"}]",
+]
+`;
+
+exports[`create-messaging-transcript throws an error when there is a error fetching previous interaction messages 1`] = `"Error fetching previous integration messages"`;
+
+exports[`create-messaging-transcript throws an error when there is a problem fetching integration messages 1`] = `"Error fetching integration messages"`;
+
+exports[`create-messaging-transcript throws an error when there is a problem retrieving cx credentials 1`] = `"Error retrieving cx credentials"`;
+
+exports[`create-messaging-transcript throws an error when there is a problem retrieving digital channels credentials (thrown by SmoochCore) 1`] = `"Error retrieving digital channels credentials"`;
+
+exports[`create-messaging-transcript throws an error when there is a problem retrieving digital channels credentials 1`] = `"Error retrieving digital channels credentials"`;
+
+exports[`create-messaging-transcript throws an error when there is an error persisting artifact history 1`] = `"Error persisting artifact history"`;
