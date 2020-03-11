@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`send-flow-response Everything is successful Walkthrough passes in the correct arguments to axios 1`] = `
+Array [
+  Array [
+    Object {
+      "auth": Object {
+        "password": "Password",
+        "username": "UserName",
+      },
+      "data": "mock-data",
+      "method": "post",
+      "url": "https://us-east-1-dev-edge.domain/v1/tenants/250faddb-9723-403a-9bd5-3ca710cb26e5/interactions/667802d8-2260-436c-958a-2ee0f71f73f0/actions/667802d8-2260-436c-958a-2ee0f71f73f1?id=7534c040-534d-11ea-8aa0-c32d6a748e46",
+    },
+  ],
+]
+`;
+
+exports[`send-flow-response Everything is successful Walkthrough passes in the correct arguments to secretsClient.getSecretValue() to get cx credentials 1`] = `
+Array [
+  Object {
+    "SecretId": "us-east-1-dev-smooch-cx",
+  },
+]
+`;
+
+exports[`send-flow-response throws an error when there is a problem sending action response 1`] = `"Error sending action response"`;
+
+exports[`send-flow-response throws an error when there is a problem trying to rettrieve cx credentials 1`] = `"Error retrieving cx credentials"`;
