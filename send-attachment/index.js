@@ -259,27 +259,12 @@ exports.handler = async (event) => {
     ...logContext,
     smoochMessage: messageSent,
   });
-
-  log.debug('Scheduling Smooch Attachment deletion', {
-    tenantId,
-    interactionId,
-    artifactId,
-  });
-  await scheduleSmoochAttachmentDeletion({
-    tenantId,
-    interactionId,
-    smoochMessageId: messageSent.id,
-    smoochAppId: appId,
-    smoochUserId: userId,
-  });
-
   try {
     await uploadArtifactFile(
       logContext,
       artifactId,
-      { s3Stream, filename, contentType },
+      { filename, contentType },
       messageSent,
-      cxAuth,
     );
   } catch (error) {
     log.error('Error uploading file to artifact', logContext, error);
@@ -380,32 +365,34 @@ function generateFormDataFromStream({ s3Stream, filename, contentType }) {
 }
 
 async function uploadArtifactFile(
-  { tenantId, interactionId },
+  {
+    tenantId,
+    interactionId,
+    appId,
+    userId,
+  },
   artifactId,
-  { s3Stream, filename, contentType },
+  { filename, contentType },
   message,
-  auth,
 ) {
-  const form = new FormData();
-  form.append('content', s3Stream, {
-    filename,
-    contentType,
-  });
-  form.append('content.metadata', JSON.stringify({ messageId: message.id }));
-
-  log.debug('Uploading artifact using old upload route', {
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-upload-artifact-file`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const payload = JSON.stringify({
+    source: 'agent',
     tenantId,
     interactionId,
     artifactId,
-    smoochFileMessage: message,
+    smoochAppId: appId,
+    SmoochUserId: userId,
+    fileData: { filename, contentType },
+    message,
   });
-  return axios({
-    method: 'post',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
-    data: form,
-    auth,
-    headers: form.getHeaders(),
-  });
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
+  };
+
+  return sqs.sendMessage(sqsMessageAction).promise();
 }
 
 async function checkIfClientIsDisconnected({
@@ -489,34 +476,6 @@ async function getClientInactivityTimeout({ logContext }) {
   } = smoochIntegration;
 
   return clientDisconnectMinutes;
-}
-
-async function scheduleSmoochAttachmentDeletion({
-  tenantId,
-  interactionId,
-  smoochMessageId,
-  smoochUserId,
-  smoochAppId,
-}) {
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-schedule-lambda-trigger`;
-  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
-  const MessageBody = JSON.stringify({
-    tenantId,
-    interactionId,
-    ruleName: `DeleteSmoochAttachment-${smoochMessageId}`,
-    triggerInMs: 43200000, // 12 hours
-    targetQueueName: `${AWS_REGION}-${ENVIRONMENT}-delete-smooch-attachments`,
-    additionalParams: {
-      smoochAppId,
-      smoochUserId,
-      smoochMessageId,
-    },
-  });
-  const sqsMessageAction = {
-    MessageBody,
-    QueueUrl,
-  };
-  await sqs.sendMessage(sqsMessageAction).promise();
 }
 
 async function sizeOf(key, bucket) {

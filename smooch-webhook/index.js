@@ -729,51 +729,34 @@ async function updateInteractionMetadata({
 
 async function uploadArtifactFile(
   {
-    tenantId, interactionId, smoochAppId, smoochUserId,
+    tenantId, interactionId, appId, userId,
   },
   artifactId,
   message,
-  auth,
 ) {
-  const smoochFile = await axios({
-    method: 'get',
-    url: message.mediaUrl,
-    responseType: 'arraybuffer',
-  });
-  log.trace('Got file from Smooch', { tenantId, interactionId, message });
-
-  const form = new FormData();
-  form.append('content', Buffer.from(smoochFile.data), {
-    filename: decodeURIComponent(message.mediaUrl).split('/')[
-      message.mediaUrl.split('/').length - 1
-    ],
-    contentType: message.mediaType,
-  });
-  form.append('content.metadata', JSON.stringify({ messageId: message._id }));
-
-  log.debug('Scheduling Smooch Attachment deletion', {
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-upload-artifact-file`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const payload = JSON.stringify({
+    smoochAppId: appId,
+    smoochUserId: userId,
     tenantId,
     interactionId,
     artifactId,
-    smoochFileMessage: message,
-  });
-  await scheduleSmoochAttachmentDeletion({
-    tenantId, interactionId, smoochMessageId: message._id, smoochAppId, smoochUserId,
+    fileData: {
+      filename: decodeURIComponent(message.mediaUrl).split('/')[
+        message.mediaUrl.split('/').length - 1
+      ],
+      contentType: message.mediaType,
+    },
+    message,
   });
 
-  log.debug('Uploading artifact using old upload route', {
-    tenantId,
-    interactionId,
-    artifactId,
-    smoochFileMessage: message,
-  });
-  return axios({
-    method: 'post',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
-    data: form,
-    auth,
-    headers: form.getHeaders(),
-  });
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
+  };
+
+  return sqs.sendMessage(sqsMessageAction).promise();
 }
 
 async function sendReportingEvent({
@@ -843,28 +826,4 @@ async function updateSmoochClientLastActivity({
   } catch (error) {
     log.error('An error ocurred updating the latest customer activity', logContext, error);
   }
-}
-
-async function scheduleSmoochAttachmentDeletion({
-  tenantId, interactionId, smoochMessageId, smoochUserId, smoochAppId,
-}) {
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-schedule-lambda-trigger`;
-  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
-  const MessageBody = JSON.stringify({
-    tenantId,
-    interactionId,
-    ruleName: `DeleteSmoochAttachment-${smoochMessageId}`,
-    triggerInMs: 43200000, // 12 hours
-    targetQueueName: `${AWS_REGION}-${ENVIRONMENT}-delete-smooch-attachments`,
-    additionalParams: {
-      smoochAppId,
-      smoochUserId,
-      smoochMessageId,
-    },
-  });
-  const sqsMessageAction = {
-    MessageBody,
-    QueueUrl,
-  };
-  await sqs.sendMessage(sqsMessageAction).promise();
 }

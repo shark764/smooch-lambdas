@@ -1,3 +1,6 @@
+## 1.16.0
+* CXV1-21740 - Move uploadArtifactFile into a separate lambda.
+
 ## 1.15.9
 * Use latest sprockets to hopefully fix deploys
 
