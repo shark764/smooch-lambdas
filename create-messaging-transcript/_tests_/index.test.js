@@ -21,16 +21,12 @@ const event = {
   }],
 };
 
-const mockFrom = jest.fn(Buffer.from);
-
 const mockFormData = jest.fn(() => ({
   getHeaders: jest.fn(() => 'mock from headers'),
   append: jest.fn(FormData.append),
 }));
 
 global.FormData = mockFormData;
-Buffer.from = mockFrom;
-global.Buffer.toString = jest.fn(() => 'mock form');
 
 const mockGetSecretValue = jest.fn(() => {})
   .mockImplementation(() => ({
@@ -79,6 +75,10 @@ jest.mock('aws-sdk', () => ({
 
 jest.mock('smooch-core', () => mockSmoochCore);
 
+const index = require('../index');
+
+const spyOnUploadArtifactFile = jest.spyOn(index, 'uploadArtifactFile');
+
 const { handler } = require('../index');
 
 describe('create-messaging-transcript', () => {
@@ -104,7 +104,7 @@ describe('create-messaging-transcript', () => {
         messages: [],
       }));
       await handler(event);
-      expect(mockFrom.mock.calls[7]).toMatchSnapshot();
+      expect(spyOnUploadArtifactFile.mock.calls[0][1]).toMatchSnapshot();
     });
 
     it("messages are filtered for role 'appUser' and type ''", async () => {
@@ -121,9 +121,8 @@ describe('create-messaging-transcript', () => {
         previous: 'https://www.unit-tests.com',
         messages: [],
       }));
-      jest.clearAllMocks();
       await handler(event);
-      expect(mockFrom.mock.calls[7]).toMatchSnapshot();
+      expect(spyOnUploadArtifactFile.mock.calls[0][1]).toMatchSnapshot();
     });
 
     it('messages are filtered for metadata', async () => {
@@ -144,9 +143,8 @@ describe('create-messaging-transcript', () => {
         previous: 'https://www.unit-tests.com',
         messages: [],
       }));
-      jest.clearAllMocks();
       await handler(event);
-      expect(mockFrom.mock.calls[7]).toMatchSnapshot();
+      expect(spyOnUploadArtifactFile.mock.calls[0][1]).toMatchSnapshot();
     });
 
     it("messages are mapped for role 'appMaker' and type 'form'", async () => {
@@ -166,9 +164,8 @@ describe('create-messaging-transcript', () => {
         previous: 'https://www.unit-tests.com',
         messages: [],
       }));
-      jest.clearAllMocks();
       await handler(event);
-      expect(mockFrom.mock.calls[7]).toMatchSnapshot();
+      expect(spyOnUploadArtifactFile.mock.calls[0][1]).toMatchSnapshot();
     });
 
     it('when there are no previous messages', async () => {
@@ -189,7 +186,7 @@ describe('create-messaging-transcript', () => {
       expect(result).toBeUndefined();
     });
     describe('Walkthrough', () => {
-      beforeAll(async () => {
+      beforeEach(async () => {
         jest.clearAllMocks();
         mockGetSecretValue.mockImplementationOnce(() => ({
           promise: () => ({
@@ -240,6 +237,7 @@ describe('create-messaging-transcript', () => {
       });
 
       it('passes in the correct arguments to axios', async () => {
+        delete axios.mock.calls[0][0].data;
         expect(axios.mock.calls).toMatchSnapshot();
       });
     });

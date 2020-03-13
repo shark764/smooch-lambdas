@@ -151,7 +151,7 @@ function getPreviousTimestamp({ previous }) {
 async function persistArchivedHistory(type, logContext, transcript, cxAuth) {
   let artifactFile;
   try {
-    const { data } = await uploadArtifactFile(
+    const { data } = await exports.uploadArtifactFile(
       logContext,
       transcript,
       cxAuth,
@@ -270,3 +270,5 @@ function formatMessages({ messages }, tenantId) {
       timestamp: (message.received * 1000).toString(),
     }));
 }
+
+exports.uploadArtifactFile = uploadArtifactFile;
