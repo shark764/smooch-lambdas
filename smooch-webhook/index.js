@@ -125,12 +125,53 @@ exports.handler = async (event) => {
             case 'file': {
               log.debug(`Web type received: ${type}`, logContext);
               if (hasInteractionItem && interactionId) {
+                let workingInteractionId = interactionId;
+
+                /** If heartbeat is successfull continue as normal
+                if not update the interaction record in DynamoDB */
+                try {
+                  await sendSmoochInteractionHeartbeat({
+                    tenantId,
+                    interactionId,
+                    auth,
+                  });
+                } catch (error) {
+                  if (error.response.status === 404) {
+                    log.info(
+                      'Interaction ID is Invalid. Creating a new Interaction',
+                      logContext,
+                    );
+
+                    try {
+                      workingInteractionId = await createInteraction({
+                        appId,
+                        userId,
+                        tenantId,
+                        source: 'web',
+                        integrationId,
+                        customer,
+                        smoochMessageId: message._id,
+                        auth,
+                        logContext,
+                        isInteractionDead: true,
+                      });
+                    } catch (err) {
+                      log.error(
+                        'Failed to create an interaction',
+                        logContext,
+                        err,
+                      );
+                      throw err;
+                    }
+                  }
+                }
+
                 await sendCustomerMessageToParticipants({
                   appId,
                   userId,
                   tenantId,
                   contentType: type,
-                  interactionId,
+                  interactionId: workingInteractionId,
                   message,
                   auth,
                   logContext,
@@ -428,24 +469,42 @@ async function createInteraction({
   logContext,
   auth,
   smoochMessageId,
+  isInteractionDead,
 }) {
-  const creatingInteractionParams = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
-    Item: {
-      SmoochUserId: userId,
-      CreatingSmoochMessageId: smoochMessageId,
-      TTL: Math.floor(Date.now() / 1000) + SEVEN_DAYS_IN_SECONDS,
-    },
-    ConditionExpression: 'attribute_not_exists(SmoochUserId) OR (attribute_exists(SmoochUserId) AND attribute_not_exists(InteractionId) AND CreatingSmoochMessageId = :m)',
-    ExpressionAttributeValues: {
-      ':m': smoochMessageId,
-    },
-  };
+  let creatingInteractionParams;
+  if (isInteractionDead) {
+    creatingInteractionParams = {
+      TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+      Item: {
+        SmoochUserId: userId,
+      },
+      UpdateExpression: 'set CreatingSmoochMessageId: :m, InteractionId = :i',
+      ExpressionAttributeValues: {
+        ':m': smoochMessageId,
+        ':i': 'interaction-404',
+      },
+      ConditionExpression: 'InteractionId <> :i OR CreatingSmoochMessageId = :m',
+    };
+  } else {
+    creatingInteractionParams = {
+      TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+      Item: {
+        SmoochUserId: userId,
+        CreatingSmoochMessageId: smoochMessageId,
+        TTL: Math.floor(Date.now() / 1000) + SEVEN_DAYS_IN_SECONDS,
+      },
+      ConditionExpression: 'attribute_not_exists(SmoochUserId) OR (attribute_exists(SmoochUserId) AND attribute_not_exists(InteractionId) AND CreatingSmoochMessageId = :m)',
+      ExpressionAttributeValues: {
+        ':m': smoochMessageId,
+      },
+    };
+  }
+
   try {
     await docClient.put(creatingInteractionParams).promise();
   } catch (error) {
     log.info('Was not able to put row in for creating interaction. Assuming another message is already creating it.', logContext, error);
-    return;
+    return false;
   }
 
   const customerNames = customer.split(' ');
@@ -555,9 +614,11 @@ async function createInteraction({
     await docClient.update(smoochInteractionParams).promise();
   } catch (error) {
     log.fatal('An error occurred updating the interaction id on the state table', { ...logContext, interactionId });
-    return;
+    return false;
   }
   log.debug('Updated smooch interactions state table with interaction', { ...logContext, interactionId });
+
+  return interactionId;
 }
 
 async function sendCustomerMessageToParticipants({
@@ -826,4 +887,28 @@ async function updateSmoochClientLastActivity({
   } catch (error) {
     log.error('An error ocurred updating the latest customer activity', logContext, error);
   }
+}
+
+async function sendSmoochInteractionHeartbeat({
+  tenantId,
+  interactionId,
+  auth,
+}) {
+  const { data } = await axios({
+    method: 'post',
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts`,
+    data: {
+      source: 'smooch',
+      interruptType: 'smooch-heartbeat',
+      interrupt: {},
+    },
+    auth,
+  });
+
+  log.debug('Interaction heartbeat', {
+    interactionId,
+    tenantId,
+    request: data,
+  });
+  return data;
 }

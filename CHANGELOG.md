@@ -1,3 +1,6 @@
+## 1.16.1
+* CXV1-21459 - Create a new interaction if the previous one has died.
+
 ## 1.16.0
 * CXV1-21740 - Move uploadArtifactFile into a separate lambda.
 
