@@ -1,3 +1,6 @@
+## 1.16.2
+* CXV1-21459 - Handle a second incoming message after interaction has died.
+
 ## 1.16.1
 * CXV1-21459 - Create a new interaction if the previous one has died.
 

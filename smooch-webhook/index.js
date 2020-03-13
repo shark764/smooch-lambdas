@@ -82,7 +82,9 @@ exports.handler = async (event) => {
   log.debug('Smooch interaction record', { ...logContext, smoochInteractionRecord });
   const interactionItem = smoochInteractionRecord && smoochInteractionRecord.Item;
   const hasInteractionItem = interactionItem && Object.entries(interactionItem).length !== 0;
-  const interactionId = interactionItem && interactionItem.InteractionId;
+  const interactionId = interactionItem && (
+    interactionItem.InteractionId === 'interaction-404' ? undefined : interactionItem.InteractionId
+  );
   logContext.hasInteractionItem = hasInteractionItem;
   logContext.interactionId = interactionId;
 
