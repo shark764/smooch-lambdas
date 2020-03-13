@@ -1,0 +1,464 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`send-attachment Everything is successful Walkthrough passes in the correct arguments to SmoochCore 1`] = `
+Array [
+  Array [
+    Object {
+      "keyId": "id",
+      "scope": "app",
+      "secret": "secret",
+      "serviceUrl": "mock-amooch-api-url",
+    },
+  ],
+]
+`;
+
+exports[`send-attachment Everything is successful Walkthrough passes in the correct arguments to axios to get interaction metadta 1`] = `
+Array [
+  Object {
+    "auth": Object {
+      "password": "paasword",
+      "username": "username",
+    },
+    "method": "get",
+    "url": "https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata",
+  },
+]
+`;
+
+exports[`send-attachment Everything is successful Walkthrough passes in the correct arguments to docClient.get() in getClientInactivityTimeout() 1`] = `
+Array [
+  Object {
+    "Key": Object {
+      "id": "66d83870-30df-4a3b-8801-59edff162050",
+      "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+    },
+    "TableName": "us-east-1-dev-smooch",
+  },
+]
+`;
+
+exports[`send-attachment Everything is successful Walkthrough passes in the correct arguments to docClient.get() in shouldCheckIfClientIsDisconnected() 1`] = `
+Array [
+  Object {
+    "Key": Object {
+      "SmoochUserId": "5e31c81640a22c000f5d7f30",
+    },
+    "TableName": "us-east-1-dev-smooch-interactions",
+  },
+]
+`;
+
+exports[`send-attachment Everything is successful Walkthrough passes in the correct arguments to s3.getObject() in retrieveObject() 1`] = `
+Array [
+  Array [
+    Object {
+      "Bucket": "aws-Bucket",
+      "Key": "aws-Key",
+    },
+  ],
+]
+`;
+
+exports[`send-attachment Everything is successful Walkthrough passes in the correct arguments to s3.headObject() 1`] = `
+Array [
+  Array [
+    Object {
+      "Bucket": "aws-Bucket",
+      "Key": "aws-Key",
+    },
+  ],
+]
+`;
+
+exports[`send-attachment Everything is successful Walkthrough passes in the correct arguments to smooch.appUsers.sendMessage() 1`] = `
+Array [
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7f28",
+      "message": Object {
+        "mediaUrl": "media-url",
+        "metadata": Object {
+          "firstName": "first-name",
+          "from": "first-name last-name",
+          "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+          "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+          "type": "agent",
+        },
+        "role": "appMaker",
+        "type": "image",
+      },
+      "userId": "5e31c81640a22c000f5d7f30",
+    },
+  ],
+]
+`;
+
+exports[`send-attachment Everything is successful Walkthrough passes in the correct arguments to smooch.attachments.create() 1`] = `
+Array [
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7f28",
+      "props": Object {
+        "access": "public",
+        "appUserId": "5e31c81640a22c000f5d7f30",
+        "for": "message",
+      },
+      "source": Object {
+        "append": [MockFunction] {
+          "calls": Array [
+            Array [
+              "source",
+              "",
+              Object {
+                "contentType": "content-type",
+                "filename": "filename",
+              },
+            ],
+          ],
+          "results": Array [
+            Object {
+              "type": "return",
+              "value": undefined,
+            },
+          ],
+        },
+        "getHeaders": [MockFunction],
+      },
+    },
+  ],
+]
+`;
+
+exports[`send-attachment Everything is successful Walkthrough passes in the correct arguments to sqs.sendMessage() in checkIfClientIsDisconnected() 1`] = `
+Array [
+  Object {
+    "DelaySeconds": 900,
+    "MessageBody": "{\\"interactionId\\":\\"66d83870-30df-4a3b-8801-59edff162040\\",\\"tenantId\\":\\"66d83870-30df-4a3b-8801-59edff162034\\",\\"userId\\":\\"5e31c81640a22c000f5d7f30\\",\\"latestAgentMessageTimestamp\\":50000,\\"disconnectTimeoutInMinutes\\":50}",
+    "QueueUrl": "queue-url",
+  },
+]
+`;
+
+exports[`send-attachment Everything is successful Walkthrough passes in the correct arguments to sqs.sendMessage() in sendReportingEvent() 1`] = `
+Array [
+  Object {
+    "MessageBody": "{\\"tenantId\\":\\"66d83870-30df-4a3b-8801-59edff162034\\",\\"interactionId\\":\\"66d83870-30df-4a3b-8801-59edff162040\\",\\"resourceId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"topic\\":\\"agent-message\\",\\"appName\\":\\"us-east-1-dev-send-attachment\\"}",
+    "QueueUrl": "queue-url",
+  },
+]
+`;
+
+exports[`send-attachment Everything is successful Walkthrough passes in the correct arguments to sqs.sendMessage() in uploadArtifactFile() 1`] = `
+Array [
+  Object {
+    "MessageBody": "{\\"source\\":\\"agent\\",\\"tenantId\\":\\"66d83870-30df-4a3b-8801-59edff162034\\",\\"interactionId\\":\\"66d83870-30df-4a3b-8801-59edff162040\\",\\"artifactId\\":\\"5e31c81640a22c000f5d7f35\\",\\"fileData\\":{\\"filename\\":\\"filename\\",\\"contentType\\":\\"content-type\\"},\\"message\\":{\\"id\\":\\"5e31c81640a22c000f5d7f20\\",\\"text\\":\\"messages\\",\\"type\\":\\"agent\\",\\"contentType\\":\\"type\\",\\"file\\":{\\"mediaType\\":\\"image/smooch.jpg\\",\\"mediaUrl\\":\\"media-url\\"},\\"from\\":\\"first-name last-name\\",\\"agentMessageId\\":\\"66d83870-30df-4a3b-8801-59edff162045\\",\\"resourceId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"timestamp\\":50000}}",
+    "QueueUrl": "queue-url",
+  },
+]
+`;
+
+exports[`send-attachment Everything is successful sends back status 200 when the code runs without any error 1`] = `
+Object {
+  "body": Object {
+    "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+    "message": Object {
+      "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+      "contentType": "type",
+      "file": Object {
+        "mediaType": "image/smooch.jpg",
+        "mediaUrl": "media-url",
+      },
+      "from": "first-name last-name",
+      "id": "5e31c81640a22c000f5d7f20",
+      "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      "text": "messages",
+      "timestamp": 50000,
+      "type": "agent",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`send-attachment Everything is successful when Items are not provided 1`] = `
+Object {
+  "body": Object {
+    "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+    "message": Object {
+      "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+      "contentType": "type",
+      "file": Object {
+        "mediaType": "image/smooch.jpg",
+        "mediaUrl": "media-url",
+      },
+      "from": "first-name last-name",
+      "id": "5e31c81640a22c000f5d7f20",
+      "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      "text": "messages",
+      "timestamp": 50000,
+      "type": "agent",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`send-attachment Everything is successful when customer message timestamp is less than agent message timestamp 1`] = `
+Object {
+  "body": Object {
+    "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+    "message": Object {
+      "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+      "contentType": "type",
+      "file": Object {
+        "mediaType": "image/smooch.jpg",
+        "mediaUrl": "media-url",
+      },
+      "from": "first-name last-name",
+      "id": "5e31c81640a22c000f5d7f20",
+      "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      "text": "messages",
+      "timestamp": 50000,
+      "type": "agent",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`send-attachment Everything is successful when customer message timestamp or agent message timestamp are not provided 1`] = `
+Object {
+  "body": Object {
+    "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+    "message": Object {
+      "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+      "contentType": "type",
+      "file": Object {
+        "mediaType": "image/smooch.jpg",
+        "mediaUrl": "media-url",
+      },
+      "from": "first-name last-name",
+      "id": "5e31c81640a22c000f5d7f20",
+      "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      "text": "messages",
+      "timestamp": 50000,
+      "type": "agent",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`send-attachment Everything is successful when no disconnect timeout is set 1`] = `
+Object {
+  "body": Object {
+    "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+    "message": Object {
+      "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+      "contentType": "type",
+      "file": Object {
+        "mediaType": "image/smooch.jpg",
+        "mediaUrl": "media-url",
+      },
+      "from": "first-name last-name",
+      "id": "5e31c81640a22c000f5d7f20",
+      "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      "text": "messages",
+      "timestamp": 50000,
+      "type": "agent",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`send-attachment Everything is successful when the media Type is a file 1`] = `
+Object {
+  "body": Object {
+    "message": "An error occurred retrieving the interaction metadata",
+  },
+  "status": 500,
+}
+`;
+
+exports[`send-attachment Everything is successful when there is a error uploading file to artifact 1`] = `
+Object {
+  "body": Object {
+    "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+    "message": Object {
+      "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+      "contentType": "type",
+      "file": Object {
+        "mediaType": "smooch.jpg",
+        "mediaUrl": "media-url",
+      },
+      "from": "first-name last-name",
+      "id": "5e31c81640a22c000f5d7f20",
+      "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      "text": "messages",
+      "timestamp": 50000,
+      "type": "agent",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`send-attachment Everything is successful when there is a faliure sending reporting event 1`] = `
+Object {
+  "body": Object {
+    "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+    "message": Object {
+      "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+      "contentType": "type",
+      "file": Object {
+        "mediaType": "image/smooch.jpg",
+        "mediaUrl": "media-url",
+      },
+      "from": "first-name last-name",
+      "id": "5e31c81640a22c000f5d7f20",
+      "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      "text": "messages",
+      "timestamp": 50000,
+      "type": "agent",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`send-attachment Everything is successful when there is an error uploading file to artifact 1`] = `
+Object {
+  "body": Object {
+    "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+    "message": Object {
+      "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+      "contentType": "type",
+      "file": Object {
+        "mediaType": "image/smooch.jpg",
+        "mediaUrl": "media-url",
+      },
+      "from": "first-name last-name",
+      "id": "5e31c81640a22c000f5d7f20",
+      "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      "text": "messages",
+      "timestamp": 50000,
+      "type": "agent",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`send-attachment sends back status 413 error when the file is too large 1`] = `
+Object {
+  "body": Object {
+    "message": "File is too large",
+  },
+  "status": 413,
+}
+`;
+
+exports[`send-attachment sends back status 500 when the file is too large 1`] = `
+Object {
+  "body": Object {
+    "message": "File is too large",
+  },
+  "status": 500,
+}
+`;
+
+exports[`send-attachment sends back status 500 when there is a problem sending message 1`] = `
+Object {
+  "body": Object {
+    "message": "Could not send file to customer",
+  },
+  "status": 500,
+}
+`;
+
+exports[`send-attachment sends back status 500 when there is an error retrieving cx credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to retrieve cx credentials",
+  },
+  "status": 500,
+}
+`;
+
+exports[`send-attachment sends back status 500 when there is an error retrieving digital channels credentials (error by SmoochCore) 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to retrieve digital channels credentials",
+  },
+  "status": 500,
+}
+`;
+
+exports[`send-attachment sends back status 500 when there is an error retrieving file from S3 (thrown by generateFormDataFromStream()) 1`] = `
+Object {
+  "body": Object {
+    "message": "Could not retrieve file from S3",
+  },
+  "status": 500,
+}
+`;
+
+exports[`send-attachment sends back status 500 when there is an error retrieving file from S3 (thrown by retrieveObject()) 1`] = `
+Object {
+  "body": Object {
+    "message": "Could not retrieve file from S3",
+  },
+  "status": 500,
+}
+`;
+
+exports[`send-attachment sends back status 500 when there is an error retrieving the interaction metadata 1`] = `
+Object {
+  "body": Object {
+    "message": "An error occurred retrieving the interaction metadata",
+  },
+  "status": 500,
+}
+`;
+
+exports[`send-attachment sends back status 500 when there is an error sending file to customer 1`] = `
+Object {
+  "body": Object {
+    "message": "Could not send file to customer",
+  },
+  "status": 500,
+}
+`;
+
+exports[`send-attachment sends back status 500 when there is an error sending messages 1`] = `
+Object {
+  "body": Object {
+    "message": "An error occurred sending message",
+  },
+  "status": 500,
+}
+`;
+
+exports[`send-attachment sends back status 500 with an error 'status-text' 1`] = `
+Object {
+  "body": Object {
+    "message": "status-text",
+  },
+  "status": 500,
+}
+`;
+
+exports[`send-attachment sends back ststus 500 when there is an error retrieving digital channels credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to retrieve digital channels credentials",
+  },
+  "status": 500,
+}
+`;
+
+exports[`send-attachment throws an error when there is a problem getting smooch interaction record (thrown by getClientInactivityTimeout()) 1`] = `"Failed to get smooch interaction record"`;
+
+exports[`send-attachment throws an error when there is a problem getting smooch interaction record (thrown by shouldCheckIfClientIsDisconnected() ) 1`] = `"Failed to get smooch interaction record"`;
