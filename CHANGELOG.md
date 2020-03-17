@@ -1,3 +1,6 @@
+## 1.16.4
+* CXV1-21740 - Fix FormData issue in upload-artifact-file.
+
 ## 1.16.3
 * CXV1-21818 - Adding timestamp for interactions to filter messages in transcripts.
 * CXV1-21864 - Filtering out previous interaction messages from transcript.

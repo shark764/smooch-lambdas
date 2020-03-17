@@ -1,13 +1,8 @@
 const axios = require('axios');
 
 jest.mock('axios');
+jest.mock('form-data');
 
-function FormDataMock() {
-  this.append = jest.fn();
-  this.getHeaders = jest.fn();
-}
-
-global.FormData = FormDataMock;
 global.process.env = {
   AWS_REGION: 'us-east-1',
   ENVIRONMENT: 'dev',
