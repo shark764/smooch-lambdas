@@ -1,3 +1,7 @@
+## 1.16.3
+* CXV1-21818 - Adding timestamp for interactions to filter messages in transcripts.
+* CXV1-21864 - Filtering out previous interaction messages from transcript.
+
 ## 1.16.2
 * CXV1-21459 - Handle a second incoming message after interaction has died.
 

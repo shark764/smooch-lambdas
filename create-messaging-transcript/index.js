@@ -99,10 +99,16 @@ exports.handler = async (event) => {
     throw error;
   }
 
+  const { data: metadata } = await getMetadata({ tenantId, interactionId, auth: cxAuth });
+
   // Getting timestamp for pagination, previous messages
   // will be fetched if this value if not undefined.
   previousTimestamp = getPreviousTimestamp(messages);
-  while (previousTimestamp !== null) {
+  while (
+    previousTimestamp !== null
+    // We exclude previous messages from other intreactions
+    && previousTimestamp >= metadata.firstCustomerMessageTimestamp
+  ) {
     try {
       previousMessages = await smooch.appUsers.getMessages({
         appId,
@@ -127,7 +133,7 @@ exports.handler = async (event) => {
     previousTimestamp = getPreviousTimestamp(previousMessages);
   }
   // Transcript will have the total of messages
-  const transcript = await formatMessages(messages, tenantId);
+  const transcript = await formatMessages(messages, tenantId, metadata);
 
   await persistArchivedHistory(
     'messaging-transcript',
@@ -138,6 +144,14 @@ exports.handler = async (event) => {
 
   log.debug('Created messaging transcript', { ...logContext });
 };
+
+async function getMetadata({ tenantId, interactionId, auth }) {
+  return axios({
+    method: 'get',
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
+    auth,
+  });
+}
 
 function getPreviousTimestamp({ previous }) {
   try {
@@ -215,34 +229,28 @@ function getMessageText(message) {
   return message.text; // normal messages
 }
 
-function formatMessages({ messages }, tenantId) {
+function formatMessages({ messages }, tenantId, { firstCustomerMessageTimestamp }) {
   return messages
     .filter(
-      (message) => (message.type === 'formResponse'
-          && message.quotedMessage.content.metadata)
-        || (message.role === 'appUser' && message.type !== 'formResponse')
-        || message.metadata,
+      (message) => ((message.type === 'formResponse' && message.quotedMessage.content.metadata)
+          || (message.role === 'appUser' && message.type !== 'formResponse')
+          || message.metadata)
+        // We double check we filter previous messages in case
+        // they were included in last iteration
+        && message.received >= firstCustomerMessageTimestamp,
     )
     .map((message) => ({
       payload: {
         metadata: {
-          name:
-            message.name
-            || (message.metadata && message.metadata.from)
-            || 'system',
+          name: message.name || (message.metadata && message.metadata.from) || 'system',
           source: 'smooch',
-          type:
-            message.role === 'appMaker' ? message.metadata.type : 'customer',
+          type: message.role === 'appMaker' ? message.metadata.type : 'customer',
           'first-name':
-            (message.metadata
-              && message.metadata.from
-              && message.metadata.from.split(' ')[0])
+            (message.metadata && message.metadata.from && message.metadata.from.split(' ')[0])
             || (message.name && message.name.split(' ')[0])
             || 'System',
           'last-name':
-            (message.metadata
-              && message.metadata.from
-              && message.metadata.from.split(' ')[1])
+            (message.metadata && message.metadata.from && message.metadata.from.split(' ')[1])
             || (message.name && message.name.split(' ')[1])
             || 'System',
         },
@@ -256,8 +264,7 @@ function formatMessages({ messages }, tenantId) {
             mediaSize: message.mediaSize,
           },
         },
-        from:
-          (message.metadata && message.metadata.resourceId) || message.authorId,
+        from: (message.metadata && message.metadata.resourceId) || message.authorId,
         'tenant-id': tenantId,
         to: null, // channelId
         type: 'message',

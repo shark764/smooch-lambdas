@@ -33,7 +33,7 @@ const mockGetSecretValue = jest.fn(() => {})
     promise: () => ({
       SecretString: JSON.stringify({
         username: 'username',
-        password: 'paasword',
+        password: 'password',
       }),
     }),
   }))
@@ -48,13 +48,10 @@ const mockGetSecretValue = jest.fn(() => {})
 
 axios.mockImplementation(() => ({
   data: {
-    files: [{
-      metadata: {
-        messageId: '5e31c81640a22c000f5d7f28',
-      },
-      method: 'post',
-      url: 'https://us-east-1-dev-edge.domain/v1/tenants/250faddb-9723-403a-9bd5-3ca710cb26e5/interactions/667802d8-2260-436c-958a-2ee0f71f73f0/artifacts/667802d8-2260-436c-958a-2ee0f71f73f1',
-    }],
+    appId: '5e31c81640a22c000f5d7f28',
+    userId: '667802d8-2260-436c-958a-2ee0f71f73f2',
+    customer: 'mock-customer',
+    firstCustomerMessageTimestamp: 50,
   },
 }));
 
@@ -147,6 +144,50 @@ describe('create-messaging-transcript', () => {
       expect(spyOnUploadArtifactFile.mock.calls[0][1]).toMatchSnapshot();
     });
 
+    it('messages are filtered for previous timestamp', async () => {
+      mockGetMessages.mockImplementationOnce(() => ({
+        previous: 'https://www.unit-tests.com?before=100',
+        messages: [{
+          type: 'file',
+          _id: '5e31c81640a22c000f5d7f28',
+          role: 'appMaker',
+          received: 150,
+          metadata: {
+            type: 'TYPE',
+            from: 'first-Name last-Name',
+          },
+        }],
+      }));
+      mockGetMessages.mockImplementationOnce(() => ({
+        previous: 'https://www.unit-tests.com?before=50',
+        messages: [{
+          type: 'file',
+          _id: '5e31c81640a22c000f5d7f28',
+          role: 'appMaker',
+          received: 99,
+          metadata: {
+            type: 'TYPE',
+            from: 'first-Name last-Name',
+          },
+        }],
+      }));
+      mockGetMessages.mockImplementationOnce(() => ({
+        previous: 'https://www.unit-tests.com?before=10',
+        messages: [{
+          type: 'file',
+          _id: '5e31c81640a22c000f5d7f28',
+          role: 'appMaker',
+          received: 15,
+          metadata: {
+            type: 'TYPE',
+            from: 'first-Name last-Name',
+          },
+        }],
+      }));
+      await handler(event);
+      expect(spyOnUploadArtifactFile.mock.calls[0][1]).toMatchSnapshot();
+    });
+
     it("messages are mapped for role 'appMaker' and type 'form'", async () => {
       mockGetMessages.mockImplementationOnce(() => ({
         previous: 'https://www.unit-tests.com?before=100',
@@ -192,7 +233,7 @@ describe('create-messaging-transcript', () => {
           promise: () => ({
             SecretString: JSON.stringify({
               username: 'username',
-              password: 'paasword',
+              password: 'password',
             }),
           }),
         }));
@@ -215,16 +256,24 @@ describe('create-messaging-transcript', () => {
         await handler(event);
       });
       it('passes in the correct arguments to secretClient.getSecretValue() to get cx credentials', async () => {
-        expect(mockGetSecretValue.mock.calls[0]).toEqual(expect.arrayContaining([{
-          SecretId: 'us-east-1-dev-smooch-cx',
-        }]));
+        expect(mockGetSecretValue.mock.calls[0]).toEqual(
+          expect.arrayContaining([
+            {
+              SecretId: 'us-east-1-dev-smooch-cx',
+            },
+          ]),
+        );
         expect(mockGetSecretValue.mock.calls[0]).toMatchSnapshot();
       });
 
       it('passes in the correct arguments to secretClient.getSecretValue() to get digital channels credentials', async () => {
-        expect(mockGetSecretValue.mock.calls[1]).toEqual(expect.arrayContaining([{
-          SecretId: 'us-east-1-dev-smooch-app',
-        }]));
+        expect(mockGetSecretValue.mock.calls[1]).toEqual(
+          expect.arrayContaining([
+            {
+              SecretId: 'us-east-1-dev-smooch-app',
+            },
+          ]),
+        );
         expect(mockGetSecretValue.mock.calls[1]).toMatchSnapshot();
       });
 
@@ -236,8 +285,40 @@ describe('create-messaging-transcript', () => {
         expect(mockGetMessages.mock.calls).toMatchSnapshot();
       });
 
+      it('passes in the correct arguments to axios to get interaction metadata', async () => {
+        expect(axios.mock.calls[0]).toEqual(
+          expect.arrayContaining([
+            {
+              auth: {
+                password: 'password',
+                username: 'username',
+              },
+              method: 'get',
+              url:
+                'https://us-east-1-dev-edge.domain/v1/tenants/250faddb-9723-403a-9bd5-3ca710cb26e5/interactions/667802d8-2260-436c-958a-2ee0f71f73f0/metadata',
+            },
+          ]),
+        );
+        expect(axios.mock.calls[0]).toMatchSnapshot();
+      });
+
+      it('passes in the correct arguments to axios to push file to artifact', async () => {
+        delete axios.mock.calls[1][0].data;
+        expect(axios.mock.calls[1]).toEqual(
+          expect.arrayContaining([
+            {
+              auth: { password: 'password', username: 'username' },
+              headers: 'mock from headers',
+              method: 'post',
+              url:
+                'https://us-east-1-dev-edge.domain/v1/tenants/250faddb-9723-403a-9bd5-3ca710cb26e5/interactions/667802d8-2260-436c-958a-2ee0f71f73f0/artifacts/667802d8-2260-436c-958a-2ee0f71f73f1',
+            },
+          ]),
+        );
+        expect(axios.mock.calls[1]).toMatchSnapshot();
+      });
+
       it('passes in the correct arguments to axios', async () => {
-        delete axios.mock.calls[0][0].data;
         expect(axios.mock.calls).toMatchSnapshot();
       });
     });
@@ -275,7 +356,7 @@ describe('create-messaging-transcript', () => {
         promise: () => ({
           SecretString: JSON.stringify({
             username: 'username',
-            password: 'paasword',
+            password: 'password',
           }),
         }),
       }));
@@ -302,7 +383,7 @@ describe('create-messaging-transcript', () => {
         promise: () => ({
           SecretString: JSON.stringify({
             username: 'username',
-            password: 'paasword',
+            password: 'password',
           }),
         }),
       }));
@@ -327,7 +408,7 @@ describe('create-messaging-transcript', () => {
         promise: () => ({
           SecretString: JSON.stringify({
             username: 'username',
-            password: 'paasword',
+            password: 'password',
           }),
         }),
       }));
@@ -356,7 +437,7 @@ describe('create-messaging-transcript', () => {
         promise: () => ({
           SecretString: JSON.stringify({
             username: 'username',
-            password: 'paasword',
+            password: 'password',
           }),
         }),
       }));
@@ -368,10 +449,25 @@ describe('create-messaging-transcript', () => {
           }),
         }),
       }));
+      axios.mockImplementationOnce(() => ({
+        data: {
+          files: [
+            {
+              metadata: {
+                messageId: '5e31c81640a22c000f5d7f28',
+              },
+              method: 'post',
+              url:
+                'https://us-east-1-dev-edge.domain/v1/tenants/250faddb-9723-403a-9bd5-3ca710cb26e5/interactions/667802d8-2260-436c-958a-2ee0f71f73f0/artifacts/667802d8-2260-436c-958a-2ee0f71f73f1',
+            },
+          ],
+        },
+      }));
       mockGetMessages.mockImplementationOnce(() => ({
         previous: 'https://www.unit-tests.com?before=100',
         messages: [{}],
       }));
+      axios.mockRejectedValueOnce(new Error());
       mockGetMessages.mockImplementationOnce(() => ({
         previous: 'https://www.unit-tests.com',
         messages: [{}],

@@ -156,6 +156,9 @@ exports.handler = async (event) => {
                         auth,
                         logContext,
                         isInteractionDead: true,
+                        // Creating interaction with first message
+                        // received timestamp
+                        timestamp: message.received,
                       });
                     } catch (err) {
                       log.error(
@@ -190,6 +193,9 @@ exports.handler = async (event) => {
                     smoochMessageId: message._id,
                     auth,
                     logContext,
+                    // Creating interaction with first message
+                    // received timestamp
+                    timestamp: message.received,
                   });
                 } catch (error) {
                   log.error('Failed to create an interaction', logContext, error);
@@ -348,6 +354,7 @@ async function handleFormResponse({
         smoochMessageId: form._id,
         auth,
         logContext,
+        timestamp: form.received,
       });
     } catch (error) {
       log.error('Failed to create an interaction', logContext, error);
@@ -472,6 +479,7 @@ async function createInteraction({
   auth,
   smoochMessageId,
   isInteractionDead,
+  timestamp,
 }) {
   let creatingInteractionParams;
   if (isInteractionDead) {
@@ -584,6 +592,7 @@ async function createInteraction({
       smoochIntegrationId: integrationId,
       artifactId,
       participants: [],
+      firstCustomerMessageTimestamp: timestamp,
     },
   };
   log.debug('Creating interaction', { ...logContext, artifactId, interactionParams });
