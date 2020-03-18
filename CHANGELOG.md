@@ -1,3 +1,6 @@
+## 1.16.5
+* CXV1-21639 - Reset client disconnect timer after transfer.
+
 ## 1.16.4
 * CXV1-21740 - Fix FormData issue in upload-artifact-file.
 

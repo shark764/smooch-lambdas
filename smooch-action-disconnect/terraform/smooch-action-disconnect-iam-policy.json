@@ -20,7 +20,8 @@
     }, {
         "Sid": "SmoochInteractionDynamo",
         "Action": [
-            "dynamodb:DeleteItem"
+            "dynamodb:DeleteItem",
+            "dynamodb:UpdateItem"
         ],
         "Effect": "Allow",
         "Resource": "arn:aws:dynamodb:*:*:table/*-smooch-interactions"

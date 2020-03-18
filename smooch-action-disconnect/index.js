@@ -152,6 +152,10 @@ exports.handler = async (event) => {
   logContext.resourceId = resourceId;
   log.info('Resource disconnect - removing participant', logContext);
 
+  // Setting LatestCustomerActivity to current date so it's the latest event
+  // and customer does not get disconnected.
+  await resetCustomerDisconnectTimer({ userId, logContext });
+
   const { participants } = metadata;
   const removedParticipant = participants.find(
     (participant) => participant['resource-id'] === resourceId,
@@ -300,4 +304,24 @@ async function createMessagingTranscript({ logContext, artifactId }) {
   };
 
   await sqs.sendMessage(sqsMessageAction).promise();
+}
+
+async function resetCustomerDisconnectTimer({ userId, logContext }) {
+  const params = {
+    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+    Key: {
+      SmoochUserId: userId,
+    },
+    UpdateExpression: 'set LatestCustomerMessageTimestamp = :t',
+    ExpressionAttributeValues: {
+      ':t': (new Date()).getTime(),
+    },
+    ReturnValues: 'UPDATED_NEW',
+  };
+  try {
+    const data = await docClient.update(params).promise();
+    log.debug('Updated lastCustomerMessageTimestamp', { ...logContext, updated: data });
+  } catch (error) {
+    log.error('An error ocurred reseting the customer disconnect timer', logContext, error);
+  }
 }
