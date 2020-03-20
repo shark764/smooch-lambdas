@@ -16,7 +16,7 @@ const secretsClient = new AWS.SecretsManager();
 
 const bodySchema = Joi.object({
   name: Joi.string().required(),
-  conversationRetentionSeconds: Joi.string(),
+  conversationRetentionSeconds: Joi.number(),
 });
 
 const paramsSchema = Joi.object({
@@ -153,8 +153,10 @@ exports.handler = async (event) => {
   try {
     newApp = await smooch.apps.create({
       name: body.name,
-      conversationRetentionSeconds: body.conversationRetentionSeconds
-      || DEFAULT_CONVERSATION_RETENTION_SECONDS,
+      settings: {
+        conversationRetentionSeconds: body.conversationRetentionSeconds
+        || DEFAULT_CONVERSATION_RETENTION_SECONDS,
+      },
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to create an App';

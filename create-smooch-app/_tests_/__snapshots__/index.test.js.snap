@@ -79,8 +79,10 @@ exports[`create-smooch-app Everthing is successful Walkthrough passes in the cor
 Array [
   Array [
     Object {
-      "conversationRetentionSeconds": 3600,
       "name": "smooch",
+      "settings": Object {
+        "conversationRetentionSeconds": 3600,
+      },
     },
   ],
 ]
