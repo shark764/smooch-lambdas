@@ -28,9 +28,12 @@ exports.handler = async () => {
     SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
   }).promise();
   const appKeys = JSON.parse(appSecrets.SecretString);
-  const appIds = Object.keys(appKeys)
+  let appIds = Object.keys(appKeys)
     .filter((appSecretKey) => appSecretKey.includes('-id'))
-    .map((appSecretKey) => appSecretKey.replace('-id', ''));
+    .map((appSecretKey) => appSecretKey
+      .replace('-id', '')
+      .replace('-old', ''));
+  appIds = appIds.filter((appSecretKey, index) => (appIds.indexOf(appSecretKey) === index));
 
   let hasErrored = false;
   for (const appId of appIds) {
