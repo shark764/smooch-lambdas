@@ -1,3 +1,6 @@
+## 1.17.0
+* CXV1-21876 - Add set-conversation-retention-seconds lambda.
+
 ## 1.16.7
 * CXV1-21876 - Fix conversationRetentionSeconds param to create-smooch-app lambda.
 

@@ -1,0 +1,9 @@
+include_queue = "true"
+timeout = 30
+memory_size = 128
+zip_path="set-conversation-retention-seconds/set-conversation-retention-seconds.zip"
+handler = "index.handler"
+environmentVars = {
+  "ENVIRONMENT" = "${ENVIRONMENT}",
+  "DOMAIN" = "${DOMAIN}"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "set-conversation-retention-seconds",
+  "version": "1.0.0",
+  "description": "Set conversationRetentionSeconds to all smooch apps",
+  "repository": {},
+  "license": "UNLICENSED",
+  "dependencies": {
+    "aws-sdk": "^2.585.0",
+    "serenova-js-utils": "1.10.3",
+    "smooch-core": "^8.7.3"
+  }
+}
