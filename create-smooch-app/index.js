@@ -11,10 +11,12 @@ const { validatePlatformPermissions } = require('serenova-js-utils/lambda/api');
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
+const DEFAULT_CONVERSATION_RETENTION_SECONDS = 3600;
 const secretsClient = new AWS.SecretsManager();
 
 const bodySchema = Joi.object({
   name: Joi.string().required(),
+  conversationRetentionSeconds: Joi.string(),
 });
 
 const paramsSchema = Joi.object({
@@ -149,7 +151,11 @@ exports.handler = async (event) => {
 
   let newApp;
   try {
-    newApp = await smooch.apps.create({ name: body.name });
+    newApp = await smooch.apps.create({
+      name: body.name,
+      conversationRetentionSeconds: body.conversationRetentionSeconds
+      || DEFAULT_CONVERSATION_RETENTION_SECONDS,
+    });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to create an App';
 

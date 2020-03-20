@@ -1,3 +1,6 @@
+## 1.16.6
+* CXV1-21876 - Add conversationRetentionSeconds param to create-smooch-app lambda.
+
 ## 1.16.5
 * CXV1-21639 - Reset client disconnect timer after transfer.
 
