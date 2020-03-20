@@ -1,3 +1,6 @@
+## 1.17.1
+* CXV1-21974 - Fix creating interactions after client disconnect.
+
 ## 1.17.0
 * CXV1-21876 - Add set-conversation-retention-seconds lambda.
 

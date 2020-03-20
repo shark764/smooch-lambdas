@@ -316,12 +316,13 @@ async function resetCustomerDisconnectTimer({ userId, logContext }) {
     ExpressionAttributeValues: {
       ':t': (new Date()).getTime(),
     },
+    ConditionExpression: 'attribute_exists(SmoochUserId) AND attribute_exists(InteractionId)',
     ReturnValues: 'UPDATED_NEW',
   };
   try {
     const data = await docClient.update(params).promise();
     log.debug('Updated lastCustomerMessageTimestamp', { ...logContext, updated: data });
   } catch (error) {
-    log.error('An error ocurred reseting the customer disconnect timer', logContext, error);
+    log.error('An error ocurred reseting the customer disconnect timer. Interaction ID is no longer valid.', logContext, error);
   }
 }
