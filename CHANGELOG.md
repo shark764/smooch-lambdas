@@ -1,3 +1,6 @@
+## 1.18.0
+* CXV1-21876 - Add recreate-smooch-apps lambda.
+
 ## 1.17.2
 * CXV1-21876 - Fix set-conversation-retention-seconds.
 
