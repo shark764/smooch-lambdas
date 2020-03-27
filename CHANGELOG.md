@@ -1,3 +1,6 @@
+## 1.18.1
+* CXV1-21876 - Add getSecrets and putSecrets permissions to recreate-smooch-apps lambda.
+
 ## 1.18.0
 * CXV1-21876 - Add recreate-smooch-apps lambda.
 
