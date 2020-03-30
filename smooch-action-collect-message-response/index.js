@@ -30,6 +30,7 @@ exports.handler = async (event) => {
     smoochAppId: appId,
     smoochUserId: userId,
   };
+  let newMessage = message;
 
   log.info('smooch-action-collect-message-response was called', { ...logContext, parameters });
 
@@ -86,6 +87,11 @@ exports.handler = async (event) => {
     throw error;
   }
 
+  if (message.length > 128) {
+    log.warn('Message contains more than 128 characters', logContext);
+    newMessage = `${message.substring(0, 124)}...`;
+  }
+
   try {
     await smooch.appUsers.sendMessage({
       appId,
@@ -96,7 +102,7 @@ exports.handler = async (event) => {
         fields: [{
           type: 'text',
           name: 'collect-message',
-          label: message,
+          label: newMessage,
         }],
         blockChatInput: false,
         metadata: {

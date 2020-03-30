@@ -1,3 +1,6 @@
+## 1.18.2
+* CXV1-21722 - Smooch collect message response breaks if you pass in a message >128 characters
+
 ## 1.18.1
 * CXV1-21876 - Add getSecrets and putSecrets permissions to recreate-smooch-apps lambda.
 
