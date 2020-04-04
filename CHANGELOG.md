@@ -1,3 +1,6 @@
+## 1.18.3
+* INVALID S3 IAM POLICY on send-attachment lambda. DO NOT RELEASE PRIOR TO THIS VERSION
+
 ## 1.18.2
 * CXV1-21722 - Smooch collect message response breaks if you pass in a message >128 characters
 

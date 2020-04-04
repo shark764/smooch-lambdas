@@ -56,7 +56,7 @@
             "Effect": "Allow",
             "Action": "s3:getObject",
             "Resource": [
-                "arn:aws:s3:::cxengagelabs-*-edge/*"
+                "arn:aws:s3:::*-edge*"
             ]
         }
     ]
