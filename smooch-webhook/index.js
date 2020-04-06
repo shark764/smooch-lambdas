@@ -801,7 +801,7 @@ async function updateInteractionMetadata({
 
 async function uploadArtifactFile(
   {
-    tenantId, interactionId, appId, userId,
+    tenantId, interactionId,
   },
   artifactId,
   message,
@@ -809,8 +809,7 @@ async function uploadArtifactFile(
   const QueueName = `${AWS_REGION}-${ENVIRONMENT}-upload-artifact-file`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const payload = JSON.stringify({
-    smoochAppId: appId,
-    smoochUserId: userId,
+    source: 'customer',
     tenantId,
     interactionId,
     artifactId,

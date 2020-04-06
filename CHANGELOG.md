@@ -1,3 +1,6 @@
+## 1.18.5
+* CXV1-21876 - Remove scheduleSmoochAttachmentDeletion in upload-artifact-file lambda.
+
 # 1.18.4
 * CXV1-21876 - Fix issues and add tests to recreate-smooch-apps lambda.
 

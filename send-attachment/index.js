@@ -368,8 +368,6 @@ async function uploadArtifactFile(
   {
     tenantId,
     interactionId,
-    appId,
-    userId,
   },
   artifactId,
   { filename, contentType },
@@ -382,8 +380,6 @@ async function uploadArtifactFile(
     tenantId,
     interactionId,
     artifactId,
-    smoochAppId: appId,
-    SmoochUserId: userId,
     fileData: { filename, contentType },
     message,
   });

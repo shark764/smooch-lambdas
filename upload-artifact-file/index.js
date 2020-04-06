@@ -8,7 +8,6 @@ const AWS = require('aws-sdk');
 const FormData = require('form-data');
 
 AWS.config.update({ region: process.env.AWS_REGION });
-const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const secretsClient = new AWS.SecretsManager();
 
 const {
@@ -25,8 +24,6 @@ exports.handler = async (event) => {
     artifactId,
     fileData,
     message,
-    smoochAppId,
-    smoochUserId,
   } = JSON.parse(event.Records[0].body);
   const logContext = {
     tenantId,
@@ -95,9 +92,6 @@ exports.handler = async (event) => {
     artifactId,
     smoochFileMessage: message,
   });
-  await scheduleSmoochAttachmentDeletion({
-    tenantId, interactionId, smoochMessageId: message._id, smoochAppId, smoochUserId,
-  });
 
   log.debug('Uploading artifact using old upload route', {
     tenantId,
@@ -122,27 +116,3 @@ exports.handler = async (event) => {
 
   log.info('upload-artifact-file was successful', logContext);
 };
-
-async function scheduleSmoochAttachmentDeletion({
-  tenantId, interactionId, smoochMessageId, smoochUserId, smoochAppId,
-}) {
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-schedule-lambda-trigger`;
-  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
-  const MessageBody = JSON.stringify({
-    tenantId,
-    interactionId,
-    ruleName: `DeleteSmoochAttachment-${smoochMessageId}`,
-    triggerInMs: 43200000, // 12 hours
-    targetQueueName: `${AWS_REGION}-${ENVIRONMENT}-delete-smooch-attachments`,
-    additionalParams: {
-      smoochAppId,
-      smoochUserId,
-      smoochMessageId,
-    },
-  });
-  const sqsMessageAction = {
-    MessageBody,
-    QueueUrl,
-  };
-  await sqs.sendMessage(sqsMessageAction).promise();
-}
