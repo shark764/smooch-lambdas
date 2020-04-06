@@ -1,3 +1,6 @@
+## 1.18.6
+* CXV1-21938 - Agent can send message to dead interaction and customer will receive it after starting a new one
+
 ## 1.18.5
 * CXV1-21876 - Remove scheduleSmoochAttachmentDeletion in upload-artifact-file lambda.
 

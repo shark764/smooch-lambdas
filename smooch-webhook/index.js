@@ -145,6 +145,40 @@ exports.handler = async (event) => {
                     );
 
                     try {
+                      await axios({
+                        method: 'post',
+                        url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts?id=${uuidv1()}`,
+                        data: {
+                          source: 'smooch',
+                          interruptType: 'interaction-disconnect',
+                          interrupt: {
+                            interactionId,
+                          },
+                        },
+                        auth,
+                      });
+                    } catch (err) {
+                      log.error('An error has occurred trying to send resource interrupt',
+                        logContext,
+                        err);
+                      if (err.response.status === 404) {
+                        await sendCustomerMessageToParticipants({
+                          appId,
+                          userId,
+                          tenantId,
+                          contentType: 'text',
+                          interactionId,
+                          message: {
+                            text: 'INTERACTION_NOT_FOUND_ERROR',
+                            received: message.received,
+                          },
+                          auth,
+                          logContext,
+                        });
+                      }
+                    }
+
+                    try {
                       workingInteractionId = await createInteraction({
                         appId,
                         userId,
@@ -664,7 +698,7 @@ async function sendCustomerMessageToParticipants({
             from: message.name,
             contentType,
             timestamp: message.received * 1000,
-            type: 'customer',
+            type: message.text === 'INTERACTION_NOT_FOUND_ERROR' ? 'system' : 'customer',
             text: message.text,
             file: {
               mediaUrl: message.mediaUrl,
