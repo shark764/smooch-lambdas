@@ -1,3 +1,6 @@
+# 1.18.4
+* CXV1-21876 - Fix issues and add tests to recreate-smooch-apps lambda.
+
 ## 1.18.3
 * INVALID S3 IAM POLICY on send-attachment lambda. DO NOT RELEASE PRIOR TO THIS VERSION
 

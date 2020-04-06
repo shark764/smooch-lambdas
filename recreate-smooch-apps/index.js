@@ -29,7 +29,7 @@ exports.handler = async () => {
     const queryResponse = await docClient.scan(getRecordsParams).promise();
     smoochRecords = queryResponse.Items;
     smoochApps = smoochRecords.filter((record) => record.type === 'app');
-    smoochIntegrations = smoochRecords.filter((record) => record.type === 'integration');
+    smoochIntegrations = smoochRecords.filter((record) => record.type === 'web');
   } catch (error) {
     const errMsg = 'An Error has occurred trying to fetch apps in DynamoDB';
 
@@ -37,9 +37,20 @@ exports.handler = async () => {
 
     throw error;
   }
-  const accountSecrets = await secretsClient.getSecretValue({
-    SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-account`,
-  }).promise();
+
+  let accountSecrets;
+  try {
+    accountSecrets = await secretsClient.getSecretValue({
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-account`,
+    }).promise();
+  } catch (error) {
+    const errMsg = 'An Error has occurred retrieving account secrets';
+
+    log.error(errMsg, {}, error);
+
+    throw error;
+  }
+
   const accountKeys = JSON.parse(accountSecrets.SecretString);
   const smooch = new SmoochCore({
     keyId: accountKeys.id,
@@ -48,51 +59,72 @@ exports.handler = async () => {
     serviceUrl: smoochApiUrl,
   });
 
+  let failed = false;
+
   for (const smoochAppRecord of smoochApps) {
-    const { 'tenant-id': tenantId, 'app-id': appId } = smoochAppRecord;
-    const { app: smoochApp } = await smooch.apps.get(appId);
+    const { 'tenant-id': tenantId, id: appId } = smoochAppRecord;
     const webIntegrationRecords = smoochIntegrations.filter((webIntegration) => webIntegration['app-id'] === appId);
     const logContext = { tenantId, appId };
 
-    let newApp;
+    let smoochApp;
     try {
-      // Recreate the app.
-      newApp = await createSmoochApp(tenantId, smoochApp, smoochAppRecord, smooch);
+      const { app } = await smooch.apps.get(appId);
+      smoochApp = app;
     } catch (error) {
-      log.error('Error creating smooch App', logContext, error);
+      log.error('Error retrieving current Smooch app', logContext, error);
+      failed = true;
     }
 
-    if (webIntegrationRecords.length > 0) {
-      for (const webIntegrationRecord of webIntegrationRecords) {
-        // get the old integration then delete an recreate it.
-        let smoochIntegration;
-        try {
-          smoochIntegration = await smooch.integrations
-            .get({ appId, integrationId: webIntegrationRecord.id });
-        } catch (error) {
-          log.error('Error creating smooch web integration', { ...logContext, integrationId: webIntegrationRecord.id }, error);
+    if (smoochApp) {
+      let newApp;
+      try {
+        // Recreate the app.
+        newApp = await createSmoochApp(tenantId, smoochApp, smoochAppRecord, smooch);
+      } catch (error) {
+        log.error('Error creating Smooch App', logContext, error);
+        failed = true;
+      }
+      if (newApp) {
+        if (webIntegrationRecords.length > 0) {
+          for (const webIntegrationRecord of webIntegrationRecords) {
+            // get the old integration then delete an recreate it.
+            let smoochIntegration;
+            try {
+              smoochIntegration = await smooch.integrations
+                .get({ appId, integrationId: webIntegrationRecord.id });
+            } catch (error) {
+              log.error('Error retrieving Smooch integration', { ...logContext, integrationId: webIntegrationRecord.id }, error);
+              failed = true;
+            }
+            if (smoochIntegration) {
+              try {
+                await deleteSmoochWebIntegration(tenantId, appId, webIntegrationRecord.id, smooch);
+              } catch (error) {
+                log.error('Error deleting Smooch integration', { ...logContext, integrationId: webIntegrationRecord.id }, error);
+                failed = true;
+              }
+              try {
+                await createSmoochWebIntegration(tenantId, newApp._id,
+                  smoochIntegration.integration,
+                  webIntegrationRecord, smooch);
+              } catch (error) {
+                log.error('Error creating Smooch integration', logContext, error);
+                failed = true;
+              }
+            }
+          }
         }
+        // delete old smooch app
         try {
-          await deleteSmoochWebIntegration(tenantId, appId, webIntegrationRecord.id, smooch);
+          await deleteSmoochApp(tenantId, appId, smooch);
         } catch (error) {
-          log.error('Error deleting smooch web integration', { ...logContext, integrationId: webIntegrationRecord.id }, error);
-        }
-
-        try {
-          await createSmoochWebIntegration(tenantId, newApp._id, smoochIntegration.integration,
-            webIntegrationRecord, smooch);
-        } catch (error) {
-          log.error('Error creating smooch App', logContext, error);
+          log.error('Error deleting smooch app', logContext, error);
         }
       }
     }
-    // delete old smooch app
-    try {
-      await deleteSmoochApp(tenantId, appId, smooch);
-    } catch (error) {
-      log.error('Error deleting smooch app', logContext, error);
-    }
   }
+
+  if (failed) throw new Error('Something failed running recreate-smooch-apps');
 };
 
 /**
@@ -170,7 +202,7 @@ async function createSmoochApp(tenantId, smoochBody, dynamoItem, smooch) {
   const logContext = { tenantId, appId: smoochBody._id };
   let newApp;
   try {
-    newApp = await smooch.apps.create(dynamoItem);
+    newApp = await smooch.apps.create(smoochBody);
     newApp = newApp.app;
   } catch (error) {
     const errMsg = 'An Error has occurred trying to create an App';
@@ -180,7 +212,7 @@ async function createSmoochApp(tenantId, smoochBody, dynamoItem, smooch) {
     throw error;
   }
 
-  const newAppId = newApp.app._id;
+  const newAppId = newApp._id;
   let smoochAppKeys;
 
   logContext.smoochAppId = newAppId;
@@ -245,8 +277,8 @@ async function createSmoochApp(tenantId, smoochBody, dynamoItem, smooch) {
       name: smoochBody.name,
       type: 'app',
       'webhook-id': webhook.webhook._id,
-      'created-by': dynamoItem['user-id'],
-      'updated-by': dynamoItem['user-id'],
+      'created-by': dynamoItem['created-by'],
+      'updated-by': dynamoItem['updated-by'],
       created: (new Date()).toISOString(),
       updated: (new Date()).toISOString(),
     },
@@ -316,7 +348,7 @@ async function createSmoochWebIntegration(tenantId, appId, smoochBody, dynamoIte
   const logContext = { tenantId, appId };
   let smoochIntegration;
   try {
-    const { integration } = await smooch.integrations.create(smoochBody.appId, smoochBody);
+    const { integration } = await smooch.integrations.create(appId, smoochBody);
 
     smoochIntegration = integration;
   } catch (error) {
@@ -352,8 +384,8 @@ async function createSmoochWebIntegration(tenantId, appId, smoochBody, dynamoIte
     ':appId': appId,
     ':contactPoint': contactPoint,
     ':name': name,
-    ':createdBy': dynamoItem['user-id'],
-    ':updatedBy': dynamoItem['user-id'],
+    ':createdBy': dynamoItem['created-by'],
+    ':updatedBy': dynamoItem['updated-by'],
     ':created': (new Date()).toISOString(),
     ':updated': (new Date()).toISOString(),
   };
