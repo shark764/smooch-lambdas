@@ -1,9 +1,0 @@
-include_queue = "true"
-timeout = 30
-memory_size = 128
-zip_path="recreate-smooch-apps/recreate-smooch-apps.zip"
-handler = "index.handler"
-environmentVars = {
-  "ENVIRONMENT" = "${ENVIRONMENT}",
-  "DOMAIN" = "${DOMAIN}"
-}
