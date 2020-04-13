@@ -81,7 +81,7 @@ Array [
     Object {
       "name": "smooch",
       "settings": Object {
-        "conversationRetentionSeconds": 3600,
+        "conversationRetentionSeconds": 172800,
       },
     },
   ],

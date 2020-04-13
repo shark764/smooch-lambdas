@@ -4,7 +4,7 @@ const SmoochCore = require('smooch-core');
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const secretsClient = new AWS.SecretsManager();
-
+const DEFAULT_CONVERSATION_RETENTION_SECONDS = 3600 * 48;
 
 const {
   AWS_REGION,
@@ -40,7 +40,7 @@ exports.handler = async () => {
     const logContext = { appId };
     try {
       await smooch.apps.update(appId, {
-        settings: { conversationRetentionSeconds: 3600 },
+        settings: { conversationRetentionSeconds: DEFAULT_CONVERSATION_RETENTION_SECONDS },
       });
     } catch (error) {
       log.error('An error occurred updating smooch app', logContext);

@@ -11,7 +11,7 @@ const { validatePlatformPermissions } = require('serenova-js-utils/lambda/api');
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
-const DEFAULT_CONVERSATION_RETENTION_SECONDS = 3600;
+const DEFAULT_CONVERSATION_RETENTION_SECONDS = 3600 * 48;
 const secretsClient = new AWS.SecretsManager();
 
 const bodySchema = Joi.object({

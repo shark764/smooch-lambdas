@@ -1,3 +1,6 @@
+# 1.18.8
+* CXV1-21876 - Change default conversation retention seconds to 48 hrs.
+
 # 1.18.7
 * CXV1-21876 - Delete recreate-smooch-apps lambda.
 
