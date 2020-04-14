@@ -187,22 +187,42 @@ async function createMessagingTranscript({ logContext, cxAuth }) {
     smoochUserId: userId,
   } = logContext;
   const { data: { appId, artifactId } } = await getMetadata({ tenantId, interactionId, cxAuth });
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-create-messaging-transcript`;
-  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
-  const payload = JSON.stringify({
-    tenantId,
-    interactionId,
-    appId,
-    userId,
-    artifactId,
-  });
+  let transcriptFile;
+  const newLogContext = { ...logContext, artifactId };
+  try {
+    const { data } = await axios({
+      method: 'get',
+      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
+      auth: cxAuth,
+    });
+    log.info('artifact found for interaction', { ...newLogContext, artifact: data });
+    transcriptFile = data.files.find((f) => f.metadata && f.metadata.transcript === true);
+  } catch (error) {
+    log.error('Error retrieving artifact', newLogContext);
+  }
 
-  const sqsMessageAction = {
-    MessageBody: payload,
-    QueueUrl,
-  };
+  if (!transcriptFile) {
+    const QueueName = `${AWS_REGION}-${ENVIRONMENT}-create-messaging-transcript`;
+    const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+    const payload = JSON.stringify({
+      tenantId,
+      interactionId,
+      appId,
+      userId,
+      artifactId,
+    });
 
-  await sqs.sendMessage(sqsMessageAction).promise();
+    const sqsMessageAction = {
+      MessageBody: payload,
+      QueueUrl,
+    };
+
+    log.info('Sending message to create-messaging-transcript Queue', newLogContext);
+
+    await sqs.sendMessage(sqsMessageAction).promise();
+  } else {
+    log.info('Transcript file not created, file already exists', newLogContext);
+  }
 }
 
 async function getMetadata({ tenantId, interactionId, cxAuth: auth }) {

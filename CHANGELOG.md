@@ -1,3 +1,6 @@
+# 1.18.9
+* CXV1-22077: Add validation to avoid multiple artifact file creations per interaction.
+
 # 1.18.8
 * CXV1-21876 - Change default conversation retention seconds to 48 hrs.
 
