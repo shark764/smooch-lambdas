@@ -216,8 +216,9 @@ exports.handler = async (event) => {
                   logContext,
                 });
               } else if (!hasInteractionItem) {
+                let newInteractionId;
                 try {
-                  await createInteraction({
+                  newInteractionId = await createInteraction({
                     appId,
                     userId,
                     tenantId,
@@ -234,6 +235,33 @@ exports.handler = async (event) => {
                 } catch (error) {
                   log.error('Failed to create an interaction', logContext, error);
                   throw error;
+                }
+                if (type === 'file' || type === 'image') {
+                  let artifactId;
+                  try {
+                    const data = await getMetadata({
+                      tenantId,
+                      interactionId: newInteractionId,
+                      auth,
+                    });
+
+                    logContext.interactionId = newInteractionId;
+                    log.debug('Got interaction metadata', logContext);
+                    artifactId = data.data.artifactId;
+                  } catch (error) {
+                    log.error('An Error ocurred retrieving interaction metadata', logContext, error);
+                    throw error;
+                  }
+                  try {
+                    await uploadArtifactFile({
+                      tenantId, interactionId: newInteractionId,
+                    },
+                    artifactId, message, auth);
+                  } catch (error) {
+                    const errMsg = 'Failed to upload artifact file';
+                    log.error(errMsg, logContext, error);
+                    throw error;
+                  }
                 }
               } else {
                 log.info('Web type received: text, but interaction is being created by something else. Ignoring.', logContext);

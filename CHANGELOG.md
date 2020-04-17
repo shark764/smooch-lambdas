@@ -1,3 +1,6 @@
+# 1.18.10
+* CXV1-22020: Add first attachment message in the transcript file after client disconnect.
+
 # 1.18.9
 * CXV1-22077: Add validation to avoid multiple artifact file creations per interaction.
 
