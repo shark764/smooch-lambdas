@@ -1,3 +1,6 @@
+# 1.18.11
+* CXV1-21634 - Disconnect timer is reset after customer stops typing.
+
 # 1.18.10
 * CXV1-22020: Add first attachment message in the transcript file after client disconnect.
 

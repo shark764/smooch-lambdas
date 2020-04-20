@@ -85,8 +85,10 @@ exports.handler = async (event) => {
   const interactionId = interactionItem && (
     interactionItem.InteractionId === 'interaction-404' ? undefined : interactionItem.InteractionId
   );
+  const { integrationId } = client;
   logContext.hasInteractionItem = hasInteractionItem;
   logContext.interactionId = interactionId;
+  logContext.smoochIntegrationId = integrationId;
 
   switch (trigger) {
     case 'message:appUser': {
@@ -100,9 +102,7 @@ exports.handler = async (event) => {
       const message = messages[0];
       const { type } = message;
 
-      const { integrationId } = client;
       logContext.smoochMessageType = type;
-      logContext.smoochIntegrationId = integrationId;
 
       switch (platform) {
         case 'web': {
@@ -816,9 +816,39 @@ async function sendConversationEvent({
       }),
     );
 
-    if (conversationEvent !== 'conversation-read') {
+    if (conversationEvent === 'typing-stop') {
+      await updateSmoochClientLastActivity({
+        latestCustomerMessageTimestamp: (new Date()).getTime(),
+        userId: logContext.smoochUserId,
+        logContext,
+      });
+    } else if (conversationEvent !== 'conversation-read') {
       await updateSmoochClientLastActivity({
         latestCustomerMessageTimestamp: timestamp * 1000,
+        userId: logContext.smoochUserId,
+        logContext,
+      });
+    }
+
+    const disconnectTimeoutInMinutes = await getClientInactivityTimeout({ logContext });
+    let shouldCheck;
+    if (disconnectTimeoutInMinutes) {
+      log.debug('Disconnect Timeout is set. Checking if should check for client disconnect', {
+        ...logContext,
+        disconnectTimeoutInMinutes,
+      });
+      shouldCheck = await shouldCheckIfClientIsDisconnected({
+        userId: logContext.smoochUserId,
+        logContext,
+      });
+    } else {
+      log.debug('There is no Disconnect Timeout set. Not checking for client innactivity', logContext);
+    }
+    if (shouldCheck) {
+      log.debug('Checking for client inactivity', { ...logContext, disconnectTimeoutInMinutes });
+      await checkIfClientIsDisconnected({
+        latestAgentMessageTimestamp: (new Date()).getTime(),
+        disconnectTimeoutInMinutes,
         userId: logContext.smoochUserId,
         logContext,
       });
@@ -983,4 +1013,87 @@ async function sendSmoochInteractionHeartbeat({
     request: data,
   });
   return data;
+}
+
+async function checkIfClientIsDisconnected({
+  latestAgentMessageTimestamp,
+  disconnectTimeoutInMinutes,
+  userId,
+  logContext,
+}) {
+  const { tenantId, interactionId } = logContext;
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-smooch-client-disconnect-checker`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const DelaySeconds = Math.min(disconnectTimeoutInMinutes, 15) * 60;
+  const MessageBody = JSON.stringify({
+    interactionId,
+    tenantId,
+    userId,
+    latestAgentMessageTimestamp,
+    disconnectTimeoutInMinutes,
+  });
+  const sqsMessageAction = {
+    MessageBody,
+    QueueUrl,
+    DelaySeconds,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
+}
+
+async function shouldCheckIfClientIsDisconnected({ userId, logContext }) {
+  let smoochInteractionRecord;
+  try {
+    smoochInteractionRecord = await docClient
+      .get({
+        TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+        Key: {
+          SmoochUserId: userId,
+        },
+      })
+      .promise();
+  } catch (error) {
+    log.error('Failed to get smooch interaction record', logContext, error);
+    throw error;
+  }
+
+  const interactionItem = smoochInteractionRecord && smoochInteractionRecord.Item;
+  const hasInteractionItem = interactionItem && Object.entries(interactionItem).length !== 0;
+  const LatestCustomerMsgTs = interactionItem && interactionItem.LatestCustomerMessageTimestamp;
+  const LatestAgentMsgTs = interactionItem && interactionItem.LatestAgentMessageTimestamp;
+
+  if (!hasInteractionItem) {
+    return false;
+  }
+  // No customer messages, or no agent messages. Check if client is active
+  if (!LatestCustomerMsgTs || !LatestAgentMsgTs) {
+    return true;
+  }
+  if (LatestCustomerMsgTs > LatestAgentMsgTs) {
+    return true;
+  }
+  return false;
+}
+
+async function getClientInactivityTimeout({ logContext }) {
+  const { tenantId, smoochIntegrationId: integrationId } = logContext;
+  let smoochIntegration;
+  try {
+    smoochIntegration = await docClient
+      .get({
+        TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+        Key: {
+          'tenant-id': tenantId,
+          id: integrationId,
+        },
+      })
+      .promise();
+  } catch (error) {
+    log.error('Failed to get smooch interaction record', logContext, error);
+    throw error;
+  }
+  const {
+    Item: { 'client-disconnect-minutes': clientDisconnectMinutes },
+  } = smoochIntegration;
+
+  return clientDisconnectMinutes;
 }
