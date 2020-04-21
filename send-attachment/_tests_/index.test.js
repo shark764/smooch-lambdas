@@ -239,7 +239,6 @@ describe('send-attachment', () => {
           artifactId: '5e31c81640a22c000f5d7f35',
         },
       }));
-      axios.mockRejectedValueOnce(new Error());
       const result = await handler(event);
       expect(result).toMatchSnapshot();
     });
@@ -255,6 +254,26 @@ describe('send-attachment', () => {
 
     it('when there is a error uploading file to artifact', async () => {
       mockGetQueueUrl.mockRejectedValueOnce(new Error());
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
+
+    it('when there is a error checking for dead interaction', async () => {
+      const error = new Error();
+      error.response = {
+        status: 0,
+      };
+      axios.mockImplementationOnce(() => ({
+        data: {
+          method: 'get',
+          url: 'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
+          smoochIntegrationId: '66d83870-30df-4a3b-8801-59edff162050',
+          appId: '5e31c81640a22c000f5d7f28',
+          userId: '5e31c81640a22c000f5d7f30',
+          artifactId: '5e31c81640a22c000f5d7f35',
+        },
+      }));
+      axios.mockRejectedValueOnce(error);
       const result = await handler(event);
       expect(result).toMatchSnapshot();
     });
@@ -455,6 +474,26 @@ describe('send-attachment', () => {
       },
     };
     mockSendMessage.mockRejectedValueOnce(error);
+    const result = await handler(event);
+    expect(result).toMatchSnapshot();
+  });
+
+  it('sends back status 410 when sending message to dead interaction', async () => {
+    const error = new Error();
+    error.response = {
+      status: 404,
+    };
+    axios.mockImplementationOnce(() => ({
+      data: {
+        method: 'get',
+        url: 'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
+        smoochIntegrationId: '66d83870-30df-4a3b-8801-59edff162050',
+        appId: '5e31c81640a22c000f5d7f28',
+        userId: '5e31c81640a22c000f5d7f30',
+        artifactId: '5e31c81640a22c000f5d7f35',
+      },
+    }));
+    axios.mockRejectedValueOnce(error);
     const result = await handler(event);
     expect(result).toMatchSnapshot();
   });

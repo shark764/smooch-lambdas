@@ -12,25 +12,15 @@ const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 const {
-  AWS_REGION,
-  ENVIRONMENT,
-  DOMAIN,
-  smooch_api_url: smoochApiUrl,
+  AWS_REGION, ENVIRONMENT, DOMAIN, smooch_api_url: smoochApiUrl,
 } = process.env;
 
 exports.handler = async (event) => {
-  const {
-    params,
-    body,
-    identity,
-  } = event;
+  const { params, body, identity } = event;
   const { 'tenant-id': tenantId, 'interaction-id': interactionId } = params;
   const { 'user-id': resourceId, 'first-name': firstName, 'last-name': lastName } = identity;
   const from = `${firstName} ${lastName}`;
-  const {
-    agentMessageId,
-    message,
-  } = body;
+  const { agentMessageId, message } = body;
   const logContext = {
     tenantId,
     interactionId,
@@ -47,9 +37,11 @@ exports.handler = async (event) => {
 
   let appSecrets;
   try {
-    appSecrets = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
-    }).promise();
+    appSecrets = await secretsClient
+      .getSecretValue({
+        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+      })
+      .promise();
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
 
@@ -63,9 +55,11 @@ exports.handler = async (event) => {
 
   let cxAuthSecret;
   try {
-    cxAuthSecret = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
-    }).promise();
+    cxAuthSecret = await secretsClient
+      .getSecretValue({
+        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+      })
+      .promise();
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve cx credentials';
 
@@ -119,7 +113,48 @@ exports.handler = async (event) => {
     };
   }
 
+  /**
+   * If heartbeat is successfull continue as normal
+   * if not, return an error
+   */
+  try {
+    await sendSmoochInteractionHeartbeat({
+      tenantId,
+      interactionId,
+      auth: cxAuth,
+    });
+  } catch (error) {
+    if (error.response.status === 404) {
+      await smooch.appUsers.sendMessage({
+        appId,
+        userId,
+        message: {
+          text: `${firstName} Disconnected`,
+          type: 'text',
+          role: 'appMaker',
+          metadata: {
+            type: 'system',
+            from,
+            firstName,
+            resourceId,
+            interactionId,
+          },
+        },
+      });
+
+      const errMsg = 'Sending Message to dead interaction';
+
+      log.error(errMsg, logContext, error);
+
+      return {
+        status: 410,
+        body: { message: errMsg },
+      };
+    }
+  }
+
   let messageSent;
+
   try {
     messageSent = await smooch.appUsers.sendMessage({
       appId,
@@ -163,7 +198,10 @@ exports.handler = async (event) => {
   const disconnectTimeoutInMinutes = await getClientInactivityTimeout({ logContext });
   let shouldCheck;
   if (disconnectTimeoutInMinutes) {
-    log.debug('Disconnect Timeout is set. Checking if should check for client disconnect', { ...logContext, disconnectTimeoutInMinutes });
+    log.debug('Disconnect Timeout is set. Checking if should check for client disconnect', {
+      ...logContext,
+      disconnectTimeoutInMinutes,
+    });
     shouldCheck = await shouldCheckIfClientIsDisconnected({ userId, logContext });
   } else {
     log.debug('There is no Disconnect Timeout set. Not checking for client innactivity', logContext);
@@ -198,9 +236,7 @@ async function getMetadata({ tenantId, interactionId, auth }) {
   });
 }
 
-async function sendReportingEvent({
-  logContext,
-}) {
+async function sendReportingEvent({ logContext }) {
   const { tenantId, interactionId, resourceId } = logContext;
   const QueueName = `${AWS_REGION}-${ENVIRONMENT}-send-reporting-event`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
@@ -220,7 +256,10 @@ async function sendReportingEvent({
 }
 
 async function checkIfClientIsDisconnected({
-  latestAgentMessageTimestamp, disconnectTimeoutInMinutes, userId, logContext,
+  latestAgentMessageTimestamp,
+  disconnectTimeoutInMinutes,
+  userId,
+  logContext,
 }) {
   const { tenantId, interactionId } = logContext;
   const QueueName = `${AWS_REGION}-${ENVIRONMENT}-smooch-client-disconnect-checker`;
@@ -260,9 +299,9 @@ async function shouldCheckIfClientIsDisconnected({ userId, logContext }) {
   const interactionItem = smoochInteractionRecord && smoochInteractionRecord.Item;
   const hasInteractionItem = interactionItem && Object.entries(interactionItem).length !== 0;
   const LatestCustomerMessageTimestamp = interactionItem
-    && interactionItem.LatestCustomerMessageTimestamp;
+  && interactionItem.LatestCustomerMessageTimestamp;
   const LatestAgentMessageTimestamp = interactionItem
-    && interactionItem.LatestAgentMessageTimestamp;
+  && interactionItem.LatestAgentMessageTimestamp;
 
   if (!hasInteractionItem) {
     return false;
@@ -295,10 +334,28 @@ async function getClientInactivityTimeout({ logContext }) {
     throw error;
   }
   const {
-    Item: {
-      'client-disconnect-minutes': clientDisconnectMinutes,
-    },
+    Item: { 'client-disconnect-minutes': clientDisconnectMinutes },
   } = smoochIntegration;
 
   return clientDisconnectMinutes;
+}
+
+async function sendSmoochInteractionHeartbeat({ tenantId, interactionId, auth }) {
+  const { data } = await axios({
+    method: 'post',
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts`,
+    data: {
+      source: 'smooch',
+      interruptType: 'smooch-heartbeat',
+      interrupt: {},
+    },
+    auth,
+  });
+
+  log.debug('Interaction heartbeat', {
+    interactionId,
+    tenantId,
+    request: data,
+  });
+  return data;
 }

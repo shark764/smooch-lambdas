@@ -127,6 +127,46 @@ exports.handler = async (event) => {
   }
 
   /**
+   * If heartbeat is successfull continue as normal
+   * if not, return an error
+   */
+  try {
+    await sendSmoochInteractionHeartbeat({
+      tenantId,
+      interactionId,
+      auth: cxAuth,
+    });
+  } catch (error) {
+    if (error.response.status === 404) {
+      await smooch.appUsers.sendMessage({
+        appId,
+        userId,
+        message: {
+          text: `${firstName} Disconnected`,
+          type: 'text',
+          role: 'appMaker',
+          metadata: {
+            type: 'system',
+            from,
+            firstName,
+            resourceId,
+            interactionId,
+          },
+        },
+      });
+
+      const errMsg = 'Sending Message to dead interaction';
+
+      log.error(errMsg, logContext, error);
+
+      return {
+        status: 410,
+        body: { message: errMsg },
+      };
+    }
+  }
+
+  /**
    * Send file to customer
    */
   const multipart = Object.keys(multipartParams)[0];
@@ -210,6 +250,7 @@ exports.handler = async (event) => {
   } else {
     filetype = 'file';
   }
+
   try {
     messageSent = await smooch.appUsers.sendMessage({
       appId,
@@ -478,4 +519,24 @@ async function sizeOf(key, bucket) {
   const { ContentLength } = await s3.headObject({ Key: key, Bucket: bucket }).promise();
 
   return ContentLength;
+}
+
+async function sendSmoochInteractionHeartbeat({ tenantId, interactionId, auth }) {
+  const { data } = await axios({
+    method: 'post',
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts`,
+    data: {
+      source: 'smooch',
+      interruptType: 'smooch-heartbeat',
+      interrupt: {},
+    },
+    auth,
+  });
+
+  log.debug('Interaction heartbeat', {
+    interactionId,
+    tenantId,
+    request: data,
+  });
+  return data;
 }
