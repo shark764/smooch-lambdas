@@ -38,6 +38,7 @@ axios.mockImplementation(() => ({
     appId: '5e31c81640a22c000f5d7f28',
     userId: '5e31c81640a22c000f5d7f30',
     artifactId: '5e31c81640a22c000f5d7f35',
+    latestMessageSentBy: 'customer',
   },
 }));
 
@@ -216,6 +217,22 @@ describe('send-attachment', () => {
       expect(result).toMatchSnapshot();
     });
 
+    it('when there is a faliure updating interaction metadata', async () => {
+      mockSqsSendMessage.mockImplementationOnce(() => ({
+        promise: () => ({}),
+      }));
+      mockSqsSendMessage.mockImplementationOnce(() => ({
+        promise: () => ({}),
+      }));
+      mockSqsSendMessage.mockImplementationOnce(() => ({
+        promise: () => ({}),
+      }));
+      mockGetQueueUrl.mockRejectedValueOnce(new Error());
+      mockSqsSendMessage.mockRejectedValueOnce(new Error());
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
+
     it('when there is a faliure sending reporting event', async () => {
       mockSqsSendMessage.mockImplementationOnce(() => ({
         promise: () => ({}),
@@ -237,6 +254,7 @@ describe('send-attachment', () => {
           appId: '5e31c81640a22c000f5d7f28',
           userId: '5e31c81640a22c000f5d7f30',
           artifactId: '5e31c81640a22c000f5d7f35',
+          latestMessageSentBy: 'customer',
         },
       }));
       const result = await handler(event);
@@ -271,6 +289,7 @@ describe('send-attachment', () => {
           appId: '5e31c81640a22c000f5d7f28',
           userId: '5e31c81640a22c000f5d7f30',
           artifactId: '5e31c81640a22c000f5d7f35',
+          latestMessageSentBy: 'customer',
         },
       }));
       axios.mockRejectedValueOnce(error);
@@ -363,8 +382,14 @@ describe('send-attachment', () => {
         expect(mockSqsSendMessage.mock.calls[1]).toMatchSnapshot();
       });
 
-      it('passes in the correct arguments to sqs.getQueueUrl() in sendReportingEvent()', async () => {
+      it('passes in the correct arguments to sqs.getQueueUrl() in updateInteractionMetadata()', async () => {
         expect(mockGetQueueUrl.mock.calls[2]).toEqual(expect.arrayContaining([{
+          QueueName: 'us-east-1-dev-update-interaction-metadata',
+        }]));
+      });
+
+      it('passes in the correct arguments to sqs.getQueueUrl() in sendReportingEvent()', async () => {
+        expect(mockGetQueueUrl.mock.calls[3]).toEqual(expect.arrayContaining([{
           QueueName: 'us-east-1-dev-send-reporting-event',
         }]));
       });
@@ -491,6 +516,7 @@ describe('send-attachment', () => {
         appId: '5e31c81640a22c000f5d7f28',
         userId: '5e31c81640a22c000f5d7f30',
         artifactId: '5e31c81640a22c000f5d7f35',
+        latestMessageSentBy: 'customer',
       },
     }));
     axios.mockRejectedValueOnce(error);

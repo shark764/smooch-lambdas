@@ -1,11 +1,12 @@
 {
   "name": "smooch-lambdas",
-  "version": "1.18.12",
+  "version": "1.18.13",
   "dependencies": {},
   "scripts": {
     "build": "node install.js && node zip.js",
     "zip": "node zip.js",
-    "lint": "eslint . --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
     "test": "eslint . && jest --coverage",
     "jest": "jest",
     "jest:coverage": "jest --coverage",

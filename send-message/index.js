@@ -216,6 +216,21 @@ exports.handler = async (event) => {
     });
   }
 
+  if (interactionMetadata.latestMessageSentBy !== 'agent') {
+    interactionMetadata.latestMessageSentBy = 'agent';
+    try {
+      await updateInteractionMetadata({
+        tenantId,
+        interactionId,
+        metadata: interactionMetadata,
+      });
+      log.info('Updated latestMessageSentBy flag from metadata', logContext);
+    } catch (error) {
+      log.fatal('Error updating latestMessageSentBy flag from metadata', logContext, error);
+      throw error;
+    }
+  }
+
   try {
     await sendReportingEvent({ logContext });
   } catch (error) {
@@ -234,6 +249,26 @@ async function getMetadata({ tenantId, interactionId, auth }) {
     url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
     auth,
   });
+}
+
+async function updateInteractionMetadata({
+  tenantId,
+  interactionId,
+  metadata,
+}) {
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-update-interaction-metadata`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const payload = JSON.stringify({
+    tenantId,
+    interactionId,
+    source: 'smooch',
+    metadata,
+  });
+  const sqsMessageAction = {
+    MessageBody: payload,
+    QueueUrl,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
 }
 
 async function sendReportingEvent({ logContext }) {

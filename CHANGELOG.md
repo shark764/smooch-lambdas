@@ -1,3 +1,6 @@
+# 1.18.13
+* CXV1-21634 - Fixing reset disconnect timer only after customer stops typing if agent sent last message.
+
 # 1.8.12
 * CXV1-21938 Agent can send message to dead interaction and customer will receive it after starting a new one
 

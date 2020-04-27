@@ -215,6 +215,26 @@ exports.handler = async (event) => {
                   auth,
                   logContext,
                 });
+
+                const { data: metadata } = await getMetadata({
+                  tenantId,
+                  interactionId: workingInteractionId,
+                  auth,
+                });
+                if (metadata.latestMessageSentBy !== 'customer') {
+                  metadata.latestMessageSentBy = 'customer';
+                  try {
+                    await updateInteractionMetadata({
+                      tenantId,
+                      interactionId: workingInteractionId,
+                      metadata,
+                    });
+                    log.info('Updated latestMessageSentBy flag from metadata', logContext);
+                  } catch (error) {
+                    log.fatal('Error updating latestMessageSentBy flag from metadata', logContext, error);
+                    throw error;
+                  }
+                }
               } else if (!hasInteractionItem) {
                 let newInteractionId;
                 try {
@@ -474,9 +494,10 @@ async function handleCollectMessageResponse({
     (action) => action.actionId !== actionId,
   );
   metadata.collectActions = updatedActions;
+  metadata.latestMessageSentBy = 'customer';
+
   // If the updated actions length is different from the old one
   // that means the collect-message response was pending and has been removed
-
   if (pendingActions.length === updatedActions.length) {
     log.error('Action cannot be found in pending-actions', {
       ...logContext,
@@ -542,6 +563,7 @@ async function createInteraction({
   smoochMessageId,
   isInteractionDead,
   timestamp,
+  latestMessageSentBy = 'customer',
 }) {
   let creatingInteractionParams;
   if (isInteractionDead) {
@@ -655,6 +677,7 @@ async function createInteraction({
       artifactId,
       participants: [],
       firstCustomerMessageTimestamp: timestamp,
+      latestMessageSentBy,
     },
   };
   log.debug('Creating interaction', { ...logContext, artifactId, interactionParams });
@@ -783,7 +806,7 @@ async function sendConversationEvent({
   try {
     const { data } = await getMetadata({ tenantId, interactionId, auth });
     log.debug('Got interaction metadata', { ...logContext, interaction: data });
-    const { participants } = data;
+    const { participants, latestMessageSentBy } = data;
 
     await Promise.all(
       participants.map(async (participant) => {
@@ -830,28 +853,30 @@ async function sendConversationEvent({
       });
     }
 
-    const disconnectTimeoutInMinutes = await getClientInactivityTimeout({ logContext });
-    let shouldCheck;
-    if (disconnectTimeoutInMinutes) {
-      log.debug('Disconnect Timeout is set. Checking if should check for client disconnect', {
-        ...logContext,
-        disconnectTimeoutInMinutes,
-      });
-      shouldCheck = await shouldCheckIfClientIsDisconnected({
-        userId: logContext.smoochUserId,
-        logContext,
-      });
-    } else {
-      log.debug('There is no Disconnect Timeout set. Not checking for client innactivity', logContext);
-    }
-    if (shouldCheck) {
-      log.debug('Checking for client inactivity', { ...logContext, disconnectTimeoutInMinutes });
-      await checkIfClientIsDisconnected({
-        latestAgentMessageTimestamp: (new Date()).getTime(),
-        disconnectTimeoutInMinutes,
-        userId: logContext.smoochUserId,
-        logContext,
-      });
+    if (latestMessageSentBy !== 'customer') {
+      const disconnectTimeoutInMinutes = await getClientInactivityTimeout({ logContext });
+      let shouldCheck;
+      if (disconnectTimeoutInMinutes) {
+        log.debug('Disconnect Timeout is set. Checking if should check for client disconnect', {
+          ...logContext,
+          disconnectTimeoutInMinutes,
+        });
+        shouldCheck = await shouldCheckIfClientIsDisconnected({
+          userId: logContext.smoochUserId,
+          logContext,
+        });
+      } else {
+        log.debug('There is no Disconnect Timeout set. Not checking for client innactivity', logContext);
+      }
+      if (shouldCheck) {
+        log.debug('Checking for client inactivity', { ...logContext, disconnectTimeoutInMinutes });
+        await checkIfClientIsDisconnected({
+          latestAgentMessageTimestamp: (new Date()).getTime(),
+          disconnectTimeoutInMinutes,
+          userId: logContext.smoochUserId,
+          logContext,
+        });
+      }
     }
   } catch (error) {
     log.error(
