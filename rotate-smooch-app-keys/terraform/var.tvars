@@ -1,7 +1,0 @@
-timeout = 30
-memory_size = 128
-zip_path="rotate-smooch-app-keys/rotate-smooch-app-keys.zip"
-handler = "index.handler"
-environmentVars = {
-  "ENVIRONMENT" = "${ENVIRONMENT}"
-}

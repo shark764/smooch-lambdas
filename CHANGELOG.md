@@ -1,3 +1,6 @@
+# 1.19.1
+* Removed unused rotate keys lambda
+
 # 1.19.0
 * CXV1-21652 - Creating new lambda to make gateway registration API request.
 
