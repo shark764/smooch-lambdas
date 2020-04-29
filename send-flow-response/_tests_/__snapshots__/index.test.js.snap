@@ -26,4 +26,4 @@ Array [
 
 exports[`send-flow-response throws an error when there is a problem sending action response 1`] = `"Error sending action response"`;
 
-exports[`send-flow-response throws an error when there is a problem trying to rettrieve cx credentials 1`] = `"Error retrieving cx credentials"`;
+exports[`send-flow-response throws an error when there is a problem trying to retrieve cx credentials 1`] = `"Error retrieving cx credentials"`;

@@ -1,3 +1,6 @@
+# 1.19.0
+* CXV1-21652 - Creating new lambda to make gateway registration API request.
+
 # 1.18.13
 * CXV1-21634 - Fixing reset disconnect timer only after customer stops typing if agent sent last message.
 

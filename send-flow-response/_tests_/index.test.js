@@ -67,7 +67,7 @@ describe('send-flow-response', () => {
       });
     });
   });
-  it('throws an error when there is a problem trying to rettrieve cx credentials', async () => {
+  it('throws an error when there is a problem trying to retrieve cx credentials', async () => {
     try {
       mockGetSecretValue.mockRejectedValueOnce(new Error());
       await handler(event);

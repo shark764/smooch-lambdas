@@ -1,0 +1,12 @@
+{
+  "name": "register-gateway",
+  "version": "1.0.0",
+  "description": "Lambda to register gateway",
+  "repository": {},
+  "license": "UNLICENSED",
+  "dependencies": {
+    "aws-sdk": "^2.585.0",
+    "axios": "^0.19.0",
+    "serenova-js-utils": "1.10.3"
+  }
+}
