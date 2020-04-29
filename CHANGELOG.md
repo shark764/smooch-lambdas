@@ -1,3 +1,6 @@
+# 1.19.3
+* Add error info in log.error in set-conversation-retention-seconds
+
 # 1.19.2
 * CXV1-21652 - Setting CX credentials for Register Gateway Lambda.
 

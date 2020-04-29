@@ -35,6 +35,8 @@ exports.handler = async () => {
       .replace('-old', ''));
   appIds = appIds.filter((appSecretKey, index) => (appIds.indexOf(appSecretKey) === index));
 
+  log.debug('Starting app updates', { appIds });
+
   let hasErrored = false;
   for (const appId of appIds) {
     const logContext = { appId };
@@ -43,7 +45,7 @@ exports.handler = async () => {
         settings: { conversationRetentionSeconds: DEFAULT_CONVERSATION_RETENTION_SECONDS },
       });
     } catch (error) {
-      log.error('An error occurred updating smooch app', logContext);
+      log.error('An error occurred updating smooch app', logContext, error);
       hasErrored = true;
     }
   }
