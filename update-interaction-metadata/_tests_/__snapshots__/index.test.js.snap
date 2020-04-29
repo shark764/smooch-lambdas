@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`update-interaction-metadata Everything is successful Walkthrough passes in the correct arguments to axios 1`] = `
+Array [
+  Array [
+    Object {
+      "auth": Object {
+        "password": "Password",
+        "username": "UserName",
+      },
+      "data": Object {
+        "metadata": "metadata",
+        "source": "source",
+      },
+      "method": "post",
+      "url": "https://us-east-1-dev-edge.domain/v1/tenants/250faddb-9723-403a-9bd5-3ca710cb26e5/interactions/667802d8-2260-436c-958a-2ee0f71f73f0/metadata?id=7534c040-534d-11ea-8aa0-c32d6a748e46",
+    },
+  ],
+]
+`;
+
+exports[`update-interaction-metadata Everything is successful Walkthrough passes in the correct arguments to secretsClient.getSecretValue() to get cx credentials 1`] = `
+Array [
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-cx",
+    },
+  ],
+]
+`;
+
+exports[`update-interaction-metadata throws an error when there is a problem retrieving cx credentials 1`] = `"Error retrieving cx credentials"`;
+
+exports[`update-interaction-metadata throws an error when there is a problem updating interaction metadata 1`] = `"Failed to update interaction metadata"`;

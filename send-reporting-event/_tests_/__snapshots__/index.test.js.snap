@@ -1,0 +1,67 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`send-reporting-event Everthing is successful Walkthrough passes in the correct arguments to sns.publish() 1`] = `
+Array [
+  Array [
+    Object {
+      "Message": "dist-event",
+      "MessageAttributes": Object {
+        "app-id": Object {
+          "DataType": "String",
+          "StringValue": "55448dde-5fa1-416f-a55a-19537cc63c94",
+        },
+        "app-name": Object {
+          "DataType": "String",
+          "StringValue": "smooch",
+        },
+        "encoding": Object {
+          "DataType": "String",
+          "StringValue": "application/json",
+        },
+        "message": Object {
+          "DataType": "String",
+          "StringValue": "{\\"psychopomp/version\\":\\"psychopomp.messages.reporting/agent-message\\",\\"psychopomp/type\\":\\"agent-message\\",\\"event-id\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e46\\",\\"timestamp\\":\\"January 1 1970Z\\",\\"app-name\\":\\"smooch\\",\\"app-id\\":\\"55448dde-5fa1-416f-a55a-19537cc63c94\\",\\"tenant-id\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"interaction-id\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"agent-id\\":\\"667802d8-2260-436c-958a-2ee0f71f73f2\\",\\"message-id\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e46\\"}",
+        },
+        "topic-key": Object {
+          "DataType": "String",
+          "StringValue": "agent-message",
+        },
+      },
+      "TopicArn": "arn:aws:sns:us-east-1:667802d8-2260-436c-958a-2ee0f71f73f7:us-east-1-dev-agent-message",
+    },
+  ],
+]
+`;
+
+exports[`send-reporting-event Everthing is successful when the provided topic is customer-message 1`] = `
+Array [
+  Object {
+    "Message": "dist-event",
+    "MessageAttributes": Object {
+      "app-id": Object {
+        "DataType": "String",
+        "StringValue": "55448dde-5fa1-416f-a55a-19537cc63c94",
+      },
+      "app-name": Object {
+        "DataType": "String",
+        "StringValue": "smooch",
+      },
+      "encoding": Object {
+        "DataType": "String",
+        "StringValue": "application/json",
+      },
+      "message": Object {
+        "DataType": "String",
+        "StringValue": "{\\"psychopomp/version\\":\\"psychopomp.messages.reporting/customer-message\\",\\"psychopomp/type\\":\\"customer-message\\",\\"event-id\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e46\\",\\"timestamp\\":\\"January 1 1970Z\\",\\"app-name\\":\\"smooch\\",\\"app-id\\":\\"55448dde-5fa1-416f-a55a-19537cc63c94\\",\\"tenant-id\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"interaction-id\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"agent-id\\":\\"667802d8-2260-436c-958a-2ee0f71f73f2\\",\\"message-id\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e46\\"}",
+      },
+      "topic-key": Object {
+        "DataType": "String",
+        "StringValue": "customer-message",
+      },
+    },
+    "TopicArn": "arn:aws:sns:us-east-1:667802d8-2260-436c-958a-2ee0f71f73f7:us-east-1-dev-customer-message",
+  },
+]
+`;
+
+exports[`send-reporting-event throws an error when there is a problem sending reporting event 1`] = `"Error Sending Reporting Event"`;

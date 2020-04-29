@@ -38,7 +38,7 @@ axios.mockImplementation(() => ({
     appId: '5e31c81640a22c000f5d7f28',
     userId: '5e31c81640a22c000f5d7f30',
     artifactId: '5e31c81640a22c000f5d7f35',
-    latestMessageSentBy: 'customer',
+    latestMessageSentBy: 'agent',
   },
 }));
 
@@ -217,22 +217,6 @@ describe('send-attachment', () => {
       expect(result).toMatchSnapshot();
     });
 
-    it('when there is a faliure updating interaction metadata', async () => {
-      mockSqsSendMessage.mockImplementationOnce(() => ({
-        promise: () => ({}),
-      }));
-      mockSqsSendMessage.mockImplementationOnce(() => ({
-        promise: () => ({}),
-      }));
-      mockSqsSendMessage.mockImplementationOnce(() => ({
-        promise: () => ({}),
-      }));
-      mockGetQueueUrl.mockRejectedValueOnce(new Error());
-      mockSqsSendMessage.mockRejectedValueOnce(new Error());
-      const result = await handler(event);
-      expect(result).toMatchSnapshot();
-    });
-
     it('when there is a faliure sending reporting event', async () => {
       mockSqsSendMessage.mockImplementationOnce(() => ({
         promise: () => ({}),
@@ -300,6 +284,17 @@ describe('send-attachment', () => {
     describe('Walkthrough', () => {
       beforeAll(async () => {
         jest.clearAllMocks();
+        axios.mockImplementation(() => ({
+          data: {
+            method: 'get',
+            url: 'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
+            smoochIntegrationId: '66d83870-30df-4a3b-8801-59edff162050',
+            appId: '5e31c81640a22c000f5d7f28',
+            userId: '5e31c81640a22c000f5d7f30',
+            artifactId: '5e31c81640a22c000f5d7f35',
+            latestMessageSentBy: 'customer',
+          },
+        }));
         mockGetSecretValue.mockImplementationOnce(() => ({
           promise: () => ({
             SecretString: JSON.stringify({
@@ -548,6 +543,36 @@ describe('send-attachment', () => {
       await handler(event);
     } catch (error) {
       expect(Promise.reject(new Error('Failed to get smooch interaction record'))).rejects.toThrowErrorMatchingSnapshot();
+    }
+  });
+
+  it('throws an error when there is an error updating latestMessageSentBy flag from metadata', async () => {
+    try {
+      axios.mockImplementationOnce(() => ({
+        data: {
+          method: 'get',
+          url: 'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
+          smoochIntegrationId: '66d83870-30df-4a3b-8801-59edff162050',
+          appId: '5e31c81640a22c000f5d7f28',
+          userId: '5e31c81640a22c000f5d7f30',
+          artifactId: '5e31c81640a22c000f5d7f35',
+          latestMessageSentBy: 'customer',
+        },
+      }));
+      mockGetQueueUrl.mockImplementationOnce(() => ({
+        promise: () => ({
+          QueueUrl: 'queue-url',
+        }),
+      }));
+      mockGetQueueUrl.mockImplementationOnce(() => ({
+        promise: () => ({
+          QueueUrl: 'queue-url',
+        }),
+      }));
+      mockGetQueueUrl.mockRejectedValueOnce(new Error());
+      await handler(event);
+    } catch (error) {
+      expect(Promise.reject(new Error('Error updating latestMessageSentBy flag from metadata'))).rejects.toThrowErrorMatchingSnapshot();
     }
   });
 });

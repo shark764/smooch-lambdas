@@ -1,0 +1,251 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`update-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to SmoochCore 1`] = `
+Array [
+  Array [
+    Object {
+      "keyId": "id",
+      "scope": "app",
+      "secret": "secret",
+      "serviceUrl": "mock-amooch-api-url",
+    },
+  ],
+]
+`;
+
+exports[`update-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to docClient.get() 1`] = `
+Array [
+  Array [
+    Object {
+      "Key": Object {
+        "id": "5e31c81640a22c000f5d7c71",
+        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+      },
+      "TableName": "us-east-1-dev-smooch",
+    },
+  ],
+]
+`;
+
+exports[`update-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to docClient.update() 1`] = `
+Array [
+  Array [
+    Object {
+      "ExpressionAttributeNames": Object {
+        "#clientDisconnectMinutes": "client-disconnect-minutes",
+        "#contactPoint": "contact-point",
+        "#name": "name",
+      },
+      "ExpressionAttributeValues": Object {
+        ":c": "contact-Point",
+        ":cdm": 100,
+        ":d": "Description",
+        ":n": "name",
+      },
+      "Key": Object {
+        "id": "5e31c81640a22c000f5d7c71",
+        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+      },
+      "ReturnValues": "ALL_NEW",
+      "TableName": "us-east-1-dev-smooch",
+      "UpdateExpression": "set #name = :n,description = :d,#contactPoint = :c,#clientDisconnectMinutes = :cdm",
+    },
+  ],
+]
+`;
+
+exports[`update-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to secretsClient.getSecretValue() 1`] = `
+Array [
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+]
+`;
+
+exports[`update-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to smooch.integrations.update() 1`] = `
+Array [
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7c80",
+      "integrationId": "5e31c81640a22c000f5d7c71",
+      "props": Object {
+        "actionColor": "e5a51b",
+        "backgroundImageUrl": "image-url",
+        "brandColor": "1b1be5",
+        "businessIconUrl": "business-Icon-Url",
+        "businessName": "business-Name",
+        "buttonHeight": "50",
+        "buttonIconUrl": "button-icon-url",
+        "buttonWidth": "50",
+        "conversationColor": "3ae51b",
+        "displayStyle": "button",
+        "fixedIntroPane": true,
+        "originWhitelist": undefined,
+        "prechatCapture": Object {
+          "enabled": true,
+          "fields": Array [
+            Object {
+              "label": "Name",
+              "maxSize": 128,
+              "minSize": 1,
+              "name": "name",
+              "placeholder": "",
+              "type": "text",
+            },
+          ],
+        },
+      },
+    },
+  ],
+]
+`;
+
+exports[`update-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to validateTenantPermissions 1`] = `
+Array [
+  Array [
+    "66d83870-30df-4a3b-8801-59edff162034",
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "WEB_INTEGRATIONS_APP_UPDATE",
+    ],
+  ],
+]
+`;
+
+exports[`update-smooch-web-integration Everthing is successful when brandcolor, conversationColor and actioncolor are not provided 1`] = `
+Object {
+  "body": Object {
+    "result": Object {
+      "prechatCapture": "name",
+      "status": "done",
+      "whitelistedUrls": Array [
+        "url1",
+        "url2",
+      ],
+    },
+  },
+  "status": 201,
+}
+`;
+
+exports[`update-smooch-web-integration Everthing is successful when name, description and contactPoint are not provided 1`] = `
+Object {
+  "body": Object {
+    "result": Object {
+      "actionColor": "#e5a51b",
+      "brandColor": "#1b1be5",
+      "conversationColor": "#3ae51b",
+      "prechatCapture": "name",
+      "whitelistedUrls": Array [
+        "url1",
+        "url2",
+      ],
+    },
+  },
+  "status": 201,
+}
+`;
+
+exports[`update-smooch-web-integration sends back status 201 when the code runs without any error 1`] = `
+Object {
+  "body": Object {
+    "result": Object {
+      "actionColor": "#e5a51b",
+      "brandColor": "#1b1be5",
+      "conversationColor": "#3ae51b",
+      "prechatCapture": "name",
+      "status": "done",
+      "whitelistedUrls": Array [
+        "url1",
+        "url2",
+      ],
+    },
+  },
+  "status": 201,
+}
+`;
+
+exports[`update-smooch-web-integration sends back status 400 when the app does not exist for the tenant 1`] = `
+Object {
+  "body": Object {
+    "message": "The app does not exist for this tenant",
+  },
+  "status": 400,
+}
+`;
+
+exports[`update-smooch-web-integration sends back status 400 when there are invalid body value 1`] = `
+Object {
+  "body": Object {
+    "message": "Error: invalid body value \\"prechatCapture\\" is required",
+  },
+  "status": 400,
+}
+`;
+
+exports[`update-smooch-web-integration sends back status 400 when there are invalid params value 1`] = `
+Object {
+  "body": Object {
+    "message": "Error: invalid params value \\"tenant-id\\" is not allowed to be empty",
+  },
+  "status": 400,
+}
+`;
+
+exports[`update-smooch-web-integration sends back status 400 when there are not enough permissions 1`] = `
+Object {
+  "body": Object {
+    "message": "Error not enough permissions",
+  },
+  "status": 400,
+}
+`;
+
+exports[`update-smooch-web-integration sends back status 500 when there is a error fetching an app in DynamoDB 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to fetch an app in DynamoDB",
+  },
+  "status": 500,
+}
+`;
+
+exports[`update-smooch-web-integration sends back status 500 when there is a error trying to save a record in DynamoDB 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to save a record in DynamoDB",
+  },
+  "status": 500,
+}
+`;
+
+exports[`update-smooch-web-integration sends back status 500 when there is a error updating a web integration 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to upadate a web integration",
+  },
+  "status": 500,
+}
+`;
+
+exports[`update-smooch-web-integration sends back status 500 when there is an error retrieving digital channels credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to retrieve digital channels credentials",
+  },
+  "status": 500,
+}
+`;
+
+exports[`update-smooch-web-integration sends backs status 500 when there is a error validating digital channels credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to validate digital channels credentials",
+  },
+  "status": 500,
+}
+`;

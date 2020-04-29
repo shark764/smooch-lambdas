@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`smooch-client-disconnect-checker Walkthrough passes in the correct arguments to axios in createMessagingTranscript() 1`] = `
+Array [
+  Object {
+    "auth": Object {
+      "password": "Password",
+      "username": "UserName",
+    },
+    "method": "get",
+    "url": "https://us-east-1-dev-edge.domain/v1/tenants/250faddb-9723-403a-9bd5-3ca710cb26e5/interactions/667802d8-2260-436c-958a-2ee0f71f73f0/metadata",
+  },
+]
+`;
+
+exports[`smooch-client-disconnect-checker Walkthrough passes in the correct arguments to axios in performCustomerDisconnect() 1`] = `
+Array [
+  Object {
+    "auth": Object {
+      "password": "Password",
+      "username": "UserName",
+    },
+    "data": Object {
+      "interrupt": Object {},
+      "interruptType": "customer-disconnect",
+      "source": "smooch",
+    },
+    "method": "post",
+    "url": "https://us-east-1-dev-edge.domain/v1/tenants/250faddb-9723-403a-9bd5-3ca710cb26e5/interactions/667802d8-2260-436c-958a-2ee0f71f73f0/interrupts?id=7534c040-534d-11ea-8aa0-c32d6a748e46",
+  },
+]
+`;
+
+exports[`smooch-client-disconnect-checker Walkthrough passes in the correct arguments to sqs.sendMessage in createMessagingTranscript() 1`] = `
+Array [
+  Array [
+    Object {
+      "MessageBody": "{\\"tenantId\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"interactionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"appId\\":\\"5e31c81640a22c000f5d7f28\\",\\"userId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f2\\",\\"artifactId\\":\\"5e31c81640a22c000f5d7f70\\"}",
+      "QueueUrl": undefined,
+    },
+  ],
+]
+`;
+
+exports[`smooch-client-disconnect-checker Walkthrough passes in the correct arguments to sqs.sendMessage() in checkIfClientIsDisconnected() 1`] = `
+Array [
+  Array [
+    Object {
+      "DelaySeconds": 900,
+      "MessageBody": "{\\"interactionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"tenantId\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"userId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f2\\",\\"latestAgentMessageTimestamp\\":40,\\"disconnectTimeoutInMinutes\\":943}",
+      "QueueUrl": undefined,
+    },
+  ],
+]
+`;
+
+exports[`smooch-client-disconnect-checker throws an error when there is a problem geting smooch interaction record 1`] = `"Falied to get smooch interaction record"`;
+
+exports[`smooch-client-disconnect-checker throws an error when there is a problem retrieving cx credentials 1`] = `"Error retrieving cx credentials"`;
+
+exports[`smooch-client-disconnect-checker throws an error when there is a problem sending customer interrupt 1`] = `"Error sending customer interrupt"`;
