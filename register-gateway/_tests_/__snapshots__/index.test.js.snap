@@ -4,6 +4,10 @@ exports[`register-gateway Everything is successful Walkthrough passes in the cor
 Array [
   Array [
     Object {
+      "auth": Object {
+        "password": "Password",
+        "username": "UserName",
+      },
       "data": Object {
         "actions": Array [
           Object {
@@ -27,9 +31,6 @@ Array [
         "type": "smooch",
         "url": "",
       },
-      "headers": Object {
-        "Authorization": "given-auth",
-      },
       "method": "post",
       "url": "https://us-east-1-dev-edge.domain/v1/gateways",
     },
@@ -37,4 +38,14 @@ Array [
 ]
 `;
 
+exports[`register-gateway Everything is successful Walkthrough passes in the correct arguments to secretsClient.getSecretValue() to get cx credentials 1`] = `
+Array [
+  Object {
+    "SecretId": "us-east-1-dev-smooch-cx",
+  },
+]
+`;
+
 exports[`register-gateway throws an error when there is a problem callind endpoint to register gateway 1`] = `"Error calling API to register gateway"`;
+
+exports[`register-gateway throws an error when there is a problem trying to rettrieve cx credentials 1`] = `"Error retrieving cx credentials"`;

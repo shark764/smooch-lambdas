@@ -1,21 +1,35 @@
+const AWS = require('aws-sdk');
 const axios = require('axios');
 const log = require('serenova-js-utils/lambda/log');
+
+const secretsClient = new AWS.SecretsManager();
 
 const {
   AWS_REGION, ENVIRONMENT, DOMAIN, ACCOUNT_ID,
 } = process.env;
 
-exports.handler = async (event) => {
-  const { params, identity } = event;
+exports.handler = async () => {
+  const logContext = {};
 
-  const logContext = { userId: identity['user-id'] };
+  log.info('register-gateway was called', { ...logContext });
 
-  log.info('register-gateway was called', { ...logContext, params });
+  let cxAuthSecret;
+  try {
+    cxAuthSecret = await secretsClient
+      .getSecretValue({
+        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+      })
+      .promise();
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to retrieve cx credentials';
 
-  const { auth } = params;
+    log.error(errMsg, logContext, error);
 
+    throw error;
+  }
+
+  const cxAuth = JSON.parse(cxAuthSecret.SecretString);
   const url = `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/gateways`;
-
   const data = {
     url: '',
     type: 'smooch',
@@ -45,9 +59,7 @@ exports.handler = async (event) => {
       method: 'post',
       url,
       data,
-      headers: {
-        Authorization: auth,
-      },
+      auth: cxAuth,
     });
   } catch (error) {
     log.error('An Error has occurred trying to register gateway', logContext, error);

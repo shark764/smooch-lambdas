@@ -1,3 +1,6 @@
+# 1.19.2
+* CXV1-21652 - Setting CX credentials for Register Gateway Lambda.
+
 # 1.19.1
 * Removed unused rotate keys lambda
 
