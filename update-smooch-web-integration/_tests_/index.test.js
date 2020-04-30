@@ -29,6 +29,7 @@ const mockBody = {
   buttonHeight: '50',
   buttonIconUrl: 'button-icon-url',
   appId: '5e31c81640a22c000f5d7c70',
+  whitelistedUrls: [],
 };
 
 const mockParams = {
@@ -122,7 +123,13 @@ const { handler } = require('../index');
 
 describe('update-smooch-web-integration', () => {
   describe('Everthing is successful', () => {
+    it('sends back status 201 when the code runs without any error', async () => {
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
+
     it("when preChatCapture is equal to 'email'", async () => {
+      jest.clearAllMocks();
       const MockBody = {
         ...mockBody,
         prechatCapture: 'email',
@@ -192,6 +199,54 @@ describe('update-smooch-web-integration', () => {
       expect(result).toMatchSnapshot();
     });
 
+    it('when clientDisconnectMinutes is undefined', async () => {
+      const MockBody = {
+        ...mockBody,
+        clientDisconnectMinutes: undefined,
+      };
+      const mockEvent = {
+        body: MockBody,
+        params: mockParams,
+        identity: {
+          'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0',
+        },
+      };
+      const result = await handler(mockEvent);
+      expect(result).toMatchSnapshot();
+    });
+
+    it('when name or description is not provided', async () => {
+      const MockBody = {
+        ...mockBody,
+        name: undefined,
+        description: undefined,
+      };
+      const mockEvent = {
+        body: MockBody,
+        params: mockParams,
+        identity: {
+          'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0',
+        },
+      };
+      const result = await handler(mockEvent);
+      expect(result).toMatchSnapshot();
+    });
+
+    it('when description is provided but name is not provided', async () => {
+      const MockBody = {
+        ...mockBody,
+        name: undefined,
+      };
+      const mockEvent = {
+        body: MockBody,
+        params: mockParams,
+        identity: {
+          'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0',
+        },
+      };
+      const result = await handler(mockEvent);
+      expect(result).toMatchSnapshot();
+    });
     describe('Walkthrough', () => {
       beforeEach(async () => {
         jest.clearAllMocks();
@@ -292,11 +347,6 @@ describe('update-smooch-web-integration', () => {
 
   it('sends back status 500 when there is a error trying to save a record in DynamoDB', async () => {
     mockUpdate.mockRejectedValueOnce(new Error());
-    const result = await handler(event);
-    expect(result).toMatchSnapshot();
-  });
-
-  it('sends back status 201 when the code runs without any error', async () => {
     const result = await handler(event);
     expect(result).toMatchSnapshot();
   });

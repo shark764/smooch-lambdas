@@ -82,7 +82,7 @@ Array [
         "conversationColor": "3ae51b",
         "displayStyle": "button",
         "fixedIntroPane": true,
-        "originWhitelist": undefined,
+        "originWhitelist": null,
         "prechatCapture": Object {
           "enabled": true,
           "fields": Array [
@@ -116,10 +116,86 @@ Array [
 ]
 `;
 
+exports[`update-smooch-web-integration Everthing is successful sends back status 201 when the code runs without any error 1`] = `
+Object {
+  "body": Object {
+    "result": Object {
+      "actionColor": "#e5a51b",
+      "brandColor": "#1b1be5",
+      "conversationColor": "#3ae51b",
+      "prechatCapture": "name",
+      "status": "done",
+      "whitelistedUrls": Array [
+        "url1",
+        "url2",
+      ],
+    },
+  },
+  "status": 201,
+}
+`;
+
 exports[`update-smooch-web-integration Everthing is successful when brandcolor, conversationColor and actioncolor are not provided 1`] = `
 Object {
   "body": Object {
     "result": Object {
+      "prechatCapture": "name",
+      "status": "done",
+      "whitelistedUrls": Array [
+        "url1",
+        "url2",
+      ],
+    },
+  },
+  "status": 201,
+}
+`;
+
+exports[`update-smooch-web-integration Everthing is successful when clientDisconnectMinutes is undefined 1`] = `
+Object {
+  "body": Object {
+    "result": Object {
+      "actionColor": "#e5a51b",
+      "brandColor": "#1b1be5",
+      "conversationColor": "#3ae51b",
+      "prechatCapture": "name",
+      "status": "done",
+      "whitelistedUrls": Array [
+        "url1",
+        "url2",
+      ],
+    },
+  },
+  "status": 201,
+}
+`;
+
+exports[`update-smooch-web-integration Everthing is successful when description is provided but name is not provided 1`] = `
+Object {
+  "body": Object {
+    "result": Object {
+      "actionColor": "#e5a51b",
+      "brandColor": "#1b1be5",
+      "conversationColor": "#3ae51b",
+      "prechatCapture": "name",
+      "status": "done",
+      "whitelistedUrls": Array [
+        "url1",
+        "url2",
+      ],
+    },
+  },
+  "status": 201,
+}
+`;
+
+exports[`update-smooch-web-integration Everthing is successful when name or description is not provided 1`] = `
+Object {
+  "body": Object {
+    "result": Object {
+      "actionColor": "#e5a51b",
+      "brandColor": "#1b1be5",
+      "conversationColor": "#3ae51b",
       "prechatCapture": "name",
       "status": "done",
       "whitelistedUrls": Array [
@@ -140,25 +216,6 @@ Object {
       "brandColor": "#1b1be5",
       "conversationColor": "#3ae51b",
       "prechatCapture": "name",
-      "whitelistedUrls": Array [
-        "url1",
-        "url2",
-      ],
-    },
-  },
-  "status": 201,
-}
-`;
-
-exports[`update-smooch-web-integration sends back status 201 when the code runs without any error 1`] = `
-Object {
-  "body": Object {
-    "result": Object {
-      "actionColor": "#e5a51b",
-      "brandColor": "#1b1be5",
-      "conversationColor": "#3ae51b",
-      "prechatCapture": "name",
-      "status": "done",
       "whitelistedUrls": Array [
         "url1",
         "url2",
