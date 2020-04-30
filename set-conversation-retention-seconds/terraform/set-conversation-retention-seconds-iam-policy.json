@@ -22,8 +22,14 @@
         "Action": "secretsmanager:GetSecretValue",
         "Effect": "Allow",
         "Resource": [
-            "arn:aws:secretsmanager:*:*:secret:*-smooch-account-??????",
-            "arn:aws:secretsmanager:*:*:secret:*-smooch-app-??????"
+            "arn:aws:secretsmanager:*:*:secret:*-smooch-account-??????"
         ]
+    }, {
+        "Sid": "SmoochInteractionDynamo",
+        "Action": [
+            "dynamodb:Scan"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:dynamodb:*:*:table/*-smooch"
     }]
 }

@@ -5,6 +5,7 @@ const SmoochCore = require('smooch-core');
 AWS.config.update({ region: process.env.AWS_REGION });
 const secretsClient = new AWS.SecretsManager();
 const DEFAULT_CONVERSATION_RETENTION_SECONDS = 3600 * 48;
+const docClient = new AWS.DynamoDB.DocumentClient();
 
 const {
   AWS_REGION,
@@ -24,22 +25,29 @@ exports.handler = async () => {
     serviceUrl: smoochApiUrl,
   });
 
-  const appSecrets = await secretsClient.getSecretValue({
-    SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
-  }).promise();
-  const appKeys = JSON.parse(appSecrets.SecretString);
-  let appIds = Object.keys(appKeys)
-    .filter((appSecretKey) => appSecretKey.includes('-id'))
-    .map((appSecretKey) => appSecretKey
-      .replace('-id', '')
-      .replace('-old', ''));
-  appIds = appIds.filter((appSecretKey, index) => (appIds.indexOf(appSecretKey) === index));
+  const getRecordsParams = {
+    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+  };
 
-  log.debug('Starting app updates', { appIds });
+  let smoochApps;
+
+  try {
+    const { Items } = await docClient.scan(getRecordsParams).promise();
+    smoochApps = Items.filter((record) => record.type === 'app');
+  } catch (error) {
+    const errMsg = 'An Error has occurred trying to fetch apps in DynamoDB';
+
+    log.error(errMsg, {}, error);
+
+    throw error;
+  }
+
+  log.debug('Starting app updates', { smoochApps });
 
   let hasErrored = false;
-  for (const appId of appIds) {
-    const logContext = { appId };
+  for (const smoochApp of smoochApps) {
+    const logContext = { smoochApp };
+    const { id: appId } = smoochApp;
     try {
       await smooch.apps.update(appId, {
         settings: { conversationRetentionSeconds: DEFAULT_CONVERSATION_RETENTION_SECONDS },
