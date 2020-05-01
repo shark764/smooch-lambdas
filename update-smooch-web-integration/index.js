@@ -314,7 +314,7 @@ exports.handler = async (event) => {
     userId: identity['user-id'],
     tenantId,
     smoochIntegrationId: integrationId,
-    auditData: Object.keys(body || {}),
+    auditData: Object.keys(body),
     audit: true,
   });
   log.info('update-smooch-web-integration complete', { ...logContext, result });

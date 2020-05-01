@@ -72,7 +72,7 @@ Array [
 exports[`smooch-action-add-participant Everything is successful Walkthrough passes in the correct arguments to sqs.sendMessage() in sendMessageToParticipant() 1`] = `
 Array [
   Object {
-    "MessageBody": "{\\"tenantId\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"interactionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"actionId\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e46\\",\\"subId\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e46\\",\\"type\\":\\"send-message\\",\\"resourceId\\":\\"5e31c81640a22c000f5d7f33\\",\\"messageType\\":\\"received-message\\",\\"message\\":{\\"id\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e46\\",\\"from\\":\\"System\\",\\"timestamp\\":\\"January 1 1970\\",\\"type\\":\\"system\\",\\"text\\":\\"Agent connected.\\"}}",
+    "MessageBody": "{\\"tenantId\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"interactionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"actionId\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e46\\",\\"subId\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e46\\",\\"type\\":\\"send-message\\",\\"resourceId\\":\\"5e31c81640a22c000f5d7f33\\",\\"sessionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f7\\",\\"messageType\\":\\"received-message\\",\\"message\\":{\\"id\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e46\\",\\"from\\":\\"System\\",\\"timestamp\\":\\"January 1 1970\\",\\"type\\":\\"system\\",\\"text\\":\\"Agent connected.\\"}}",
     "QueueUrl": "queueurl",
   },
 ]
@@ -81,7 +81,7 @@ Array [
 exports[`smooch-action-add-participant Everything is successful Walkthrough passes in the correct arguments to sqs.sendMessage() in updateInteractionMetadata() 1`] = `
 Array [
   Object {
-    "MessageBody": "{\\"tenantId\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"interactionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"source\\":\\"smooch\\",\\"metadata\\":{\\"appId\\":\\"5e31c81640a22c000f5d7f28\\",\\"user-id\\":\\"5e31c81640a22c000f5d7f30\\",\\"participants\\":[{\\"resourceId\\":\\"5e31c81640a22c000f5d7f33\\"},{\\"resourceId\\":\\"5e31c81640a22c000f5d7f33\\",\\"sessionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f7\\",\\"type\\":\\"resource\\",\\"firstName\\":\\"Agent\\"}]}}",
+    "MessageBody": "{\\"tenantId\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"interactionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"source\\":\\"smooch\\",\\"metadata\\":{\\"appId\\":\\"5e31c81640a22c000f5d7f28\\",\\"user-id\\":\\"5e31c81640a22c000f5d7f30\\",\\"participants\\":[{\\"resourceId\\":\\"5e31c81640a22c000f5d7f33\\",\\"sessionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f7\\"},{\\"resourceId\\":\\"5e31c81640a22c000f5d7f33\\",\\"sessionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f7\\",\\"type\\":\\"resource\\",\\"firstName\\":\\"Agent\\"}]}}",
     "QueueUrl": "queueurl",
   },
 ]

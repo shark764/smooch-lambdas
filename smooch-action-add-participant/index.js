@@ -132,8 +132,8 @@ exports.handler = async (event) => {
   const connectedMessage = `${firstName} connected.`;
 
   try {
-    updatedMetadata.participants.forEach(async (participant) => {
-      await sendMessageToParticipant({
+    await Promise.all(updatedMetadata.participants.map(async (participant) => {
+      await exports.sendMessageToParticipant({
         tenantId,
         interactionId,
         resourceId: participant.resourceId,
@@ -147,7 +147,7 @@ exports.handler = async (event) => {
           text: connectedMessage,
         },
       });
-    });
+    }));
   } catch (error) {
     log.error('An error occurred sending message to participants', logContext, error);
   }
@@ -230,7 +230,7 @@ async function fetchUser({ tenantId, userId, auth }) {
   });
 }
 
-async function sendMessageToParticipant({
+exports.sendMessageToParticipant = async function sendMessageToParticipant({
   interactionId,
   tenantId,
   sessionId,
@@ -263,4 +263,4 @@ async function sendMessageToParticipant({
   };
 
   await sqs.sendMessage(sendSQSParams).promise();
-}
+};

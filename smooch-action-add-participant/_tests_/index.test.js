@@ -72,6 +72,7 @@ const event = {
         'user-id': '5e31c81640a22c000f5d7f30',
         participants: [{
           resourceId: '5e31c81640a22c000f5d7f33',
+          sessionId: '667802d8-2260-436c-958a-2ee0f71f73f7',
         }],
       },
       parameters: {
@@ -97,13 +98,35 @@ jest.mock('aws-sdk', () => ({
   })),
 }));
 
-const { handler } = require('../index');
+const index = require('../index');
+
+const { handler } = index;
 
 describe('smooch-action-add-participant', () => {
   describe('Everything is successful', () => {
     it('sends back nothing when the code runs without an error', async () => {
       const result = await handler(event);
       expect(result).toBeUndefined();
+    });
+
+    it('continues when there is an error sending message to participants', async () => {
+      jest.spyOn(index, 'sendMessageToParticipant').mockImplementationOnce(() => { throw new Error(); });
+      const mockEvent = {
+        Records: [{
+          body: JSON.stringify({
+            'interaction-id': '667802d8-2260-436c-958a-2ee0f71f73f0',
+            'sub-id': '667802d8-2260-436c-958a-2ee0f71f73f1',
+            metadata: {
+              participants: [],
+            },
+            parameters: {
+              resource: {
+              },
+            },
+          }),
+        }],
+      };
+      await handler(mockEvent);
     });
     describe('Walkthrough', () => {
       beforeEach(async () => {
@@ -244,50 +267,4 @@ describe('smooch-action-add-participant', () => {
       expect(Promise.reject(new Error('Error occurred sending message'))).rejects.toThrowErrorMatchingSnapshot();
     }
   });
-
-  // it('when there is an error sending message to participants', async () => {
-  //   try {
-  //     jest.clearAllMocks();
-  //     mockGetQueueUrl.mockImplementation(() => ({
-  //       promise: () => ({
-  //         QueueUrl: 'queueurl',
-  //       }),
-  //     }));
-  //     // mockGetQueueUrl.mockImplementation(() => ({
-  //     //   promise: () => {
-  //     //     throw new Error('error');
-  //     //   },
-  //     // }));
-  //     const mockEvent = {
-  //       Records: [{
-  //         body: JSON.stringify({
-  //           // 'tenant-id': '250faddb-9723-403a-9bd5-3ca710cb26e5',
-  //           'interaction-id': '667802d8-2260-436c-958a-2ee0f71f73f0',
-  //           'sub-id': '667802d8-2260-436c-958a-2ee0f71f73f1',
-  //           metadata: {
-  //             // appId: '5e31c81640a22c000f5d7f28',
-  //             // 'user-id': '5e31c81640a22c000f5d7f30',
-  //             participants: [],
-  //           },
-  //           parameters: {
-  //             resource: {
-  //               // 'user-id': '5e31c81640a22c000f5d7f33',
-  //               // 'session-id': '667802d8-2260-436c-958a-2ee0f71f73f7',
-  //             },
-  //           },
-  //         }),
-  //       }],
-  //     };
-  //     // mockGetQueueUrl.mockImplementationOnce(() => ({
-  //     //   promise: () => ({
-  //     //     QueueUrl: 'queueurl',
-  //     //   }),
-  //     // }));
-  //     // mockGetQueueUrl.mockRejectedValueOnce(new Error());
-  //     await handler(mockEvent);
-  //     expect(mockGetQueueUrl.mock.calls).toMatchSnapshot();
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // });
 });
