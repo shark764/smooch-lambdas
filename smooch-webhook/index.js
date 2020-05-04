@@ -49,7 +49,7 @@ exports.handler = async (event) => {
 
   if (!client) {
     log.error('No client on Smooch params', { ...logContext, body });
-    return;
+    return 'no client';
   }
   const { platform } = client;
   logContext.smoochPlatform = platform;
@@ -314,9 +314,9 @@ exports.handler = async (event) => {
       log.debug('Trigger received: conversation:read', logContext);
       if (!interactionId) {
         log.info('Trigger received: conversation:read, but no interaction yet. Ignoring.', logContext);
-        break;
+        return 'conversation:read no interaction';
       }
-      await sendConversationEvent({
+      await exports.sendConversationEvent({
         tenantId,
         interactionId,
         conversationEvent: 'conversation-read',
@@ -330,10 +330,10 @@ exports.handler = async (event) => {
       log.debug('Trigger received: typing:appUser', logContext);
       if (!interactionId) {
         log.info('Trigger received: typing:appUser, but no interaction yet. Ignoring.', logContext);
-        break;
+        return 'typing:appUser no interaction';
       }
       const currentEvent = activity.type === 'typing:start' ? 'typing-start' : 'typing-stop';
-      await sendConversationEvent({
+      await exports.sendConversationEvent({
         tenantId,
         interactionId,
         conversationEvent: currentEvent,
@@ -345,9 +345,10 @@ exports.handler = async (event) => {
     }
     default: {
       log.warn('Unsupported trigger from Smooch', { ...logContext, trigger });
-      break;
+      return 'unsupported trigger';
     }
   }
+  return 'success';
 };
 
 async function handleFormResponse({
@@ -795,14 +796,14 @@ async function sendCustomerMessageToParticipants({
   });
 }
 
-async function sendConversationEvent({
+exports.sendConversationEvent = async ({
   tenantId,
   interactionId,
   conversationEvent,
   timestamp,
   auth,
   logContext,
-}) {
+}) => {
   try {
     const { data } = await getMetadata({ tenantId, interactionId, auth });
     log.debug('Got interaction metadata', { ...logContext, interaction: data });
@@ -886,7 +887,7 @@ async function sendConversationEvent({
     );
     throw error;
   }
-}
+};
 
 async function getMetadata({ tenantId, interactionId, auth }) {
   return axios({

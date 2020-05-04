@@ -1,0 +1,78 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`smooch-webhook handler conversation:read calls sendConversationEvent correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "auth": Object {
+        "id": "mock-secret-id",
+        "secret": "mock-secret",
+      },
+      "conversationEvent": "conversation-read",
+      "interactionId": "1",
+      "logContext": Object {
+        "hasInteractionItem": true,
+        "interactionId": "1",
+        "smoochAppId": "mock-smooch-app-id",
+        "smoochIntegrationId": "mock-integration-id",
+        "smoochPlatform": "web",
+        "smoochTrigger": "conversation:read",
+        "smoochUserId": "mock-app-user-id",
+        "tenantId": "mock-tenant-id",
+      },
+      "tenantId": "mock-tenant-id",
+      "timestamp": "mock-timestamp",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handler typing:appUser calls sendConversationEvent correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "auth": Object {
+        "id": "mock-secret-id",
+        "secret": "mock-secret",
+      },
+      "conversationEvent": "typing-start",
+      "interactionId": "1",
+      "logContext": Object {
+        "hasInteractionItem": true,
+        "interactionId": "1",
+        "smoochAppId": "mock-smooch-app-id",
+        "smoochIntegrationId": "mock-integration-id",
+        "smoochPlatform": "web",
+        "smoochTrigger": "typing:appUser",
+        "smoochUserId": "mock-app-user-id",
+        "tenantId": "mock-tenant-id",
+      },
+      "tenantId": "mock-tenant-id",
+      "timestamp": "mock-timestamp",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handler walkthrough calls docClient.get correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "Key": Object {
+        "SmoochUserId": "mock-app-user-id",
+      },
+      "TableName": "us-east-1-dev-smooch-interactions",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handler walkthrough calls getSecretValue correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-cx",
+    },
+  ],
+]
+`;
