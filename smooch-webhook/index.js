@@ -110,7 +110,7 @@ exports.handler = async (event) => {
           switch (type) {
             case 'formResponse': {
               log.debug('Web type received: formResponse', { ...logContext, form: message });
-              await handleFormResponse({
+              await exports.handleFormResponse({
                 appId,
                 userId,
                 integrationId,
@@ -179,7 +179,7 @@ exports.handler = async (event) => {
                     }
 
                     try {
-                      workingInteractionId = await createInteraction({
+                      workingInteractionId = await exports.createInteraction({
                         appId,
                         userId,
                         tenantId,
@@ -238,7 +238,7 @@ exports.handler = async (event) => {
               } else if (!hasInteractionItem) {
                 let newInteractionId;
                 try {
-                  newInteractionId = await createInteraction({
+                  newInteractionId = await exports.createInteraction({
                     appId,
                     userId,
                     tenantId,
@@ -351,7 +351,7 @@ exports.handler = async (event) => {
   return 'success';
 };
 
-async function handleFormResponse({
+exports.handleFormResponse = async function handleFormResponse({
   appId,
   userId,
   integrationId,
@@ -427,7 +427,7 @@ async function handleFormResponse({
     log.debug('Updated Smooch appUser name', { ...logContext, smoochUser });
 
     try {
-      await createInteraction({
+      await exports.createInteraction({
         appId,
         userId,
         tenantId,
@@ -447,7 +447,7 @@ async function handleFormResponse({
     const { name } = form.fields[0]; // Form name/type
     switch (name) {
       case 'collect-message':
-        await handleCollectMessageResponse({
+        await exports.handleCollectMessageResponse({
           tenantId,
           interactionId,
           form,
@@ -460,12 +460,13 @@ async function handleFormResponse({
           ...logContext,
           form,
         });
-        break;
+        return 'unsupported formresponse';
     }
   }
-}
+  return 'success';
+};
 
-async function handleCollectMessageResponse({
+exports.handleCollectMessageResponse = async function handleCollectMessageResponse({
   tenantId,
   interactionId,
   form,
@@ -489,7 +490,6 @@ async function handleCollectMessageResponse({
     });
     throw new Error('There are no pending actions');
   }
-
   // Create updated-metadata by removing incoming collect-action from the interaction metadata
   const updatedActions = metadata.collectActions.filter(
     (action) => action.actionId !== actionId,
@@ -550,9 +550,9 @@ async function handleCollectMessageResponse({
     );
     throw error;
   }
-}
+};
 
-async function createInteraction({
+exports.createInteraction = async function createInteraction({
   appId,
   userId,
   tenantId,
@@ -716,7 +716,7 @@ async function createInteraction({
   log.debug('Updated smooch interactions state table with interaction', { ...logContext, interactionId });
 
   return interactionId;
-}
+};
 
 async function sendCustomerMessageToParticipants({
   tenantId,

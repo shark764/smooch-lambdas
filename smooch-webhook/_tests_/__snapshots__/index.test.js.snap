@@ -27,6 +27,66 @@ Array [
 ]
 `;
 
+exports[`smooch-webhook handler message:appUser handleFormResponse collect message response passes in the correct arguments to handleCollectMessageResponse() 1`] = `
+Array [
+  Array [
+    Object {
+      "auth": "auth",
+      "form": Object {
+        "_id": "_id",
+        "fields": Array [
+          Object {
+            "name": "collect-message",
+            "text": "example",
+          },
+        ],
+        "name": "Web",
+        "quotedMessage": Object {
+          "content": Object {
+            "metadata": Object {
+              "actionId": "actionId",
+              "subId": "subId",
+            },
+          },
+        },
+        "received": "10",
+        "type": "formResponse",
+      },
+      "interactionId": "mock-interaction-id",
+      "logContext": "",
+      "tenantId": "mock-tenant-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handler message:appUser handleFormResponse prechat capture passes in the correct arguments to createInteraction() 1`] = `
+Array [
+  Array [
+    Object {
+      "appId": "mock-app-id",
+      "auth": "auth",
+      "customer": "example",
+      "integrationId": "mock-integration-id",
+      "logContext": "",
+      "smoochMessageId": "_id",
+      "source": "web",
+      "tenantId": "mock-tenant-id",
+      "timestamp": "10",
+      "userId": "mock-user-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handler message:appUser handleFormResponse prechat capture throws an error when there is a problem creating interaction 1`] = `"Failed to create an interaction"`;
+
+exports[`smooch-webhook handler message:appUser handleFormResponse prechat capture throws an error when there problem retrieving digital channels credentials (form SmoochCore) 1`] = `"An Error has occurred trying to retrieve digital channels credentials"`;
+
+exports[`smooch-webhook handler message:appUser handleFormResponse prechat capture throws an error when there problem retrieving digital channels credentials 1`] = `"An Error has occurred trying to retrieve digital channels credentials (form getSecretValue())"`;
+
+exports[`smooch-webhook handler message:appUser handleFormResponse prechat capture throws an error when there problem updating Smooch appUser 1`] = `"Error updating Smooch appUser"`;
+
 exports[`smooch-webhook handler typing:appUser calls sendConversationEvent correctly 1`] = `
 Array [
   Array [
