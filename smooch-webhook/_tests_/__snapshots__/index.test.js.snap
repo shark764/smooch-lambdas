@@ -1,33 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`smooch-webhook handler conversation:read calls sendConversationEvent correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "auth": Object {
-        "id": "mock-secret-id",
-        "secret": "mock-secret",
-      },
-      "conversationEvent": "conversation-read",
-      "interactionId": "1",
-      "logContext": Object {
-        "hasInteractionItem": true,
-        "interactionId": "1",
-        "smoochAppId": "mock-smooch-app-id",
-        "smoochIntegrationId": "mock-integration-id",
-        "smoochPlatform": "web",
-        "smoochTrigger": "conversation:read",
-        "smoochUserId": "mock-app-user-id",
-        "tenantId": "mock-tenant-id",
-      },
-      "tenantId": "mock-tenant-id",
-      "timestamp": "mock-timestamp",
-    },
-  ],
-]
-`;
-
-exports[`smooch-webhook handler message:appUser handleFormResponse collect message response passes in the correct arguments to handleCollectMessageResponse() 1`] = `
+exports[`smooch-webhook handleFormResponse collect message response passes in the correct arguments to handleCollectMessageResponse() 1`] = `
 Array [
   Array [
     Object {
@@ -60,7 +33,7 @@ Array [
 ]
 `;
 
-exports[`smooch-webhook handler message:appUser handleFormResponse prechat capture passes in the correct arguments to createInteraction() 1`] = `
+exports[`smooch-webhook handleFormResponse prechat capture passes in the correct arguments to createInteraction() 1`] = `
 Array [
   Array [
     Object {
@@ -79,13 +52,40 @@ Array [
 ]
 `;
 
-exports[`smooch-webhook handler message:appUser handleFormResponse prechat capture throws an error when there is a problem creating interaction 1`] = `"Failed to create an interaction"`;
+exports[`smooch-webhook handleFormResponse prechat capture throws an error when there is a problem creating interaction 1`] = `"Failed to create an interaction"`;
 
-exports[`smooch-webhook handler message:appUser handleFormResponse prechat capture throws an error when there problem retrieving digital channels credentials (form SmoochCore) 1`] = `"An Error has occurred trying to retrieve digital channels credentials"`;
+exports[`smooch-webhook handleFormResponse prechat capture throws an error when there problem retrieving digital channels credentials (form SmoochCore) 1`] = `"An Error has occurred trying to retrieve digital channels credentials"`;
 
-exports[`smooch-webhook handler message:appUser handleFormResponse prechat capture throws an error when there problem retrieving digital channels credentials 1`] = `"An Error has occurred trying to retrieve digital channels credentials (form getSecretValue())"`;
+exports[`smooch-webhook handleFormResponse prechat capture throws an error when there problem retrieving digital channels credentials 1`] = `"An Error has occurred trying to retrieve digital channels credentials (form getSecretValue())"`;
 
-exports[`smooch-webhook handler message:appUser handleFormResponse prechat capture throws an error when there problem updating Smooch appUser 1`] = `"Error updating Smooch appUser"`;
+exports[`smooch-webhook handleFormResponse prechat capture throws an error when there problem updating Smooch appUser 1`] = `"Error updating Smooch appUser"`;
+
+exports[`smooch-webhook handler conversation:read calls sendConversationEvent correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "auth": Object {
+        "id": "mock-secret-id",
+        "secret": "mock-secret",
+      },
+      "conversationEvent": "conversation-read",
+      "interactionId": "1",
+      "logContext": Object {
+        "hasInteractionItem": true,
+        "interactionId": "1",
+        "smoochAppId": "mock-smooch-app-id",
+        "smoochIntegrationId": "mock-integration-id",
+        "smoochPlatform": "web",
+        "smoochTrigger": "conversation:read",
+        "smoochUserId": "mock-app-user-id",
+        "tenantId": "mock-tenant-id",
+      },
+      "tenantId": "mock-tenant-id",
+      "timestamp": "mock-timestamp",
+    },
+  ],
+]
+`;
 
 exports[`smooch-webhook handler typing:appUser calls sendConversationEvent correctly 1`] = `
 Array [
