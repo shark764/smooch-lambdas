@@ -126,166 +126,19 @@ exports.handler = async (event) => {
             case 'image':
             case 'file': {
               log.debug(`Web type received: ${type}`, logContext);
-              if (hasInteractionItem && interactionId) {
-                let workingInteractionId = interactionId;
-
-                /** If heartbeat is successfull continue as normal
-                if not update the interaction record in DynamoDB */
-                try {
-                  await sendSmoochInteractionHeartbeat({
-                    tenantId,
-                    interactionId,
-                    auth,
-                  });
-                } catch (error) {
-                  if (error.response.status === 404) {
-                    log.info(
-                      'Interaction ID is Invalid. Creating a new Interaction',
-                      logContext,
-                    );
-
-                    try {
-                      await axios({
-                        method: 'post',
-                        url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts?id=${uuidv1()}`,
-                        data: {
-                          source: 'smooch',
-                          interruptType: 'interaction-disconnect',
-                          interrupt: {
-                            interactionId,
-                          },
-                        },
-                        auth,
-                      });
-                    } catch (err) {
-                      log.error('An error has occurred trying to send resource interrupt',
-                        logContext,
-                        err);
-                      if (err.response.status === 404) {
-                        await sendCustomerMessageToParticipants({
-                          appId,
-                          userId,
-                          tenantId,
-                          contentType: 'text',
-                          interactionId,
-                          message: {
-                            text: 'INTERACTION_NOT_FOUND_ERROR',
-                            received: message.received,
-                          },
-                          auth,
-                          logContext,
-                        });
-                      }
-                    }
-
-                    try {
-                      workingInteractionId = await exports.createInteraction({
-                        appId,
-                        userId,
-                        tenantId,
-                        source: 'web',
-                        integrationId,
-                        customer,
-                        smoochMessageId: message._id,
-                        auth,
-                        logContext,
-                        isInteractionDead: true,
-                        // Creating interaction with first message
-                        // received timestamp
-                        timestamp: message.received,
-                      });
-                    } catch (err) {
-                      log.error(
-                        'Failed to create an interaction',
-                        logContext,
-                        err,
-                      );
-                      throw err;
-                    }
-                  }
-                }
-
-                await sendCustomerMessageToParticipants({
-                  appId,
-                  userId,
-                  tenantId,
-                  contentType: type,
-                  interactionId: workingInteractionId,
-                  message,
-                  auth,
-                  logContext,
-                });
-
-                const { data: metadata } = await getMetadata({
-                  tenantId,
-                  interactionId: workingInteractionId,
-                  auth,
-                });
-                if (metadata.latestMessageSentBy !== 'customer') {
-                  metadata.latestMessageSentBy = 'customer';
-                  try {
-                    await updateInteractionMetadata({
-                      tenantId,
-                      interactionId: workingInteractionId,
-                      metadata,
-                    });
-                    log.info('Updated latestMessageSentBy flag from metadata', logContext);
-                  } catch (error) {
-                    log.fatal('Error updating latestMessageSentBy flag from metadata', logContext, error);
-                    throw error;
-                  }
-                }
-              } else if (!hasInteractionItem) {
-                let newInteractionId;
-                try {
-                  newInteractionId = await exports.createInteraction({
-                    appId,
-                    userId,
-                    tenantId,
-                    source: 'web',
-                    integrationId,
-                    customer,
-                    smoochMessageId: message._id,
-                    auth,
-                    logContext,
-                    // Creating interaction with first message
-                    // received timestamp
-                    timestamp: message.received,
-                  });
-                } catch (error) {
-                  log.error('Failed to create an interaction', logContext, error);
-                  throw error;
-                }
-                if (type === 'file' || type === 'image') {
-                  let artifactId;
-                  try {
-                    const data = await getMetadata({
-                      tenantId,
-                      interactionId: newInteractionId,
-                      auth,
-                    });
-
-                    logContext.interactionId = newInteractionId;
-                    log.debug('Got interaction metadata', logContext);
-                    artifactId = data.data.artifactId;
-                  } catch (error) {
-                    log.error('An Error ocurred retrieving interaction metadata', logContext, error);
-                    throw error;
-                  }
-                  try {
-                    await uploadArtifactFile({
-                      tenantId, interactionId: newInteractionId,
-                    },
-                    artifactId, message, auth);
-                  } catch (error) {
-                    const errMsg = 'Failed to upload artifact file';
-                    log.error(errMsg, logContext, error);
-                    throw error;
-                  }
-                }
-              } else {
-                log.info('Web type received: text, but interaction is being created by something else. Ignoring.', logContext);
-              }
+              await exports.handleCustomerMessage({
+                hasInteractionItem,
+                interactionId,
+                tenantId,
+                auth,
+                logContext,
+                appId,
+                userId,
+                message,
+                integrationId,
+                customer,
+                type,
+              });
               break;
             }
             default: {
@@ -293,7 +146,7 @@ exports.handler = async (event) => {
                 ...logContext,
                 type,
               });
-              break;
+              return 'Unsupported web type';
             }
           }
           break;
@@ -305,7 +158,7 @@ exports.handler = async (event) => {
             ...logContext,
             platform,
           });
-          break;
+          return 'Unsupported platform';
         }
       }
       break;
@@ -463,7 +316,7 @@ exports.handleFormResponse = async function handleFormResponse({
         return 'unsupported formresponse';
     }
   }
-  return 'success';
+  return 'handleFormResponse Successful';
 };
 
 exports.handleCollectMessageResponse = async function handleCollectMessageResponse({
@@ -515,7 +368,7 @@ exports.handleCollectMessageResponse = async function handleCollectMessageRespon
 
   // Send response to resources
   try {
-    sendCustomerMessageToParticipants({
+    exports.sendCustomerMessageToParticipants({
       tenantId,
       interactionId,
       message: response,
@@ -536,7 +389,7 @@ exports.handleCollectMessageResponse = async function handleCollectMessageRespon
   }
   // Remove action from pending actions
   try {
-    await updateInteractionMetadata({
+    await exports.updateInteractionMetadata({
       tenantId,
       interactionId,
       metadata,
@@ -718,7 +571,7 @@ exports.createInteraction = async function createInteraction({
   return interactionId;
 };
 
-async function sendCustomerMessageToParticipants({
+exports.sendCustomerMessageToParticipants = async function sendCustomerMessageToParticipants({
   tenantId,
   interactionId,
   contentType,
@@ -777,7 +630,7 @@ async function sendCustomerMessageToParticipants({
 
   if (message.type === 'file' || message.type === 'image') {
     try {
-      await uploadArtifactFile(logContext, artifactId, message, auth);
+      await exports.uploadArtifactFile(logContext, artifactId, message, auth);
     } catch (error) {
       log.error('Error uploading file to artifact', logContext, error);
     }
@@ -794,7 +647,7 @@ async function sendCustomerMessageToParticipants({
     userId: logContext.smoochUserId,
     logContext,
   });
-}
+};
 
 exports.sendConversationEvent = async ({
   tenantId,
@@ -897,7 +750,7 @@ async function getMetadata({ tenantId, interactionId, auth }) {
   });
 }
 
-async function updateInteractionMetadata({
+exports.updateInteractionMetadata = async function updateInteractionMetadata({
   tenantId,
   interactionId,
   metadata,
@@ -915,9 +768,9 @@ async function updateInteractionMetadata({
     QueueUrl,
   };
   await sqs.sendMessage(sqsMessageAction).promise();
-}
+};
 
-async function uploadArtifactFile(
+exports.uploadArtifactFile = async function uploadArtifactFile(
   {
     tenantId, interactionId,
   },
@@ -946,7 +799,7 @@ async function uploadArtifactFile(
   };
 
   return sqs.sendMessage(sqsMessageAction).promise();
-}
+};
 
 async function sendReportingEvent({
   logContext,
@@ -1017,7 +870,7 @@ async function updateSmoochClientLastActivity({
   }
 }
 
-async function sendSmoochInteractionHeartbeat({
+exports.sendSmoochInteractionHeartbeat = async function sendSmoochInteractionHeartbeat({
   tenantId,
   interactionId,
   auth,
@@ -1039,7 +892,7 @@ async function sendSmoochInteractionHeartbeat({
     request: data,
   });
   return data;
-}
+};
 
 async function checkIfClientIsDisconnected({
   latestAgentMessageTimestamp,
@@ -1123,3 +976,180 @@ async function getClientInactivityTimeout({ logContext }) {
 
   return clientDisconnectMinutes;
 }
+
+exports.handleCustomerMessage = async ({
+  hasInteractionItem,
+  interactionId,
+  tenantId,
+  auth,
+  logContext,
+  appId,
+  userId,
+  message,
+  integrationId,
+  customer,
+  type,
+}) => {
+  if (hasInteractionItem && interactionId) {
+    let workingInteractionId = interactionId;
+
+    /** If heartbeat is successfull continue as normal
+    if not update the interaction record in DynamoDB */
+    try {
+      await exports.sendSmoochInteractionHeartbeat({
+        tenantId,
+        interactionId,
+        auth,
+      });
+    } catch (error) {
+      if (error.response.status === 404) {
+        log.info(
+          'Interaction ID is Invalid. Creating a new Interaction',
+          logContext,
+        );
+
+        try {
+          await axios({
+            method: 'post',
+            url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts?id=${uuidv1()}`,
+            data: {
+              source: 'smooch',
+              interruptType: 'interaction-disconnect',
+              interrupt: {
+                interactionId,
+              },
+            },
+            auth,
+          });
+        } catch (err) {
+          log.error('An error has occurred trying to send resource interrupt',
+            logContext,
+            err);
+          if (err.response.status === 404) {
+            await exports.sendCustomerMessageToParticipants({
+              appId,
+              userId,
+              tenantId,
+              contentType: 'text',
+              interactionId,
+              message: {
+                text: 'INTERACTION_NOT_FOUND_ERROR',
+                received: message.received,
+              },
+              auth,
+              logContext,
+            });
+          }
+        }
+
+        try {
+          workingInteractionId = await exports.createInteraction({
+            appId,
+            userId,
+            tenantId,
+            source: 'web',
+            integrationId,
+            customer,
+            smoochMessageId: message._id,
+            auth,
+            logContext,
+            isInteractionDead: true,
+            // Creating interaction with first message
+            // received timestamp
+            timestamp: message.received,
+          });
+        } catch (err) {
+          log.error(
+            'Failed to create an interaction',
+            logContext,
+            err,
+          );
+          throw err;
+        }
+      }
+    }
+
+    await exports.sendCustomerMessageToParticipants({
+      appId,
+      userId,
+      tenantId,
+      contentType: type,
+      interactionId: workingInteractionId,
+      message,
+      auth,
+      logContext,
+    });
+
+    const { data: metadata } = await getMetadata({
+      tenantId,
+      interactionId: workingInteractionId,
+      auth,
+    });
+    if (metadata.latestMessageSentBy !== 'customer') {
+      metadata.latestMessageSentBy = 'customer';
+      try {
+        await exports.updateInteractionMetadata({
+          tenantId,
+          interactionId: workingInteractionId,
+          metadata,
+        });
+        log.info('Updated latestMessageSentBy flag from metadata', logContext);
+      } catch (error) {
+        log.fatal('Error updating latestMessageSentBy flag from metadata', logContext, error);
+        throw error;
+      }
+    }
+  } else if (!hasInteractionItem) {
+    let newInteractionId;
+    try {
+      newInteractionId = await exports.createInteraction({
+        appId,
+        userId,
+        tenantId,
+        source: 'web',
+        integrationId,
+        customer,
+        smoochMessageId: message._id,
+        auth,
+        logContext,
+        // Creating interaction with first message
+        // received timestamp
+        timestamp: message.received,
+      });
+    } catch (error) {
+      log.error('Failed to create an interaction', logContext, error);
+      throw error;
+    }
+    if (type === 'file' || type === 'image') {
+      let artifactId;
+      try {
+        const data = await getMetadata({
+          tenantId,
+          interactionId: newInteractionId,
+          auth,
+        });
+
+        // eslint-disable-next-line no-param-reassign
+        logContext.interactionId = newInteractionId;
+        log.debug('Got interaction metadata', logContext);
+        artifactId = data.data.artifactId;
+      } catch (error) {
+        log.error('An Error ocurred retrieving interaction metadata', logContext, error);
+        throw error;
+      }
+      try {
+        await exports.uploadArtifactFile({
+          tenantId, interactionId: newInteractionId,
+        },
+        artifactId, message, auth);
+      } catch (error) {
+        const errMsg = 'Failed to upload artifact file';
+        log.error(errMsg, logContext, error);
+        throw error;
+      }
+    }
+  } else {
+    log.info('Web type received: text, but interaction is being created by something else. Ignoring.', logContext);
+  }
+  return 'handleCustomerMessage Successful';
+};

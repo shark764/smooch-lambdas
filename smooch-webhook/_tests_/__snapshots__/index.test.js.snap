@@ -1,5 +1,120 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`smooch-webhook handleCustomerMessage !hasInteractionItem calls createInteraction correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "appId": "mock-app-id",
+      "auth": "auth",
+      "customer": "customer",
+      "integrationId": "mock-integrationId-id",
+      "logContext": "logContext",
+      "smoochMessageId": "mock_id",
+      "source": "web",
+      "tenantId": "mock-tenant-id",
+      "timestamp": "10",
+      "userId": "mock-user-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handleCustomerMessage !hasInteractionItem calls uploadArtifactFile correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "interactionId": "new-interaction-id",
+      "tenantId": "mock-tenant-id",
+    },
+    "mock-artifact-id",
+    Object {
+      "_id": "mock_id",
+      "mediaUrl": "http://mockurl",
+      "received": "10",
+    },
+    "auth",
+  ],
+]
+`;
+
+exports[`smooch-webhook handleCustomerMessage !hasInteractionItem throws an error when failed to upload artifact file 1`] = `"Failed to upload artifact file"`;
+
+exports[`smooch-webhook handleCustomerMessage !hasInteractionItem throws an error when there is a problem creating interaction 1`] = `"Failed to create an interaction"`;
+
+exports[`smooch-webhook handleCustomerMessage !hasInteractionItem throws an error when there is a problem retrieving interaction metadata 1`] = `"An Error ocurred retrieving interaction metadata"`;
+
+exports[`smooch-webhook handleCustomerMessage hasInteractionId and interactionID calls createInteraction correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "appId": "mock-app-id",
+      "auth": "auth",
+      "customer": "customer",
+      "integrationId": "mock-integrationId-id",
+      "isInteractionDead": true,
+      "logContext": "logContext",
+      "smoochMessageId": "mock_id",
+      "source": "web",
+      "tenantId": "mock-tenant-id",
+      "timestamp": "10",
+      "userId": "mock-user-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handleCustomerMessage hasInteractionId and interactionID calls sendCustomerMessageToParticipants correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "appId": "mock-app-id",
+      "auth": "auth",
+      "contentType": "text",
+      "interactionId": "mock-interaction-id",
+      "logContext": "logContext",
+      "message": Object {
+        "received": "10",
+        "text": "INTERACTION_NOT_FOUND_ERROR",
+      },
+      "tenantId": "mock-tenant-id",
+      "userId": "mock-user-id",
+    },
+  ],
+  Array [
+    Object {
+      "appId": "mock-app-id",
+      "auth": "auth",
+      "contentType": "type",
+      "interactionId": "new-interaction-id",
+      "logContext": "logContext",
+      "message": Object {
+        "_id": "mock_id",
+        "mediaUrl": "http://mockurl",
+        "received": "10",
+      },
+      "tenantId": "mock-tenant-id",
+      "userId": "mock-user-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handleCustomerMessage hasInteractionId and interactionID calls sendSmoochInteractionHeartbeat correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "auth": "auth",
+      "interactionId": "mock-interaction-id",
+      "tenantId": "mock-tenant-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handleCustomerMessage hasInteractionId and interactionID throws an error when there is a problem creating interaction 1`] = `"Failed to create an interaction"`;
+
+exports[`smooch-webhook handleCustomerMessage hasInteractionId and interactionID throws an error when there is a problem updating latestMessageSentBy flag from metadata 1`] = `"Error updating latestMessageSentBy flag from metadata"`;
+
 exports[`smooch-webhook handleFormResponse collect message response passes in the correct arguments to handleCollectMessageResponse() 1`] = `
 Array [
   Array [
@@ -82,6 +197,156 @@ Array [
       },
       "tenantId": "mock-tenant-id",
       "timestamp": "mock-timestamp",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handler message:appUser web file calls handleCustomerMessage correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "appId": "mock-smooch-app-id",
+      "auth": Object {
+        "id": "mock-secret-id",
+        "secret": "mock-secret",
+      },
+      "customer": "mock-customer",
+      "hasInteractionItem": true,
+      "integrationId": "mock-integration-id",
+      "interactionId": "1",
+      "logContext": Object {
+        "hasInteractionItem": true,
+        "interactionId": "1",
+        "smoochAppId": "mock-smooch-app-id",
+        "smoochIntegrationId": "mock-integration-id",
+        "smoochMessageType": "file",
+        "smoochPlatform": "web",
+        "smoochTrigger": "message:appUser",
+        "smoochUserId": "mock-app-user-id",
+        "tenantId": "mock-tenant-id",
+      },
+      "message": Object {
+        "fields": Array [
+          Object {},
+        ],
+        "type": "file",
+      },
+      "tenantId": "mock-tenant-id",
+      "type": "file",
+      "userId": "mock-app-user-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handler message:appUser web formResponse calls handleFormResponse correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "appId": "mock-smooch-app-id",
+      "auth": Object {
+        "id": "mock-secret-id",
+        "secret": "mock-secret",
+      },
+      "form": Object {
+        "fields": Array [
+          Object {},
+        ],
+        "name": "mock-name",
+        "type": "formResponse",
+      },
+      "integrationId": "mock-integration-id",
+      "interactionId": "1",
+      "logContext": Object {
+        "hasInteractionItem": true,
+        "interactionId": "1",
+        "smoochAppId": "mock-smooch-app-id",
+        "smoochIntegrationId": "mock-integration-id",
+        "smoochMessageType": "formResponse",
+        "smoochPlatform": "web",
+        "smoochTrigger": "message:appUser",
+        "smoochUserId": "mock-app-user-id",
+        "tenantId": "mock-tenant-id",
+      },
+      "tenantId": "mock-tenant-id",
+      "userId": "mock-app-user-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handler message:appUser web image calls handleCustomerMessage correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "appId": "mock-smooch-app-id",
+      "auth": Object {
+        "id": "mock-secret-id",
+        "secret": "mock-secret",
+      },
+      "customer": "mock-customer",
+      "hasInteractionItem": true,
+      "integrationId": "mock-integration-id",
+      "interactionId": "1",
+      "logContext": Object {
+        "hasInteractionItem": true,
+        "interactionId": "1",
+        "smoochAppId": "mock-smooch-app-id",
+        "smoochIntegrationId": "mock-integration-id",
+        "smoochMessageType": "image",
+        "smoochPlatform": "web",
+        "smoochTrigger": "message:appUser",
+        "smoochUserId": "mock-app-user-id",
+        "tenantId": "mock-tenant-id",
+      },
+      "message": Object {
+        "fields": Array [
+          Object {},
+        ],
+        "type": "image",
+      },
+      "tenantId": "mock-tenant-id",
+      "type": "image",
+      "userId": "mock-app-user-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handler message:appUser web text calls handleCustomerMessage correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "appId": "mock-smooch-app-id",
+      "auth": Object {
+        "id": "mock-secret-id",
+        "secret": "mock-secret",
+      },
+      "customer": "mock-customer",
+      "hasInteractionItem": true,
+      "integrationId": "mock-integration-id",
+      "interactionId": "1",
+      "logContext": Object {
+        "hasInteractionItem": true,
+        "interactionId": "1",
+        "smoochAppId": "mock-smooch-app-id",
+        "smoochIntegrationId": "mock-integration-id",
+        "smoochMessageType": "text",
+        "smoochPlatform": "web",
+        "smoochTrigger": "message:appUser",
+        "smoochUserId": "mock-app-user-id",
+        "tenantId": "mock-tenant-id",
+      },
+      "message": Object {
+        "fields": Array [
+          Object {},
+        ],
+        "type": "text",
+      },
+      "tenantId": "mock-tenant-id",
+      "type": "text",
+      "userId": "mock-app-user-id",
     },
   ],
 ]

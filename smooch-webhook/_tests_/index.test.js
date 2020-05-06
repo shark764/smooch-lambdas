@@ -1,7 +1,11 @@
 const axios = require('axios');
+const uuidv4 = require('uuid/v4');
 
 jest.mock('axios');
 jest.mock('smooch-core');
+jest.mock('uuid/v4');
+
+uuidv4.mockImplementation(() => 'new-interaction-id');
 
 global.process.env = {
   AWS_REGION: 'us-east-1',
@@ -51,8 +55,8 @@ jest.mock('aws-sdk', () => ({
   DynamoDB: {
     DocumentClient: jest.fn().mockImplementation(() => ({
       get: mockGet,
-      put: jest.fn(), // mockPut,
-      update: jest.fn(), // mockUpdate,
+      put: jest.fn().mockImplementation(() => ({ promise: () => ({}) })), // mockPut,
+      update: jest.fn().mockImplementation(() => ({ promise: () => ({}) })), // mockUpdate,
     })),
   },
   SecretsManager: jest.fn().mockImplementation(() => ({
@@ -66,6 +70,7 @@ axios.mockImplementation(() => ({
       actionId: 'actionId',
     }],
     participants: [],
+    artifactId: 'mock-artifact-id',
   },
 }));
 
@@ -81,6 +86,7 @@ const body = {
     _id: 'mock-app-user-id',
     properties: {
       tenantId: 'mock-tenant-id',
+      customer: 'mock-customer',
     },
   },
   client: {
@@ -124,6 +130,113 @@ describe('smooch-webhook', () => {
       });
     });
     describe('message:appUser', () => {
+      it('handles the first message received from smooch', async () => {
+        const result = await handler(event({
+          ...body,
+          trigger: 'message:appUser',
+          messages: [
+            { type: 'file' },
+            { },
+          ],
+        }));
+        expect(result).toEqual('success');
+      });
+
+      describe('web', () => {
+        describe('formResponse', () => {
+          it('calls handleFormResponse correctly', async () => {
+            const spyOnHandleFormResponse = jest.spyOn(index, 'handleFormResponse')
+              .mockImplementationOnce(() => { });
+            await handler(event({
+              ...body,
+              trigger: 'message:appUser',
+              messages: [{
+                type: 'formResponse',
+                name: 'mock-name',
+                fields: [{}],
+              }],
+            }));
+            expect(spyOnHandleFormResponse.mock.calls).toMatchSnapshot();
+          });
+        });
+
+        describe('text', () => {
+          it('calls handleCustomerMessage correctly', async () => {
+            const handleCustomerMessage = jest.spyOn(index, 'handleCustomerMessage')
+              .mockImplementationOnce(() => {});
+            await handler(event({
+              ...body,
+              trigger: 'message:appUser',
+              messages: [{
+                type: 'text',
+                fields: [{}],
+              }],
+            }));
+            expect(handleCustomerMessage.mock.calls).toMatchSnapshot();
+          });
+        });
+
+        describe('image', () => {
+          it('calls handleCustomerMessage correctly', async () => {
+            const handleCustomerMessage = jest.spyOn(index, 'handleCustomerMessage')
+              .mockImplementationOnce(() => {});
+            await handler(event({
+              ...body,
+              trigger: 'message:appUser',
+              messages: [{
+                type: 'image',
+                fields: [{}],
+              }],
+            }));
+            expect(handleCustomerMessage.mock.calls).toMatchSnapshot();
+          });
+        });
+
+        describe('file', () => {
+          it('calls handleCustomerMessage correctly', async () => {
+            const handleCustomerMessage = jest.spyOn(index, 'handleCustomerMessage')
+              .mockImplementationOnce(() => {});
+            await handler(event({
+              ...body,
+              trigger: 'message:appUser',
+              messages: [{
+                type: 'file',
+                fields: [{}],
+              }],
+            }));
+            expect(handleCustomerMessage.mock.calls).toMatchSnapshot();
+          });
+        });
+
+        describe('when unsupported type is received', () => {
+          it('does nothing when unsupported type is received', async () => {
+            const result = await handler(event({
+              ...body,
+              trigger: 'message:appUser',
+              messages: [{ type: 'mock-type', mediaUrl: 'url://mock-mediaUrl' }],
+            }));
+            expect(result).toEqual('Unsupported web type');
+          });
+        });
+      });
+
+      describe('when Unsupported platform is received', () => {
+        it('does nothing when Unsupported platform is received', async () => {
+          const result = await handler(event({
+            ...body,
+            trigger: 'message:appUser',
+            client: {
+              integrationId: 'mock-integration-id',
+              platform: 'mock-platform',
+            },
+            messages: [
+              { type: 'type' },
+              { },
+            ],
+          }));
+          expect(result).toEqual('Unsupported platform');
+        });
+      });
     });
     describe('conversation:read', () => {
       it('returns when no interaction', async () => {
@@ -215,6 +328,11 @@ describe('smooch-webhook', () => {
     };
 
     describe('prechat capture', () => {
+      it('returs when handleFormResponse is successful', async () => {
+        const result = await handleFormResponse(input);
+        expect(result).toEqual('handleFormResponse Successful');
+      });
+
       it('passes in the correct arguments to createInteraction()', async () => {
         await handleFormResponse(input);
         expect(spyOnCreateInteraction.mock.calls).toMatchSnapshot();
@@ -309,6 +427,172 @@ describe('smooch-webhook', () => {
         };
         const result = await handleFormResponse(mockInput);
         expect(result).toEqual('unsupported formresponse');
+      });
+    });
+  });
+
+  describe('handleCustomerMessage', () => {
+    const mockEvent = {
+      hasInteractionItem: true,
+      interactionId: 'mock-interaction-id',
+      tenantId: 'mock-tenant-id',
+      auth: 'auth',
+      logContext: 'logContext',
+      appId: 'mock-app-id',
+      userId: 'mock-user-id',
+      message: {
+        received: '10',
+        _id: 'mock_id',
+        mediaUrl: 'http://mockurl',
+      },
+      integrationId: 'mock-integrationId-id',
+      customer: 'customer',
+      type: 'type',
+    };
+
+    const inActiveInteractionError = new Error();
+    inActiveInteractionError.response = {
+      status: 404,
+    };
+    const { handleCustomerMessage } = index;
+    const sendSmoochInteractionHeartbeat = jest.spyOn(index, 'sendSmoochInteractionHeartbeat');
+    const sendCustomerMessageToParticipants = jest.spyOn(index, 'sendCustomerMessageToParticipants');
+    const createInteraction = jest.spyOn(index, 'createInteraction');
+    const updateInteractionMetadata = jest.spyOn(index, 'updateInteractionMetadata');
+
+    describe('hasInteractionId and interactionID', () => {
+      it('calls sendSmoochInteractionHeartbeat correctly', async () => {
+        sendSmoochInteractionHeartbeat.mockImplementationOnce(() => { });
+        await handleCustomerMessage(mockEvent);
+        expect(sendSmoochInteractionHeartbeat.mock.calls).toMatchSnapshot();
+      });
+
+      it('calls sendCustomerMessageToParticipants correctly', async () => {
+        sendCustomerMessageToParticipants.mockImplementationOnce(() => { });
+        sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
+        axios.mockRejectedValueOnce(inActiveInteractionError);
+        await handleCustomerMessage(mockEvent);
+        expect(sendCustomerMessageToParticipants.mock.calls).toMatchSnapshot();
+      });
+
+      it('calls createInteraction correctly', async () => {
+        sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
+        createInteraction.mockImplementationOnce(() => { });
+        await handleCustomerMessage(mockEvent);
+        expect(createInteraction.mock.calls).toMatchSnapshot();
+      });
+
+      it('returns when interaction Id is invalid', async () => {
+        sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
+        const result = await handleCustomerMessage(mockEvent);
+        expect(result).toEqual('handleCustomerMessage Successful');
+      });
+
+      it('returns when the interaction is dead', async () => {
+        sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
+        axios.mockRejectedValueOnce(inActiveInteractionError);
+        const result = await handleCustomerMessage(mockEvent);
+        expect(result).toEqual('handleCustomerMessage Successful');
+      });
+
+      it('throws an error when there is a problem creating interaction', async () => {
+        sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
+        createInteraction.mockImplementationOnce(() => {
+          throw new Error();
+        });
+        try {
+          await handleCustomerMessage(mockEvent);
+        } catch (error) {
+          expect(Promise.reject(new Error('Failed to create an interaction'))).rejects.toThrowErrorMatchingSnapshot();
+        }
+      });
+
+      it('throws an error when there is a problem updating latestMessageSentBy flag from metadata', async () => {
+        axios.mockImplementationOnce(() => ({
+          data: { latestMessageSentBy: 'system' },
+        }));
+        updateInteractionMetadata.mockImplementationOnce(() => {
+          throw new Error();
+        });
+        try {
+          await handleCustomerMessage(mockEvent);
+        } catch (error) {
+          expect(Promise.reject(new Error('Error updating latestMessageSentBy flag from metadata'))).rejects.toThrowErrorMatchingSnapshot();
+        }
+      });
+    });
+    describe('!hasInteractionItem', () => {
+      beforeEach(() => {
+        mockGet.mockImplementationOnce(() => ({
+          promise: () => ({ Item: {} }),
+        }));
+      });
+
+      const newEvent = {
+        ...mockEvent,
+        hasInteractionItem: false,
+        type: 'file',
+      };
+
+      const uploadArtifactFile = jest.spyOn(index, 'uploadArtifactFile');
+
+      it('calls createInteraction correctly', async () => {
+        createInteraction.mockImplementationOnce(() => { });
+        await handleCustomerMessage(newEvent);
+        expect(createInteraction.mock.calls).toMatchSnapshot();
+      });
+
+      it('calls uploadArtifactFile correctly', async () => {
+        uploadArtifactFile.mockImplementationOnce(() => { });
+        await handleCustomerMessage(newEvent);
+        expect(uploadArtifactFile.mock.calls).toMatchSnapshot();
+      });
+
+      it('throws an error when there is a problem creating interaction', async () => {
+        createInteraction.mockImplementationOnce(() => {
+          throw new Error();
+        });
+        try {
+          await handleCustomerMessage(newEvent);
+        } catch (error) {
+          expect(Promise.reject(new Error('Failed to create an interaction'))).rejects.toThrowErrorMatchingSnapshot();
+        }
+      });
+
+      it('throws an error when there is a problem retrieving interaction metadata', async () => {
+        axios.mockImplementationOnce(() => ({
+          data: {
+            artifactId: 'mocked-artifact-id',
+          },
+        }));
+        axios.mockImplementationOnce(() => ({}));
+        axios.mockRejectedValueOnce(new Error());
+        try {
+          await handleCustomerMessage(newEvent);
+        } catch (error) {
+          expect(Promise.reject(new Error('An Error ocurred retrieving interaction metadata'))).rejects.toThrowErrorMatchingSnapshot();
+        }
+      });
+
+      it('throws an error when failed to upload artifact file', async () => {
+        uploadArtifactFile.mockImplementationOnce(() => {
+          throw new Error();
+        });
+        try {
+          await handleCustomerMessage(newEvent);
+        } catch (error) {
+          expect(Promise.reject(new Error('Failed to upload artifact file'))).rejects.toThrowErrorMatchingSnapshot();
+        }
+      });
+    });
+
+    describe('Interaction Created by something else', () => {
+      it('when the interaction is being created by something else', async () => {
+        const result = await handleCustomerMessage({
+          ...mockEvent,
+          interactionId: undefined,
+        });
+        expect(result).toEqual('handleCustomerMessage Successful');
       });
     });
   });
