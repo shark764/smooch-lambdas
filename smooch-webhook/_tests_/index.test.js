@@ -1,11 +1,16 @@
 const axios = require('axios');
 const uuidv4 = require('uuid/v4');
+const uuidv1 = require('uuid/v1');
 
 jest.mock('axios');
 jest.mock('smooch-core');
 jest.mock('uuid/v4');
+jest.mock('uuid/v1');
 
 uuidv4.mockImplementation(() => 'new-interaction-id');
+uuidv1.mockImplementation(() => 'mock-uuid-v1');
+global.Date.now = jest.fn(() => 1588787136364);
+global.Date.prototype.getTime = jest.fn(() => '00:00:00');
 
 global.process.env = {
   AWS_REGION: 'us-east-1',
@@ -16,7 +21,12 @@ global.process.env = {
 
 const mockGet = jest.fn()
   .mockImplementation(() => ({
-    promise: () => ({ Item: { InteractionId: '1' } }),
+    promise: () => ({
+      Item: {
+        InteractionId: '1',
+        'contact-point': 'contactPoint',
+      },
+    }),
   }));
 
 const mockGetSecretValue = jest.fn()
@@ -36,11 +46,28 @@ const mockSendMessage = jest.fn()
     promise: () => ({}),
   }));
 
+const mockPut = jest.fn()
+  .mockImplementation(() => ({
+    promise: () => ({}),
+  }));
+
+const mockUpdate = jest.fn()
+  .mockImplementation(() => ({
+    promise: () => ({}),
+  }));
+
 const mockSmoochCore = jest.fn(() => ({
   appUsers: {
     update: mockSmoochUpdate,
   },
 }));
+
+const mockGetQueueUrl = jest.fn()
+  .mockImplementation(() => ({
+    promise: () => ({
+      QueueUrl: 'url://testurl',
+    }),
+  }));
 
 jest.mock('smooch-core', () => mockSmoochCore);
 
@@ -49,14 +76,14 @@ jest.mock('aws-sdk', () => ({
     update: jest.fn(),
   },
   SQS: jest.fn().mockImplementation(() => ({
-    getQueueUrl: jest.fn().mockImplementation(() => ({ promise: jest.fn().mockImplementation(() => ({ QueueUrl: 'url://testurl' })) })),
+    getQueueUrl: mockGetQueueUrl,
     sendMessage: mockSendMessage, // mockSendMessage,
   })),
   DynamoDB: {
     DocumentClient: jest.fn().mockImplementation(() => ({
       get: mockGet,
-      put: jest.fn().mockImplementation(() => ({ promise: () => ({}) })), // mockPut,
-      update: jest.fn().mockImplementation(() => ({ promise: () => ({}) })), // mockUpdate,
+      put: mockPut, // mockPut,
+      update: mockUpdate, // mockUpdate,
     })),
   },
   SecretsManager: jest.fn().mockImplementation(() => ({
@@ -69,8 +96,12 @@ axios.mockImplementation(() => ({
     collectActions: [{
       actionId: 'actionId',
     }],
-    participants: [],
+    participants: [{
+      sessionId: 'mock-session-id',
+      resourceId: 'mock-resource-id',
+    }],
     artifactId: 'mock-artifact-id',
+    latestMessageSentBy: 'customer',
   },
 }));
 
@@ -431,6 +462,412 @@ describe('smooch-webhook', () => {
     });
   });
 
+  describe('handleCollectMessageResponse', () => {
+    const input = {
+      tenantId: 'mock-tenant-id',
+      interactionId: 'mock-interaction-id',
+      form: {
+        quotedMessage: {
+          content: {
+            metadata: {
+              actionId: 'actionId',
+              subId: 'subId',
+            },
+          },
+        },
+        fields: [{ text: 'response' }],
+      },
+      auth: 'auth',
+      logContext: 'logContext',
+    };
+
+    const { handleCollectMessageResponse } = index;
+    const sendCustomerMessageToParticipants = jest.spyOn(index, 'sendCustomerMessageToParticipants');
+    const updateInteractionMetadata = jest.spyOn(index, 'updateInteractionMetadata');
+
+    it('calls sendFlowActionResponse correctly', async () => {
+      const sendFlowActionResponse = jest.spyOn(index, 'sendFlowActionResponse')
+        .mockImplementationOnce(() => {});
+      await handleCollectMessageResponse(input);
+      expect(sendFlowActionResponse.mock.calls).toMatchSnapshot();
+    });
+
+    it('calls sendCustomerMessageToParticipants correctly', async () => {
+      sendCustomerMessageToParticipants.mockImplementationOnce(() => {});
+      await handleCollectMessageResponse(input);
+      expect(sendCustomerMessageToParticipants.mock.calls).toMatchSnapshot();
+    });
+
+    it('calls updateInteractionMetadata correctly', async () => {
+      updateInteractionMetadata.mockImplementationOnce(() => {});
+      await handleCollectMessageResponse(input);
+      expect(updateInteractionMetadata.mock.calls).toMatchSnapshot();
+    });
+
+    it('returns when no interactionID is provided', async () => {
+      const result = await handleCollectMessageResponse({
+        ...input,
+        interactionId: undefined,
+      });
+      expect(result).toEqual('No Interaction ID');
+    });
+
+    it('throws an error when there are no pending actions', async () => {
+      axios.mockImplementationOnce(() => ({
+        data: {
+          participants: [],
+        },
+      }));
+      try {
+        await handleCollectMessageResponse(input);
+      } catch (error) {
+        expect(error.message).toMatchSnapshot();
+      }
+    });
+
+    it('throws an error when there are no action found in pending-actions', async () => {
+      axios.mockImplementationOnce(() => ({
+        data: {
+          collectActions: [{
+          }],
+          participants: [],
+        },
+      }));
+      try {
+        await handleCollectMessageResponse(input);
+      } catch (error) {
+        expect(error.message).toMatchSnapshot();
+      }
+    });
+
+    it('throws an error when there is a problem sending collect-message response to participants', async () => {
+      sendCustomerMessageToParticipants.mockImplementationOnce(() => {
+        throw new Error();
+      });
+      try {
+        await handleCollectMessageResponse(input);
+      } catch (error) {
+        expect(Promise.reject(new Error('Error sending collect-message response to participants'))).rejects.toThrowErrorMatchingSnapshot();
+      }
+    });
+
+    it('throws an error when there is a problem removing pending collect-message action from metadata', async () => {
+      updateInteractionMetadata.mockImplementationOnce(() => {
+        throw new Error();
+      });
+      try {
+        await handleCollectMessageResponse(input);
+      } catch (error) {
+        expect(Promise.reject(new Error('Error removing pending collect-message action from metadata'))).rejects.toThrowErrorMatchingSnapshot();
+      }
+    });
+  });
+
+  describe('createInteraction', () => {
+    const input = {
+      appId: 'mock-app-id',
+      userId: 'mock-user-id',
+      tenantId: 'mock-tenant-id',
+      source: '',
+      integrationId: 'mock-integration-id',
+      customer: 'firstName lastName',
+      logContext: 'logContext',
+      auth: 'auth',
+      smoochMessageId: 'mock-smoochMessage-id',
+      isInteractionDead: false,
+      timestamp: 10,
+    };
+
+    const { createInteraction } = index;
+
+    it('calls docClient.put() correctly', async () => {
+      await createInteraction(input);
+      expect(mockPut.mock.calls).toMatchSnapshot();
+    });
+
+    it('calls docClient.get() correctly', async () => {
+      await createInteraction(input);
+      expect(mockGet.mock.calls).toMatchSnapshot();
+    });
+
+    it('calls axios correctly', async () => {
+      await createInteraction(input);
+      expect(axios.mock.calls).toMatchSnapshot();
+    });
+
+    it('calls docClient.update() correctly', async () => {
+      await createInteraction(input);
+      expect(mockUpdate.mock.calls).toMatchSnapshot();
+    });
+
+    it('returns when there is a problem creating inetraction', async () => {
+      mockPut.mockRejectedValueOnce(new Error());
+      const result = await createInteraction(input);
+      expect(result).toBeFalsy();
+    });
+
+    it('returns when the interaction is dead', async () => {
+      const result = await createInteraction({
+        ...input,
+        isInteractionDead: true,
+      });
+      expect(mockPut.mock.calls).toMatchSnapshot();
+      expect(result).toEqual('new-interaction-id');
+    });
+
+    it('throws an error when there is a problem retrieving smooch integration from DynamoDB', async () => {
+      mockGet.mockRejectedValueOnce(new Error());
+      try {
+        await createInteraction(input);
+      } catch (error) {
+        expect(Promise.reject(new Error('Failed to retrieve Smooch integration from DynamoDB'))).rejects.toThrowErrorMatchingSnapshot();
+      }
+    });
+
+    it('throws an error when there is a problem creating artifact', async () => {
+      axios.mockRejectedValueOnce(new Error());
+      try {
+        await createInteraction(input);
+      } catch (error) {
+        expect(Promise.reject(new Error('Error creating artifact'))).rejects.toThrowErrorMatchingSnapshot();
+      }
+    });
+
+    it('throws an error when there is a problem updating the interaction id on the state table', async () => {
+      mockUpdate.mockRejectedValueOnce(new Error());
+      const result = await createInteraction(input);
+      expect(result).toBeFalsy();
+    });
+  });
+
+  describe('sendCustomerMessageToParticipants', () => {
+    const input = {
+      tenantId: 'mock-tenant-id',
+      interactionId: 'mock-interaction-id',
+      contentType: 'contentType',
+      message: {
+        _id: '_id',
+        name: 'mock-name',
+        text: 'text',
+        received: 10,
+        mediaUrl: 'mediaUrl',
+        mediaType: 'mediaType',
+        mediaSize: 'mediaSize',
+        type: 'file',
+      },
+      auth: 'auth',
+      logContext: 'logContext',
+    };
+
+    const { sendCustomerMessageToParticipants } = index;
+    const uploadArtifactFile = jest.spyOn(index, 'uploadArtifactFile');
+    const sendReportingEvent = jest.spyOn(index, 'sendReportingEvent');
+    const updateSmoochClientLastActivity = jest.spyOn(index, 'updateSmoochClientLastActivity');
+
+    it('calls getMetadata correctly', async () => {
+      await sendCustomerMessageToParticipants(input);
+      expect(axios.mock.calls).toMatchSnapshot();
+    });
+
+    it('calls sqs.getQueueUrl correctly', async () => {
+      await sendCustomerMessageToParticipants(input);
+      expect(mockGetQueueUrl.mock.calls).toMatchSnapshot();
+    });
+
+    it('calls sqs.sendMessage correctly', async () => {
+      await sendCustomerMessageToParticipants(input);
+      expect(mockSendMessage.mock.calls).toMatchSnapshot();
+    });
+
+    it('calls uploadArtifactFile correctly', async () => {
+      uploadArtifactFile.mockImplementationOnce(() => {});
+      await sendCustomerMessageToParticipants(input);
+      expect(uploadArtifactFile.mock.calls);
+    });
+
+    it('calls sendReportingEvent correctly', async () => {
+      sendReportingEvent.mockImplementationOnce(() => {});
+      await sendCustomerMessageToParticipants(input);
+      expect(sendReportingEvent.mock.calls);
+    });
+
+    it('calls updateSmoochClientLastActivity correctly', async () => {
+      updateSmoochClientLastActivity.mockImplementationOnce(() => {});
+      await sendCustomerMessageToParticipants(input);
+      expect(updateSmoochClientLastActivity.mock.calls);
+    });
+
+    it('when sending message to a dead interaction', async () => {
+      const result = await sendCustomerMessageToParticipants({
+        ...input,
+        message: {
+          _id: '_id',
+          name: 'mock-name',
+          text: 'INTERACTION_NOT_FOUND_ERROR',
+          received: 10,
+          mediaUrl: 'mediaUrl',
+          mediaType: 'mediaType',
+          mediaSize: 'mediaSize',
+          type: 'file',
+        },
+      });
+      expect(result).toEqual('sendCustomerMessageToParticipants Successful');
+    });
+
+    it('returns when there is a problem uploading file to artifact', async () => {
+      uploadArtifactFile.mockImplementationOnce(() => {
+        throw new Error();
+      });
+      const result = await sendCustomerMessageToParticipants(input);
+      expect(result).toEqual('sendCustomerMessageToParticipants Successful');
+    });
+
+    it('returns when there is a problem sending the reporting event', async () => {
+      sendReportingEvent.mockImplementationOnce(() => {
+        throw new Error();
+      });
+      const result = await sendCustomerMessageToParticipants(input);
+      expect(result).toEqual('sendCustomerMessageToParticipants Successful');
+    });
+
+    it('throws an error when there is a problem sending message to participants', async () => {
+      axios.mockRejectedValueOnce(new Error());
+      try {
+        await sendCustomerMessageToParticipants(input);
+      } catch (error) {
+        expect(Promise.reject(new Error('Error sending message to participants'))).rejects.toThrowErrorMatchingSnapshot();
+      }
+    });
+  });
+
+  describe('sendConversationEvent', () => {
+    const input = {
+      tenantId: 'mock-tenant-id',
+      interactionId: 'mock-interaction-id',
+      conversationEvent: 'typing-stop',
+      timestamp: 10,
+      auth: 'auth',
+      logContext: {
+        smoochUserId: 'mock-smooch-user-id',
+      },
+    };
+
+    const { sendConversationEvent } = index;
+    const updateSmoochClientLastActivity = jest.spyOn(index, 'updateSmoochClientLastActivity')
+      .mockImplementationOnce(() => {});
+
+    it('calls getMetadata correctly', async () => {
+      await sendConversationEvent(input);
+      expect(axios.mock.calls).toMatchSnapshot();
+    });
+
+    it('calls sqs.getQueueUrl correctly', async () => {
+      await sendConversationEvent(input);
+      expect(mockGetQueueUrl.mock.calls).toMatchSnapshot();
+    });
+
+    it('calls sqs.sendMessage correctly', async () => {
+      await sendConversationEvent(input);
+      expect(mockSendMessage.mock.calls).toMatchSnapshot();
+    });
+
+    it("calls updateSmoochClientLastActivity correctly when conversationEvent is 'typing-stop'", async () => {
+      await sendConversationEvent(input);
+      expect(updateSmoochClientLastActivity.mock.calls).toMatchSnapshot();
+    });
+
+    it("calls updateSmoochClientLastActivity correctly when conversationEvent is not equal to 'conversation-read'", async () => {
+      await sendConversationEvent({
+        ...input,
+        conversationEvent: 'typing-start',
+      });
+      expect(updateSmoochClientLastActivity.mock.calls).toMatchSnapshot();
+    });
+
+    it('throws an error when there is problem sending conversation event to participants', async () => {
+      axios.mockRejectedValueOnce(new Error());
+      try {
+        await sendConversationEvent(input);
+      } catch (error) {
+        expect(Promise.reject(new Error('Error sending conversation event to participants'))).rejects.toThrowErrorMatchingSnapshot();
+      }
+    });
+
+    describe("latestMessageSentBy !== 'customer'", () => {
+      beforeEach(() => {
+        axios.mockImplementationOnce(() => ({
+          data: {
+            participants: [{}],
+            latestMessageSentBy: 'agent',
+          },
+        }));
+      });
+
+      const getClientInactivityTimeout = jest.spyOn(index, 'getClientInactivityTimeout');
+      const shouldCheckIfClientIsDisconnected = jest.spyOn(index, 'shouldCheckIfClientIsDisconnected');
+      const checkIfClientIsDisconnected = jest.spyOn(index, 'checkIfClientIsDisconnected');
+      getClientInactivityTimeout.mockImplementation(() => true);
+      shouldCheckIfClientIsDisconnected.mockImplementation(() => true);
+
+      it('calls getClientInactivityTimeout correctly', async () => {
+        await sendConversationEvent(input);
+        expect(getClientInactivityTimeout.mock.calls).toMatchSnapshot();
+      });
+
+      it('calls shouldCheckIfClientIsDisconnected correctly', async () => {
+        await sendConversationEvent(input);
+        expect(shouldCheckIfClientIsDisconnected.mock.calls).toMatchSnapshot();
+      });
+
+      it('calls checkIfClientIsDisconnected correctly', async () => {
+        await sendConversationEvent(input);
+        expect(checkIfClientIsDisconnected.mock.calls).toMatchSnapshot();
+      });
+
+      it('returns when no disconnect timer is set', async () => {
+        getClientInactivityTimeout.mockImplementationOnce(() => false);
+        const result = await sendConversationEvent(input);
+        expect(shouldCheckIfClientIsDisconnected).not.toHaveBeenCalled();
+        expect(result).toEqual('sendConversationEvent Successful');
+      });
+
+      it('checks for client disconnect when disconnect timer is set', async () => {
+        getClientInactivityTimeout.mockImplementationOnce(() => true);
+        const result = await sendConversationEvent(input);
+        expect(shouldCheckIfClientIsDisconnected).toHaveBeenCalled();
+        expect(result).toEqual('sendConversationEvent Successful');
+      });
+
+      it('returns when the client is not disconnected', async () => {
+        getClientInactivityTimeout.mockImplementationOnce(() => true);
+        shouldCheckIfClientIsDisconnected.mockImplementationOnce(() => false);
+        const result = await sendConversationEvent(input);
+        expect(checkIfClientIsDisconnected).not.toHaveBeenCalled();
+        expect(result).toEqual('sendConversationEvent Successful');
+      });
+    });
+  });
+
+  describe('updateSmoochClientLastActivity', () => {
+    const input = {
+      latestCustomerMessageTimestamp: 10,
+      userId: 'mock-user-id',
+      logContext: 'logContext',
+    };
+
+    const { updateSmoochClientLastActivity } = index;
+
+    it('calls docClient.update correctly ok ok', async () => {
+      await updateSmoochClientLastActivity(input);
+      expect(mockUpdate.mock.calls).toMatchSnapshot();
+    });
+
+    it('returns when there is a error updating the latest customer activity', async () => {
+      mockUpdate.mockRejectedValueOnce(new Error());
+      await updateSmoochClientLastActivity(input);
+    });
+  });
+
   describe('handleCustomerMessage', () => {
     const mockEvent = {
       hasInteractionItem: true,
@@ -508,12 +945,21 @@ describe('smooch-webhook', () => {
       });
 
       it('throws an error when there is a problem updating latestMessageSentBy flag from metadata', async () => {
+        axios.mockImplementationOnce(() => ({}));
+        axios.mockImplementationOnce(() => ({
+          data: {
+            collectActions: [{
+              actionId: 'actionId',
+            }],
+            participants: [{}],
+            artifactId: 'mock-artifact-id',
+            latestMessageSentBy: 'customer',
+          },
+        }));
         axios.mockImplementationOnce(() => ({
           data: { latestMessageSentBy: 'system' },
         }));
-        updateInteractionMetadata.mockImplementationOnce(() => {
-          throw new Error();
-        });
+        updateInteractionMetadata.mockRejectedValueOnce(new Error());
         try {
           await handleCustomerMessage(mockEvent);
         } catch (error) {

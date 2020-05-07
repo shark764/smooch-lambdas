@@ -1,5 +1,185 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`smooch-webhook createInteraction calls axios correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "auth": "auth",
+      "data": Object {
+        "artifactType": "messaging-transcript",
+      },
+      "method": "post",
+      "url": "https://us-east-1-dev-edge.domain/v1/tenants/mock-tenant-id/interactions/new-interaction-id/artifacts",
+    },
+  ],
+  Array [
+    Object {
+      "auth": "auth",
+      "data": Object {
+        "channelType": "messaging",
+        "contactPoint": "contactPoint",
+        "customer": "firstName lastName",
+        "direction": "inbound",
+        "id": "new-interaction-id",
+        "interaction": Object {
+          "artifactId": "mock-artifact-id",
+          "customerMetadata": Object {
+            "firstName": "firstName",
+            "id": "firstName lastName",
+            "lastName": "lastName",
+          },
+        },
+        "metadata": Object {
+          "appId": "mock-app-id",
+          "artifactId": "mock-artifact-id",
+          "customer": "firstName lastName",
+          "firstCustomerMessageTimestamp": 10,
+          "latestMessageSentBy": "customer",
+          "participants": Array [],
+          "smoochIntegrationId": "mock-integration-id",
+          "source": "",
+          "userId": "mock-user-id",
+        },
+        "source": "smooch",
+        "tenantId": "mock-tenant-id",
+      },
+      "method": "post",
+      "url": "https://us-east-1-dev-edge.domain/v1/tenants/mock-tenant-id/interactions",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook createInteraction calls docClient.get() correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "Key": Object {
+        "id": "mock-integration-id",
+        "tenant-id": "mock-tenant-id",
+      },
+      "TableName": "us-east-1-dev-smooch",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook createInteraction calls docClient.put() correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "ConditionExpression": "attribute_not_exists(SmoochUserId) OR (attribute_exists(SmoochUserId) AND attribute_not_exists(InteractionId) AND CreatingSmoochMessageId = :m)",
+      "ExpressionAttributeValues": Object {
+        ":m": "mock-smoochMessage-id",
+      },
+      "Item": Object {
+        "CreatingSmoochMessageId": "mock-smoochMessage-id",
+        "SmoochUserId": "mock-user-id",
+        "TTL": 1589391936,
+      },
+      "TableName": "us-east-1-dev-smooch-interactions",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook createInteraction calls docClient.update() correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "ExpressionAttributeValues": Object {
+        ":i": "new-interaction-id",
+      },
+      "Key": Object {
+        "SmoochUserId": "mock-user-id",
+      },
+      "TableName": "us-east-1-dev-smooch-interactions",
+      "UpdateExpression": "set InteractionId = :i",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook createInteraction returns when the interaction is dead 1`] = `
+Array [
+  Array [
+    Object {
+      "ConditionExpression": "InteractionId <> :i OR CreatingSmoochMessageId = :m",
+      "ExpressionAttributeValues": Object {
+        ":i": "interaction-404",
+        ":m": "mock-smoochMessage-id",
+      },
+      "Item": Object {
+        "SmoochUserId": "mock-user-id",
+      },
+      "TableName": "us-east-1-dev-smooch-interactions",
+      "UpdateExpression": "set CreatingSmoochMessageId: :m, InteractionId = :i",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook createInteraction throws an error when there is a problem creating artifact 1`] = `"Error creating artifact"`;
+
+exports[`smooch-webhook createInteraction throws an error when there is a problem retrieving smooch integration from DynamoDB 1`] = `"Failed to retrieve Smooch integration from DynamoDB"`;
+
+exports[`smooch-webhook handleCollectMessageResponse calls sendCustomerMessageToParticipants correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "auth": "auth",
+      "interactionId": "mock-interaction-id",
+      "logContext": "logContext",
+      "message": "response",
+      "tenantId": "mock-tenant-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handleCollectMessageResponse calls sendFlowActionResponse correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "actionId": "actionId",
+      "logContext": "logContext",
+      "response": "response",
+      "subId": "subId",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handleCollectMessageResponse calls updateInteractionMetadata correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "interactionId": "mock-interaction-id",
+      "metadata": Object {
+        "artifactId": "mock-artifact-id",
+        "collectActions": Array [],
+        "latestMessageSentBy": "customer",
+        "participants": Array [
+          Object {
+            "resourceId": "mock-resource-id",
+            "sessionId": "mock-session-id",
+          },
+        ],
+      },
+      "tenantId": "mock-tenant-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook handleCollectMessageResponse throws an error when there are no action found in pending-actions 1`] = `"Action could not be found in pending-actions"`;
+
+exports[`smooch-webhook handleCollectMessageResponse throws an error when there are no pending actions 1`] = `"There are no pending actions"`;
+
+exports[`smooch-webhook handleCollectMessageResponse throws an error when there is a problem removing pending collect-message action from metadata 1`] = `"Error removing pending collect-message action from metadata"`;
+
+exports[`smooch-webhook handleCollectMessageResponse throws an error when there is a problem sending collect-message response to participants 1`] = `"Error sending collect-message response to participants"`;
+
 exports[`smooch-webhook handleCustomerMessage !hasInteractionItem calls createInteraction correctly 1`] = `
 Array [
   Array [
@@ -397,6 +577,184 @@ Array [
   Array [
     Object {
       "SecretId": "us-east-1-dev-smooch-cx",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook sendConversationEvent calls getMetadata correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "auth": "auth",
+      "method": "get",
+      "url": "https://us-east-1-dev-edge.domain/v1/tenants/mock-tenant-id/interactions/mock-interaction-id/metadata",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook sendConversationEvent calls sqs.getQueueUrl correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "QueueName": "mock-tenant-id_mock-resource-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook sendConversationEvent calls sqs.sendMessage correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "MessageBody": "{\\"tenantId\\":\\"mock-tenant-id\\",\\"interactionId\\":\\"mock-interaction-id\\",\\"actionId\\":\\"mock-uuid-v1\\",\\"subId\\":\\"mock-uuid-v1\\",\\"type\\":\\"send-message\\",\\"resourceId\\":\\"mock-resource-id\\",\\"sessionId\\":\\"mock-session-id\\",\\"messageType\\":\\"typing-stop\\",\\"message\\":{\\"timestamp\\":10000}}",
+      "QueueUrl": "url://testurl",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook sendConversationEvent calls updateSmoochClientLastActivity correctly when conversationEvent is 'typing-stop' 1`] = `
+Array [
+  Array [
+    Object {
+      "latestCustomerMessageTimestamp": "00:00:00",
+      "logContext": Object {
+        "smoochUserId": "mock-smooch-user-id",
+      },
+      "userId": "mock-smooch-user-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook sendConversationEvent calls updateSmoochClientLastActivity correctly when conversationEvent is not equal to 'conversation-read' 1`] = `
+Array [
+  Array [
+    Object {
+      "latestCustomerMessageTimestamp": 10000,
+      "logContext": Object {
+        "smoochUserId": "mock-smooch-user-id",
+      },
+      "userId": "mock-smooch-user-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook sendConversationEvent latestMessageSentBy !== 'customer' calls checkIfClientIsDisconnected correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "disconnectTimeoutInMinutes": true,
+      "latestAgentMessageTimestamp": "00:00:00",
+      "logContext": Object {
+        "smoochUserId": "mock-smooch-user-id",
+      },
+      "userId": "mock-smooch-user-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook sendConversationEvent latestMessageSentBy !== 'customer' calls getClientInactivityTimeout correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "logContext": Object {
+        "smoochUserId": "mock-smooch-user-id",
+      },
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook sendConversationEvent latestMessageSentBy !== 'customer' calls shouldCheckIfClientIsDisconnected correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "logContext": Object {
+        "smoochUserId": "mock-smooch-user-id",
+      },
+      "userId": "mock-smooch-user-id",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook sendConversationEvent throws an error when there is problem sending conversation event to participants 1`] = `"Error sending conversation event to participants"`;
+
+exports[`smooch-webhook sendCustomerMessageToParticipants calls getMetadata correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "auth": "auth",
+      "method": "get",
+      "url": "https://us-east-1-dev-edge.domain/v1/tenants/mock-tenant-id/interactions/mock-interaction-id/metadata",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook sendCustomerMessageToParticipants calls sqs.getQueueUrl correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "QueueName": "mock-tenant-id_mock-resource-id",
+    },
+  ],
+  Array [
+    Object {
+      "QueueName": "us-east-1-dev-upload-artifact-file",
+    },
+  ],
+  Array [
+    Object {
+      "QueueName": "us-east-1-dev-send-reporting-event",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook sendCustomerMessageToParticipants calls sqs.sendMessage correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "MessageBody": "{\\"tenantId\\":\\"mock-tenant-id\\",\\"interactionId\\":\\"mock-interaction-id\\",\\"actionId\\":\\"mock-uuid-v1\\",\\"subId\\":\\"mock-uuid-v1\\",\\"type\\":\\"send-message\\",\\"resourceId\\":\\"mock-resource-id\\",\\"sessionId\\":\\"mock-session-id\\",\\"messageType\\":\\"received-message\\",\\"message\\":{\\"id\\":\\"_id\\",\\"from\\":\\"mock-name\\",\\"contentType\\":\\"contentType\\",\\"timestamp\\":10000,\\"type\\":\\"customer\\",\\"text\\":\\"text\\",\\"file\\":{\\"mediaUrl\\":\\"mediaUrl\\",\\"mediaType\\":\\"mediaType\\",\\"mediaSize\\":\\"mediaSize\\"}}}",
+      "QueueUrl": "url://testurl",
+    },
+  ],
+  Array [
+    Object {
+      "MessageBody": "{\\"source\\":\\"customer\\",\\"artifactId\\":\\"mock-artifact-id\\",\\"fileData\\":{\\"filename\\":\\"mediaUrl\\",\\"contentType\\":\\"mediaType\\"},\\"message\\":{\\"_id\\":\\"_id\\",\\"name\\":\\"mock-name\\",\\"text\\":\\"text\\",\\"received\\":10,\\"mediaUrl\\":\\"mediaUrl\\",\\"mediaType\\":\\"mediaType\\",\\"mediaSize\\":\\"mediaSize\\",\\"type\\":\\"file\\"}}",
+      "QueueUrl": "url://testurl",
+    },
+  ],
+  Array [
+    Object {
+      "MessageBody": "{\\"topic\\":\\"customer-message\\",\\"appName\\":\\"us-east-1-dev-smooch-webhook\\"}",
+      "QueueUrl": "url://testurl",
+    },
+  ],
+]
+`;
+
+exports[`smooch-webhook sendCustomerMessageToParticipants throws an error when there is a problem sending message to participants 1`] = `"Error sending message to participants"`;
+
+exports[`smooch-webhook updateSmoochClientLastActivity calls docClient.update correctly ok ok 1`] = `
+Array [
+  Array [
+    Object {
+      "ExpressionAttributeValues": Object {
+        ":t": 10,
+      },
+      "Key": Object {
+        "SmoochUserId": "mock-user-id",
+      },
+      "ReturnValues": "UPDATED_NEW",
+      "TableName": "us-east-1-dev-smooch-interactions",
+      "UpdateExpression": "set LatestCustomerMessageTimestamp = :t",
     },
   ],
 ]

@@ -328,7 +328,7 @@ exports.handleCollectMessageResponse = async function handleCollectMessageRespon
 }) {
   if (!interactionId) {
     log.info('No interaction ID. Ignoring collect message response.', logContext);
-    return;
+    return 'No Interaction ID';
   }
   const { data: metadata } = await getMetadata({ tenantId, interactionId, auth });
   const { collectActions: pendingActions } = metadata;
@@ -362,7 +362,7 @@ exports.handleCollectMessageResponse = async function handleCollectMessageRespon
   }
 
   // Update flow
-  await sendFlowActionResponse({
+  await exports.sendFlowActionResponse({
     logContext, actionId, subId, response,
   });
 
@@ -403,6 +403,7 @@ exports.handleCollectMessageResponse = async function handleCollectMessageRespon
     );
     throw error;
   }
+  return 'handleFormResponse Successful';
 };
 
 exports.createInteraction = async function createInteraction({
@@ -637,16 +638,18 @@ exports.sendCustomerMessageToParticipants = async function sendCustomerMessageTo
   }
 
   try {
-    await sendReportingEvent({ logContext });
+    await exports.sendReportingEvent({ logContext });
   } catch (error) {
     log.error('An error ocurred sending the reporting event', logContext, error);
   }
 
-  await updateSmoochClientLastActivity({
+  await exports.updateSmoochClientLastActivity({
     latestCustomerMessageTimestamp: message.received * 1000,
     userId: logContext.smoochUserId,
     logContext,
   });
+
+  return 'sendCustomerMessageToParticipants Successful';
 };
 
 exports.sendConversationEvent = async ({
@@ -694,13 +697,13 @@ exports.sendConversationEvent = async ({
     );
 
     if (conversationEvent === 'typing-stop') {
-      await updateSmoochClientLastActivity({
+      await exports.updateSmoochClientLastActivity({
         latestCustomerMessageTimestamp: (new Date()).getTime(),
         userId: logContext.smoochUserId,
         logContext,
       });
     } else if (conversationEvent !== 'conversation-read') {
-      await updateSmoochClientLastActivity({
+      await exports.updateSmoochClientLastActivity({
         latestCustomerMessageTimestamp: timestamp * 1000,
         userId: logContext.smoochUserId,
         logContext,
@@ -708,14 +711,14 @@ exports.sendConversationEvent = async ({
     }
 
     if (latestMessageSentBy !== 'customer') {
-      const disconnectTimeoutInMinutes = await getClientInactivityTimeout({ logContext });
+      const disconnectTimeoutInMinutes = await exports.getClientInactivityTimeout({ logContext });
       let shouldCheck;
       if (disconnectTimeoutInMinutes) {
         log.debug('Disconnect Timeout is set. Checking if should check for client disconnect', {
           ...logContext,
           disconnectTimeoutInMinutes,
         });
-        shouldCheck = await shouldCheckIfClientIsDisconnected({
+        shouldCheck = await exports.shouldCheckIfClientIsDisconnected({
           userId: logContext.smoochUserId,
           logContext,
         });
@@ -724,7 +727,7 @@ exports.sendConversationEvent = async ({
       }
       if (shouldCheck) {
         log.debug('Checking for client inactivity', { ...logContext, disconnectTimeoutInMinutes });
-        await checkIfClientIsDisconnected({
+        await exports.checkIfClientIsDisconnected({
           latestAgentMessageTimestamp: (new Date()).getTime(),
           disconnectTimeoutInMinutes,
           userId: logContext.smoochUserId,
@@ -740,6 +743,7 @@ exports.sendConversationEvent = async ({
     );
     throw error;
   }
+  return 'sendConversationEvent Successful';
 };
 
 async function getMetadata({ tenantId, interactionId, auth }) {
@@ -801,7 +805,7 @@ exports.uploadArtifactFile = async function uploadArtifactFile(
   return sqs.sendMessage(sqsMessageAction).promise();
 };
 
-async function sendReportingEvent({
+exports.sendReportingEvent = async function sendReportingEvent({
   logContext,
 }) {
   const { tenantId, interactionId } = logContext;
@@ -819,9 +823,9 @@ async function sendReportingEvent({
   };
 
   await sqs.sendMessage(sqsMessageAction).promise();
-}
+};
 
-async function sendFlowActionResponse({
+exports.sendFlowActionResponse = async function sendFlowActionResponse({
   logContext, actionId, subId, response,
 }) {
   const { tenantId, interactionId } = logContext;
@@ -846,9 +850,9 @@ async function sendFlowActionResponse({
     QueueUrl,
   };
   await sqs.sendMessage(sqsMessageAction).promise();
-}
+};
 
-async function updateSmoochClientLastActivity({
+exports.updateSmoochClientLastActivity = async function updateSmoochClientLastActivity({
   latestCustomerMessageTimestamp, userId, logContext,
 }) {
   const params = {
@@ -868,7 +872,7 @@ async function updateSmoochClientLastActivity({
   } catch (error) {
     log.error('An error ocurred updating the latest customer activity', logContext, error);
   }
-}
+};
 
 exports.sendSmoochInteractionHeartbeat = async function sendSmoochInteractionHeartbeat({
   tenantId,
@@ -894,7 +898,7 @@ exports.sendSmoochInteractionHeartbeat = async function sendSmoochInteractionHea
   return data;
 };
 
-async function checkIfClientIsDisconnected({
+exports.checkIfClientIsDisconnected = async function checkIfClientIsDisconnected({
   latestAgentMessageTimestamp,
   disconnectTimeoutInMinutes,
   userId,
@@ -917,9 +921,9 @@ async function checkIfClientIsDisconnected({
     DelaySeconds,
   };
   await sqs.sendMessage(sqsMessageAction).promise();
-}
+};
 
-async function shouldCheckIfClientIsDisconnected({ userId, logContext }) {
+exports.shouldCheckIfClientIsDisconnected = async ({ userId, logContext }) => {
   let smoochInteractionRecord;
   try {
     smoochInteractionRecord = await docClient
@@ -951,9 +955,9 @@ async function shouldCheckIfClientIsDisconnected({ userId, logContext }) {
     return true;
   }
   return false;
-}
+};
 
-async function getClientInactivityTimeout({ logContext }) {
+exports.getClientInactivityTimeout = async ({ logContext }) => {
   const { tenantId, smoochIntegrationId: integrationId } = logContext;
   let smoochIntegration;
   try {
@@ -975,7 +979,7 @@ async function getClientInactivityTimeout({ logContext }) {
   } = smoochIntegration;
 
   return clientDisconnectMinutes;
-}
+};
 
 exports.handleCustomerMessage = async ({
   hasInteractionItem,
@@ -1068,7 +1072,6 @@ exports.handleCustomerMessage = async ({
         }
       }
     }
-
     await exports.sendCustomerMessageToParticipants({
       appId,
       userId,
@@ -1079,7 +1082,6 @@ exports.handleCustomerMessage = async ({
       auth,
       logContext,
     });
-
     const { data: metadata } = await getMetadata({
       tenantId,
       interactionId: workingInteractionId,
