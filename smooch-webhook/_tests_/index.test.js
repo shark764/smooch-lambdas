@@ -149,6 +149,22 @@ describe('smooch-webhook', () => {
       const result = await handler(event(bodyWithoutClient));
       expect(result).toEqual('no client');
     });
+    it('throws an error when there is a problem retrieving cx credentials', async () => {
+      mockGetSecretValue.mockRejectedValueOnce(new Error());
+      try {
+        await handler(event());
+      } catch (error) {
+        expect(Promise.reject(new Error('An Error has occurred trying to retrieve cx credentials'))).rejects.toThrowErrorMatchingSnapshot();
+      }
+    });
+    it('throws an error when there is a problem getting smooch interaction records', async () => {
+      mockGet.mockRejectedValueOnce(new Error());
+      try {
+        await handler(event());
+      } catch (error) {
+        expect(Promise.reject(new Error('Failed to get smooch interaction record'))).rejects.toThrowErrorMatchingSnapshot();
+      }
+    });
     describe('walkthrough', () => {
       beforeEach(async () => {
         await handler(event());
@@ -928,6 +944,25 @@ describe('smooch-webhook', () => {
       it('returns when the interaction is dead', async () => {
         sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
         axios.mockRejectedValueOnce(inActiveInteractionError);
+        const result = await handleCustomerMessage(mockEvent);
+        expect(result).toEqual('handleCustomerMessage Successful');
+      });
+
+      it('returns when latestMessageSentBy is not equal to customer', async () => {
+        axios.mockImplementationOnce(() => ({}));
+        axios.mockImplementationOnce(() => ({
+          data: {
+            collectActions: [{
+              actionId: 'actionId',
+            }],
+            participants: [{}],
+            artifactId: 'mock-artifact-id',
+            latestMessageSentBy: 'customer',
+          },
+        }));
+        axios.mockImplementationOnce(() => ({
+          data: { latestMessageSentBy: 'system' },
+        }));
         const result = await handleCustomerMessage(mockEvent);
         expect(result).toEqual('handleCustomerMessage Successful');
       });

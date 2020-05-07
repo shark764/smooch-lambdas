@@ -532,6 +532,10 @@ Array [
 ]
 `;
 
+exports[`smooch-webhook handler throws an error when there is a problem getting smooch interaction records 1`] = `"Failed to get smooch interaction record"`;
+
+exports[`smooch-webhook handler throws an error when there is a problem retrieving cx credentials 1`] = `"An Error has occurred trying to retrieve cx credentials"`;
+
 exports[`smooch-webhook handler typing:appUser calls sendConversationEvent correctly 1`] = `
 Array [
   Array [
