@@ -334,7 +334,7 @@ Array [
     Object {
       "appId": "mock-app-id",
       "auth": "auth",
-      "customer": "example",
+      "customer": "mock-email",
       "integrationId": "mock-integration-id",
       "logContext": "",
       "smoochMessageId": "_id",

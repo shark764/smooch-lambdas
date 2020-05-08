@@ -288,7 +288,11 @@ describe('smooch-webhook', () => {
     describe('conversation:read', () => {
       it('returns when no interaction', async () => {
         mockGet.mockImplementationOnce(() => ({
-          promise: () => undefined,
+          promise: () => ({
+            Item: {
+              InteractionId: 'interaction-404',
+            },
+          }),
         }));
         const result = await handler(event({
           ...body,
@@ -309,7 +313,11 @@ describe('smooch-webhook', () => {
     describe('typing:appUser', () => {
       it('returns when no interaction', async () => {
         mockGet.mockImplementationOnce(() => ({
-          promise: () => undefined,
+          promise: () => ({
+            Item: {
+              InteractionId: 'interaction-404',
+            },
+          }),
         }));
         const result = await handler(event({
           ...body,
@@ -381,7 +389,18 @@ describe('smooch-webhook', () => {
       });
 
       it('passes in the correct arguments to createInteraction()', async () => {
-        await handleFormResponse(input);
+        await handleFormResponse({
+          ...input,
+          form: {
+            name: 'Web User ',
+            type: 'formResponse',
+            fields: [{
+              email: 'mock-email',
+            }],
+            _id: '_id',
+            received: '10',
+          },
+        });
         expect(spyOnCreateInteraction.mock.calls).toMatchSnapshot();
       });
 
@@ -1025,7 +1044,11 @@ describe('smooch-webhook', () => {
 
       it('calls uploadArtifactFile correctly', async () => {
         uploadArtifactFile.mockImplementationOnce(() => { });
-        await handleCustomerMessage(newEvent);
+        await handleCustomerMessage({
+          ...mockEvent,
+          hasInteractionItem: false,
+          type: 'image',
+        });
         expect(uploadArtifactFile.mock.calls).toMatchSnapshot();
       });
 
