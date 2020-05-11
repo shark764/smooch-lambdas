@@ -923,7 +923,10 @@ exports.checkIfClientIsDisconnected = async function checkIfClientIsDisconnected
   await sqs.sendMessage(sqsMessageAction).promise();
 };
 
-exports.shouldCheckIfClientIsDisconnected = async ({ userId, logContext }) => {
+exports.shouldCheckIfClientIsDisconnected = async function shouldCheckIfClientIsDisconnected({
+  userId,
+  logContext,
+}) {
   let smoochInteractionRecord;
   try {
     smoochInteractionRecord = await docClient

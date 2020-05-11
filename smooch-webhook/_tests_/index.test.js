@@ -775,6 +775,107 @@ describe('smooch-webhook', () => {
     });
   });
 
+  describe('shouldCheckIfClientIsDisconnected', () => {
+    const input = {
+      userId: 'mock-user-id',
+      logContext: 'logContext',
+    };
+
+    const { shouldCheckIfClientIsDisconnected } = index;
+
+    it('calls docClient.get() correctly', async () => {
+      await shouldCheckIfClientIsDisconnected(input);
+      expect(mockGet.mock.calls).toMatchSnapshot();
+    });
+
+    it('!hasInteractionItem', async () => {
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({ Item: {} }),
+      }));
+
+      const result = await shouldCheckIfClientIsDisconnected(input);
+      expect(result).toEqual(false);
+    });
+
+    it('LatestCustomerMsgTs > LatestAgentMsgTs', async () => {
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+            'client-disconnect-minutes': 50,
+            LatestCustomerMessageTimestamp: '2020-02-18T20:47:50.670Z',
+            LatestAgentMessageTimestamp: '2020-02-18T20:47:38.670Z',
+          },
+        }),
+      }));
+
+      const result = await shouldCheckIfClientIsDisconnected(input);
+      expect(result).toEqual(true);
+    });
+
+    it('InteractionItem exists and LatestCustomerMsgTs <= LatestAgentMsgTs', async () => {
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+            'client-disconnect-minutes': 50,
+            LatestCustomerMessageTimestamp: '2020-02-18T20:47:38.670Z',
+            LatestAgentMessageTimestamp: '2020-02-18T20:47:50.670Z',
+          },
+        }),
+      }));
+
+      const result = await shouldCheckIfClientIsDisconnected(input);
+      expect(result).toEqual(false);
+    });
+
+    it('throws an error when there is a problem retrieving smooch integration from DynamoDB', async () => {
+      mockGet.mockRejectedValueOnce(new Error());
+      try {
+        await shouldCheckIfClientIsDisconnected(input);
+      } catch (error) {
+        expect(
+          Promise.reject(new Error('Failed to retrieve Smooch integration from DynamoDB')),
+        ).rejects.toThrowErrorMatchingSnapshot();
+      }
+    });
+  });
+
+  describe('getClientInactivityTimeout', () => {
+    const input = {
+      logContext: {
+        smoochUserId: 'mock-smooch-user-id',
+        smoochIntegrationId: 'mock-integration-id',
+        tenantId: 'mock-tenant-id',
+      },
+    };
+
+    const { getClientInactivityTimeout } = index;
+
+    it('calls docClient.get() correctly', async () => {
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+            InteractionId: '1',
+            'contact-point': 'contactPoint',
+            'client-disconnect-minutes': 50,
+          },
+        }),
+      }));
+      await getClientInactivityTimeout(input);
+      expect(mockGet.mock.calls).toMatchSnapshot();
+    });
+
+    it('throws an error when there is a problem retrieving smooch integration from DynamoDB', async () => {
+      mockGet.mockRejectedValueOnce(new Error());
+      try {
+        await getClientInactivityTimeout(input);
+      } catch (error) {
+        expect(
+          Promise.reject(new Error('Failed to retrieve Smooch integration from DynamoDB')),
+        ).rejects.toThrowErrorMatchingSnapshot();
+      }
+    });
+  });
+
   describe('sendConversationEvent', () => {
     const input = {
       tenantId: 'mock-tenant-id',
@@ -892,12 +993,12 @@ describe('smooch-webhook', () => {
 
     const { updateSmoochClientLastActivity } = index;
 
-    it('calls docClient.update correctly ok ok', async () => {
+    it('calls docClient.update correctly', async () => {
       await updateSmoochClientLastActivity(input);
       expect(mockUpdate.mock.calls).toMatchSnapshot();
     });
 
-    it('returns when there is a error updating the latest customer activity', async () => {
+    it('returns when there is an error updating the latest customer activity', async () => {
       mockUpdate.mockRejectedValueOnce(new Error());
       await updateSmoochClientLastActivity(input);
     });
