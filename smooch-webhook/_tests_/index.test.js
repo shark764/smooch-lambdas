@@ -920,6 +920,14 @@ describe('smooch-webhook', () => {
       expect(updateSmoochClientLastActivity.mock.calls).toMatchSnapshot();
     });
 
+    it("returns when conversationEvent === 'conversation-read'", async () => {
+      const result = await sendConversationEvent({
+        ...input,
+        conversationEvent: 'conversation-read',
+      });
+      expect(result).toEqual('sendConversationEvent Successful');
+    });
+
     it('throws an error when there is problem sending conversation event to participants', async () => {
       axios.mockRejectedValueOnce(new Error());
       try {
@@ -1061,6 +1069,27 @@ describe('smooch-webhook', () => {
         expect(result).toEqual('handleCustomerMessage Successful');
       });
 
+      it('returns when interaction Id is valid', async () => {
+        const error = new Error();
+        error.response = {
+          status: 500,
+        };
+        sendSmoochInteractionHeartbeat.mockRejectedValueOnce(error);
+        const result = await handleCustomerMessage(mockEvent);
+        expect(result).toEqual('handleCustomerMessage Successful');
+      });
+
+      it('returns when the interaction is not dead', async () => {
+        const error = new Error();
+        error.response = {
+          status: 500,
+        };
+        sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
+        axios.mockRejectedValueOnce(error);
+        const result = await handleCustomerMessage(mockEvent);
+        expect(result).toEqual('handleCustomerMessage Successful');
+      });
+
       it('returns when the interaction is dead', async () => {
         sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
         axios.mockRejectedValueOnce(inActiveInteractionError);
@@ -1151,6 +1180,15 @@ describe('smooch-webhook', () => {
           type: 'image',
         });
         expect(uploadArtifactFile.mock.calls).toMatchSnapshot();
+      });
+
+      it("returns when type!='file' && type!='image'", async () => {
+        const result = await handleCustomerMessage({
+          ...mockEvent,
+          hasInteractionItem: false,
+          type: 'text',
+        });
+        expect(result).toEqual('handleCustomerMessage Successful');
       });
 
       it('throws an error when there is a problem creating interaction', async () => {
