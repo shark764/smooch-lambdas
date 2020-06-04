@@ -1,7 +1,7 @@
-const { validateTenantPermissions } = require('serenova-js-utils/lambda/api');
+const { lambda: { api: { validateTenantPermissions } } } = require('alonzo');
 
 jest.mock('smooch-core/lib/api/integrations');
-jest.mock('serenova-js-utils/lambda/api');
+jest.mock('alonzo');
 jest.mock('aws-sdk');
 jest.mock('smooch-core/lib/smooch');
 

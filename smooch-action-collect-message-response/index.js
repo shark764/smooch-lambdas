@@ -1,4 +1,4 @@
-const log = require('serenova-js-utils/lambda/log');
+const { lambda: { log } } = require('alonzo');
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
 

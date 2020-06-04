@@ -1,4 +1,4 @@
-const log = require('serenova-js-utils/lambda/log');
+const { lambda: { log } } = require('alonzo');
 
 exports.handler = async (event) => {
   const {

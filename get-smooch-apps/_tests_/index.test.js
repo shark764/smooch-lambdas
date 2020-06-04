@@ -1,7 +1,7 @@
-const { validateTenantPermissions, validatePlatformPermissions } = require('serenova-js-utils/lambda/api');
+const { lambda: { api: { validateTenantPermissions, validatePlatformPermissions } } } = require('alonzo');
 
 jest.mock('aws-sdk');
-jest.mock('serenova-js-utils/lambda/api');
+jest.mock('alonzo');
 
 validateTenantPermissions.mockReturnValue(true);
 validatePlatformPermissions.mockReturnValue(true);

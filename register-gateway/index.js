@@ -1,6 +1,6 @@
 const AWS = require('aws-sdk');
 const axios = require('axios');
-const log = require('serenova-js-utils/lambda/log');
+const { lambda: { log } } = require('alonzo');
 
 const secretsClient = new AWS.SecretsManager();
 

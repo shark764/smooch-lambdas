@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
-const { validateTenantPermissions } = require('serenova-js-utils/lambda/api');
+const { lambda: { api: { validateTenantPermissions } } } = require('alonzo');
 
-jest.mock('serenova-js-utils/lambda/api');
+jest.mock('alonzo');
 jest.mock('serenova-js-utils/strings');
 
 validateTenantPermissions.mockReturnValue(true);

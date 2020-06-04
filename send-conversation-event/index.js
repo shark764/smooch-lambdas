@@ -2,7 +2,7 @@
  * Lambda that sends typing and read indicators
  */
 
-const log = require('serenova-js-utils/lambda/log');
+const { lambda: { log } } = require('alonzo');
 const axios = require('axios');
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');

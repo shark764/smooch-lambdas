@@ -1,3 +1,6 @@
+# 1.20.0
+* CXV1-20128 - Replacing js-utils with alonzo as logging tool for lambdas.
+
 # 1.19.4
 * Get smooch apps from DynamoDB table.
 

@@ -1,4 +1,3 @@
-jest.mock('serenova-js-utils/lambda/api');
 jest.mock('aws-sdk');
 jest.mock('smooch-core/lib/smooch');
 

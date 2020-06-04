@@ -7,7 +7,7 @@ const AWS = require('aws-sdk');
 const uuidv4 = require('uuid/v4');
 const uuidv1 = require('uuid/v1');
 const axios = require('axios');
-const log = require('serenova-js-utils/lambda/log');
+const { lambda: { log } } = require('alonzo');
 
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 60 * 60;
 

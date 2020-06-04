@@ -1,7 +1,7 @@
-const { validatePlatformPermissions } = require('serenova-js-utils/lambda/api');
+const { lambda: { api: { validatePlatformPermissions } } } = require('alonzo');
 const axios = require('axios');
 
-jest.mock('serenova-js-utils/lambda/api');
+jest.mock('alonzo');
 jest.mock('axios');
 
 validatePlatformPermissions.mockReturnValue(true);

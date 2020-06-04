@@ -6,8 +6,12 @@ const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
 const axios = require('axios');
-const log = require('serenova-js-utils/lambda/log');
-const { validatePlatformPermissions } = require('serenova-js-utils/lambda/api');
+const {
+  lambda: {
+    log,
+    api: { validatePlatformPermissions },
+  },
+} = require('alonzo');
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();

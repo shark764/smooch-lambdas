@@ -1,6 +1,6 @@
-const { validateTenantPermissions } = require('serenova-js-utils/lambda/api');
+const { lambda: { api: { validateTenantPermissions } } } = require('alonzo');
 
-jest.mock('serenova-js-utils/lambda/api');
+jest.mock('alonzo');
 
 validateTenantPermissions.mockReturnValue(true);
 

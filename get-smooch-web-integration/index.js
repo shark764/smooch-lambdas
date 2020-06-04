@@ -3,10 +3,14 @@
  * */
 
 const AWS = require('aws-sdk');
-const log = require('serenova-js-utils/lambda/log');
+const {
+  lambda: {
+    log,
+    api: { validateTenantPermissions },
+  },
+} = require('alonzo');
 const SmoochCore = require('smooch-core');
 const string = require('serenova-js-utils/strings');
-const { validateTenantPermissions } = require('serenova-js-utils/lambda/api');
 
 const secretsClient = new AWS.SecretsManager();
 const Joi = require('@hapi/joi');

@@ -5,8 +5,8 @@
   "repository": {},
   "license": "UNLICENSED",
   "dependencies": {
+    "alonzo": "^7.1.0",
     "aws-sdk": "^2.585.0",
-    "serenova-js-utils": "1.10.3",
     "uuid": "^3.3.3"
   }
 }

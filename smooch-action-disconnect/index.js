@@ -1,4 +1,4 @@
-const log = require('serenova-js-utils/lambda/log');
+const { lambda: { log } } = require('alonzo');
 const axios = require('axios');
 const uuidv1 = require('uuid/v1');
 const AWS = require('aws-sdk');

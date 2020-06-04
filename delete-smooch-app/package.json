@@ -6,8 +6,8 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@hapi/joi": "^16.1.7",
+    "alonzo": "^7.1.0",
     "aws-sdk": "^2.585.0",
-    "serenova-js-utils": "1.10.3",
     "smooch-core": "^8.7.3"
   }
 }

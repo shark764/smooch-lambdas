@@ -4,8 +4,12 @@
 
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
-const log = require('serenova-js-utils/lambda/log');
-const { validateTenantPermissions, validatePlatformPermissions } = require('serenova-js-utils/lambda/api');
+const {
+  lambda: {
+    log,
+    api: { validateTenantPermissions, validatePlatformPermissions },
+  },
+} = require('alonzo');
 
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid(),
