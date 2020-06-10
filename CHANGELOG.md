@@ -1,3 +1,6 @@
+# 1.21.0
+* CXV1-20128 - Removing install and zip scripts to use alonzo instead for same purpose.
+
 # 1.20.0
 * CXV1-20128 - Replacing js-utils with alonzo as logging tool for lambdas.
 

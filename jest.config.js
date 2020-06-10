@@ -9,8 +9,6 @@ module.exports = {
     'coverage',
     'node_modules',
     'utils',
-    'install.js',
     'jest.config.js',
-    'zip.js',
   ],
 };
