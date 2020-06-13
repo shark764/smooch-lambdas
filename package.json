@@ -1,6 +1,6 @@
 {
   "name": "smooch-lambdas",
-  "version": "1.21.0",
+  "version": "1.22.0",
   "dependencies": {},
   "scripts": {
     "alonzo": "alonzo",
@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "jest": "jest",
-    "test": "npm run lint && jest --coverage",
+    "test": "npm run lint && npm run jest:coverage",
     "jest:coverage": "jest --coverage",
     "postinstall": "npm run alonzo:install",
     "precommit": "npm test"
@@ -18,7 +18,7 @@
   "author": "SerenovaLLC",
   "license": "UNLICENSED",
   "devDependencies": {
-    "alonzo": "^7.3.0",
+    "alonzo": "^7.4.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",

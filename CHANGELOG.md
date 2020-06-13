@@ -1,3 +1,6 @@
+# 1.22.0
+* CXV1-20128 - Changing jest and eslint configuration to use alonzo's instead.
+
 # 1.21.0
 * CXV1-20128 - Removing install and zip scripts to use alonzo instead for same purpose.
 
