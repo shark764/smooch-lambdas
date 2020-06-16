@@ -1,7 +1,5 @@
 const {
-  utils: {
-    jest: { config },
-  },
-} = require('alonzo');
+  jest: { config },
+} = require('alonzo/utils');
 
 module.exports = config;

@@ -1,10 +1,8 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const {
-  utils: {
-    jest: {
-      reporters: { summary },
-    },
+  jest: {
+    reporters: { summary },
   },
-} = require('alonzo');
+} = require('alonzo/utils');
 
 module.exports = summary;

@@ -1,3 +1,6 @@
+# 1.22.1
+* Updating alonzo version. Fixed error on utils imports.
+
 # 1.22.0
 * CXV1-20128 - Changing jest and eslint configuration to use alonzo's instead.
 

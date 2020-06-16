@@ -1,8 +1,6 @@
 const {
-  utils: {
-    eslint: { rules },
-  },
-} = require('alonzo');
+  eslint: { rules },
+} = require('alonzo/utils');
 
 rules.rules = {
   /**
