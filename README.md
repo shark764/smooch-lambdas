@@ -18,3 +18,6 @@ npm run alonzo alonzo -- --install --lambda <lambda-name> <--clean-install>
 npm run alonzo -- --zip
 npm run alonzo -- --zip --lambda <lambda-name>
 ```
+### Automatic Lambda Deployment
+Lambdas will automatically deploy to dev after building, and to qe if it is a cut version.
+If there is a non-lambda directory or a lambda you do not wish to have automatically deployed, add it to the list "blackListDirs" in the Jenkinsfile

@@ -1,3 +1,6 @@
+# 1.22.2-SNAPSHOT
+* Automatically deploy lambdas to dev after building in Jenkins. Will also deploy to qe if version is not a snapshot
+
 # 1.22.1
 * Updating alonzo version. Fixed error on utils imports.
 
