@@ -1,3 +1,7 @@
+# 1.22.3
+* Removing install dependencies on lambdas from build script
+* Upgrading alonzo version to 8.0.2.
+
 # 1.22.2
 * CXV1-23023 - Allow empty strings in chat branding fields in the update api
 * Automatically deploy lambdas to dev after building in Jenkins. Will also deploy to qe if version is not a snapshot
