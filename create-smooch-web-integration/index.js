@@ -31,11 +31,11 @@ const bodySchema = Joi.object({
   brandColor: Joi.string(),
   whitelistedUrls: Joi.array()
     .items(Joi.string()),
-  businessName: Joi.string(),
-  businessIconUrl: Joi.string(),
+  businessName: Joi.string().allow(''),
+  businessIconUrl: Joi.string().allow(''),
   fixedIntroPane: Joi.boolean(),
   conversationColor: Joi.string(),
-  backgroundImageUrl: Joi.string(),
+  backgroundImageUrl: Joi.string().allow(''),
   actionColor: Joi.string(),
   displayStyle: Joi.string()
     .valid('button', 'tab'),
