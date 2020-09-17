@@ -37,7 +37,7 @@ const bodySchema = Joi.object({
     .valid('button', 'tab'),
   buttonWidth: Joi.string(),
   buttonHeight: Joi.string(),
-  buttonIconUrl: Joi.string(),
+  buttonIconUrl: Joi.string().allow(''),
   appId: Joi.string(),
 });
 const paramsSchema = Joi.object({

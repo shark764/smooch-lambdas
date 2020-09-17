@@ -1,3 +1,6 @@
+# 1.22.4
+* CXV1-23023 - Allow empty strings in chat branding field (buttonIconUrl) in the update api
+
 # 1.22.3
 * Removing install dependencies on lambdas from build script
 * Upgrading alonzo version to 8.0.2.
