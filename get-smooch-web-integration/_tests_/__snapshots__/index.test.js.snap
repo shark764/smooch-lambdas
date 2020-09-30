@@ -10,45 +10,11 @@ Array [
       "serviceUrl": "mock-smooch-api-url",
     },
   ],
-  Array [
-    Object {
-      "keyId": undefined,
-      "scope": "app",
-      "secret": undefined,
-      "serviceUrl": "mock-smooch-api-url",
-    },
-  ],
-  Array [
-    Object {
-      "keyId": undefined,
-      "scope": "app",
-      "secret": undefined,
-      "serviceUrl": "mock-smooch-api-url",
-    },
-  ],
 ]
 `;
 
 exports[`get-smooch-web-integration Everything is successful Walkthrough passes in the correct arguments to decClient.get() 1`] = `
 Array [
-  Array [
-    Object {
-      "Key": Object {
-        "id": "667802d8-2260-436c-958a-2ee0f71f73f0",
-        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
-      },
-      "TableName": "us-east-1-dev-smooch",
-    },
-  ],
-  Array [
-    Object {
-      "Key": Object {
-        "id": "667802d8-2260-436c-958a-2ee0f71f73f0",
-        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
-      },
-      "TableName": "us-east-1-dev-smooch",
-    },
-  ],
   Array [
     Object {
       "Key": Object {
@@ -68,16 +34,6 @@ Array [
       "SecretId": "us-east-1-dev-smooch-app",
     },
   ],
-  Array [
-    Object {
-      "SecretId": "us-east-1-dev-smooch-app",
-    },
-  ],
-  Array [
-    Object {
-      "SecretId": "us-east-1-dev-smooch-app",
-    },
-  ],
 ]
 `;
 
@@ -87,37 +43,11 @@ Array [
     undefined,
     "667802d8-2260-436c-958a-2ee0f71f73f0",
   ],
-  Array [
-    undefined,
-    "667802d8-2260-436c-958a-2ee0f71f73f0",
-  ],
-  Array [
-    undefined,
-    "667802d8-2260-436c-958a-2ee0f71f73f0",
-  ],
 ]
 `;
 
 exports[`get-smooch-web-integration Everything is successful Walkthrough passes in the correct arguments to validateTenantPermissions 1`] = `
 Array [
-  Array [
-    "66d83870-30df-4a3b-8801-59edff162034",
-    Object {
-      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
-    },
-    Array [
-      "WEB_INTEGRATIONS_APP_READ",
-    ],
-  ],
-  Array [
-    "66d83870-30df-4a3b-8801-59edff162034",
-    Object {
-      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
-    },
-    Array [
-      "WEB_INTEGRATIONS_APP_READ",
-    ],
-  ],
   Array [
     "66d83870-30df-4a3b-8801-59edff162034",
     Object {
@@ -141,7 +71,7 @@ Object {
       "actionColor": "#1be54c",
       "brandColor": "#1b3de5",
       "conversationColor": "#e53f1b",
-      "prechatCapture": "smooch",
+      "prechatCapture": "name",
       "whitelistedUrls": Array [
         "url1",
         "url2",
@@ -160,11 +90,27 @@ Object {
         "app-id": "5e31c81640a22c000f5d7f28",
         "type": "",
       },
-      "prechatCapture": "smooch",
+      "prechatCapture": "name",
       "whitelistedUrls": Array [
         "url1",
         "url2",
       ],
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`get-smooch-web-integration Everything is successful when prechatCapture is disabled 1`] = `
+Object {
+  "body": Object {
+    "result": Object {
+      "0": Object {
+        "app-id": "5e31c81640a22c000f5d7f28",
+        "type": "",
+      },
+      "prechatCapture": "none",
+      "whitelistedUrls": undefined,
     },
   },
   "status": 200,

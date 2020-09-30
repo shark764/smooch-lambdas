@@ -23,7 +23,7 @@ const bodySchema = Joi.object({
     .required(),
   prechatCapture: Joi.string()
     .required()
-    .valid('name', 'email'),
+    .valid('name', 'email', 'none'),
   name: Joi.string()
     .required(),
   description: Joi.string().allow(''),
@@ -108,7 +108,7 @@ exports.handler = async (event) => {
       minSize: 1,
       maxSize: 128,
     }];
-  } else {
+  } else if (body.prechatCapture === 'email') {
     defaultPrechatCapture = [{
       type: 'email',
       name: 'email',
@@ -169,7 +169,9 @@ exports.handler = async (event) => {
       businessIconUrl: body.businessIconUrl,
       fixedIntroPane: body.fixedIntroPane,
       integrationOrder: [],
-      prechatCapture: { enabled: true, fields: defaultPrechatCapture },
+      prechatCapture: body.prechatCapture === 'none'
+        ? { enabled: false }
+        : { enabled: true, fields: defaultPrechatCapture },
       conversationColor: body.conversationColor,
       backgroundImageUrl: body.backgroundImageUrl,
       actionColor: body.actionColor,
@@ -279,7 +281,7 @@ exports.handler = async (event) => {
   delete smoochIntegration.type;
   smoochIntegration.whitelistedUrls = smoochIntegration.originWhitelist;
   delete smoochIntegration.originWhitelist;
-  smoochIntegration.prechatCapture = smoochIntegration.prechatCapture.fields[0].name;
+  smoochIntegration.prechatCapture = body.prechatCapture !== 'none' ? smoochIntegration.prechatCapture.fields[0].name : 'none';
   Object.keys(dynamoValue).forEach((v) => {
     dynamoValueCased[string.kebabCaseToCamelCase(v)] = dynamoValue[v];
   });

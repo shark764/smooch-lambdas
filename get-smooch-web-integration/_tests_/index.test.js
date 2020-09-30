@@ -49,7 +49,8 @@ const mockGetIntegrations = jest.fn(() => ({
     conversationColor: 'e53f1b',
     actionColor: '1be54c',
     prechatCapture: {
-      fields: [{ name: 'smooch' }],
+      fields: [{ name: 'name' }],
+      enabled: true,
     },
     originWhitelist: ['url1', 'url2'],
     whitelistedUrls: [],
@@ -82,10 +83,12 @@ const { handler } = require('../index');
 describe('get-smooch-web-integration', () => {
   describe('Everything is successful', () => {
     it('when brandcolor, conversationcolor and actioncolor is not provided', async () => {
+      jest.clearAllMocks();
       mockGetIntegrations.mockImplementationOnce(() => ({
         integration: {
           prechatCapture: {
-            fields: [{ name: 'smooch' }],
+            fields: [{ name: 'name' }],
+            enabled: true,
           },
           originWhitelist: ['url1', 'url2'],
           whitelistedUrls: [],
@@ -100,12 +103,27 @@ describe('get-smooch-web-integration', () => {
       expect(result).toMatchSnapshot();
     });
 
+    it('when prechatCapture is disabled', async () => {
+      jest.clearAllMocks();
+      mockGetIntegrations.mockImplementationOnce(() => ({
+        integration: {
+          prechatCapture: {
+            enabled: false,
+          },
+        },
+      }));
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
+
     it('sends back status 200 if the code runs without error', async () => {
+      jest.clearAllMocks();
       const result = await handler(event);
       expect(result).toMatchSnapshot();
     });
     describe('Walkthrough', () => {
       beforeAll(async () => {
+        jest.clearAllMocks();
         await handler(event);
       });
 

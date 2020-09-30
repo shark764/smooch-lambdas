@@ -28,7 +28,8 @@ const mockCreate = jest.fn()
       originWhitelist: ['url1', 'url2'],
       whitelistedUrls: [],
       prechatCapture: {
-        fields: [{ name: 'smooch' }],
+        fields: [{ name: 'name' }],
+        enabled: true,
       },
     },
   }));
@@ -52,7 +53,7 @@ global.process.env = {
 const mockBody = {
   appId: '5e31c81640a22c000f5d7f28',
   contactPoint: 'contact-point',
-  prechatCapture: 'email',
+  prechatCapture: 'name',
   name: 'smooch',
   description: 'description',
   clientDisconnectMinutes: 150,
@@ -101,20 +102,49 @@ const { handler } = require('../index');
 
 describe('create-smooch-web-integration', () => {
   describe('Everthing is successful', () => {
-    it("when prechatCapture is equal to 'name' and when whitelistedUrls are not provided", async () => {
-      mockBody.prechatCapture = 'name';
-      mockBody.whitelistedUrls = [];
-      await handler(event);
-      mockBody.prechatCapture = 'email';
-      mockBody.whitelistedUrls = ['url1', 'url2'];
+    it("when prechatCapture is equal to 'email'", async () => {
+      jest.clearAllMocks();
+      const mockEvent = {
+        ...event,
+        body: {
+          ...mockBody,
+          prechatCapture: 'email',
+        },
+      };
+      await handler(mockEvent);
       expect(mockCreate.mock.calls[0][1].prechatCapture.fields).toEqual(expect.arrayContaining([{
-        type: 'text',
-        name: 'name',
-        label: 'Name',
+        type: 'email',
+        name: 'email',
+        label: 'Email',
         placeholder: '',
         minSize: 1,
         maxSize: 128,
       }]));
+    });
+
+    it("when prechatCapture is equal to 'none'", async () => {
+      jest.clearAllMocks();
+      const mockEvent = {
+        ...event,
+        body: {
+          ...mockBody,
+          prechatCapture: 'none',
+        },
+      };
+      const result = await handler(mockEvent);
+      expect(result).toMatchSnapshot();
+    });
+
+    it('when whitelistedUrls are not provided', async () => {
+      jest.clearAllMocks();
+      const mockEvent = {
+        ...event,
+        body: {
+          ...mockBody,
+          whitelistedUrls: [],
+        },
+      };
+      await handler(mockEvent);
       expect(mockCreate.mock.calls[0][1].originWhitelist).toEqual(null);
     });
 
@@ -132,7 +162,7 @@ describe('create-smooch-web-integration', () => {
           originWhitelist: ['url1', 'url2'],
           whitelistedUrls: [],
           prechatCapture: {
-            fields: [{ name: 'smooch' }],
+            fields: [{ name: 'name' }],
           },
         },
       }));
@@ -153,6 +183,7 @@ describe('create-smooch-web-integration', () => {
     });
     describe('Walkthrough', () => {
       beforeAll(async () => {
+        jest.clearAllMocks();
         await handler(event);
       });
       it('passes in the correct arguments to validateTenantPermissions', async () => {

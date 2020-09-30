@@ -82,6 +82,7 @@ const mockSmoochUpdate = jest.fn()
       whitelistedUrls: [],
       prechatCapture: {
         fields: [{ name: 'name' }],
+        enabled: true,
       },
     },
   }));
@@ -142,14 +143,37 @@ describe('update-smooch-web-integration', () => {
         },
       };
       await handler(mockEvent);
-      expect(mockSmoochUpdate.mock.calls[0][0].props.prechatCapture.fields).toEqual(expect.arrayContaining([{
-        type: 'email',
-        name: 'email',
-        label: 'Email',
-        placeholder: '',
-        minSize: 1,
-        maxSize: 128,
-      }]));
+      expect(mockSmoochUpdate.mock.calls[0][0].props.prechatCapture).toEqual(
+        {
+          enabled: true,
+          fields: [
+            {
+              label: 'Email',
+              maxSize: 128,
+              minSize: 1,
+              name: 'email',
+              placeholder: '',
+              type: 'email',
+            }],
+        },
+      );
+    });
+
+    it("when preChatCapture is equal to 'none'", async () => {
+      jest.clearAllMocks();
+      const MockBody = {
+        ...mockBody,
+        prechatCapture: 'none',
+      };
+      const mockEvent = {
+        body: MockBody,
+        params: mockParams,
+        identity: {
+          'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0',
+        },
+      };
+      await handler(mockEvent);
+      expect(mockSmoochUpdate.mock.calls[0][0].props.prechatCapture).toEqual({ enabled: false });
     });
 
     it('when brandcolor, conversationColor and actioncolor are not provided', async () => {
@@ -164,6 +188,7 @@ describe('update-smooch-web-integration', () => {
           whitelistedUrls: [],
           prechatCapture: {
             fields: [{ name: 'name' }],
+            enabled: true,
           },
         },
       }));

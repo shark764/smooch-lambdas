@@ -1,3 +1,6 @@
+# 1.23.0
+* CXV1-23108 - API prechat 'none'
+
 # 1.22.4
 * CXV1-23023 - Allow empty strings in chat branding field (buttonIconUrl) in the update api
 

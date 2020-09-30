@@ -169,7 +169,7 @@ exports.handler = async (event) => {
   smoochIntegration.whitelistedUrls = smoochIntegration.originWhitelist;
   delete smoochIntegration.originWhitelist;
   delete dynamoValue.type;
-  smoochIntegration.prechatCapture = smoochIntegration.prechatCapture.fields[0].name;
+  smoochIntegration.prechatCapture = smoochIntegration.prechatCapture.enabled ? smoochIntegration.prechatCapture.fields[0].name : 'none';
   Object.keys(dynamoValue).forEach((v) => {
     dynamoValueCased[string.kebabCaseToCamelCase(v)] = dynamoValue[v];
   });

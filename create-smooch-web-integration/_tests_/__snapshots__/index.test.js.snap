@@ -10,173 +10,11 @@ Array [
       "serviceUrl": "mock-smooch-api-url",
     },
   ],
-  Array [
-    Object {
-      "keyId": "id",
-      "scope": "app",
-      "secret": "secret",
-      "serviceUrl": "mock-smooch-api-url",
-    },
-  ],
-  Array [
-    Object {
-      "keyId": "id",
-      "scope": "app",
-      "secret": "secret",
-      "serviceUrl": "mock-smooch-api-url",
-    },
-  ],
-  Array [
-    Object {
-      "keyId": "id",
-      "scope": "app",
-      "secret": "secret",
-      "serviceUrl": "mock-smooch-api-url",
-    },
-  ],
-  Array [
-    Object {
-      "keyId": "id",
-      "scope": "app",
-      "secret": "secret",
-      "serviceUrl": "mock-smooch-api-url",
-    },
-  ],
 ]
 `;
 
 exports[`create-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to docClient.update() 1`] = `
 Array [
-  Array [
-    Object {
-      "ExpressionAttributeNames": Object {
-        "#appId": "app-id",
-        "#clientDisconnectMinutes": "client-disconnect-minutes",
-        "#contactPoint": "contact-point",
-        "#createdBy": "created-by",
-        "#name": "name",
-        "#type": "type",
-        "#updatedBy": "updated-by",
-      },
-      "ExpressionAttributeValues": Object {
-        ":appId": "5e31c81640a22c000f5d7f28",
-        ":clientDisconnectMinutes": 150,
-        ":contactPoint": "contact-point",
-        ":created": "January 1 1970",
-        ":createdBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
-        ":description": "description",
-        ":name": "smooch",
-        ":t": "web",
-        ":updated": "January 1 1970",
-        ":updatedBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
-      },
-      "Key": Object {
-        "id": "667802d8-2260-436c-958a-2ee0f71f73f1",
-        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
-      },
-      "ReturnValues": "ALL_NEW",
-      "TableName": "us-east-1-dev-smooch",
-      "UpdateExpression": "set #type = :t, #appId = :appId, #contactPoint = :contactPoint,
-  #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
-  created = :created, updated = :updated, description = :description, #clientDisconnectMinutes = :clientDisconnectMinutes",
-    },
-  ],
-  Array [
-    Object {
-      "ExpressionAttributeNames": Object {
-        "#appId": "app-id",
-        "#clientDisconnectMinutes": "client-disconnect-minutes",
-        "#contactPoint": "contact-point",
-        "#createdBy": "created-by",
-        "#name": "name",
-        "#type": "type",
-        "#updatedBy": "updated-by",
-      },
-      "ExpressionAttributeValues": Object {
-        ":appId": "5e31c81640a22c000f5d7f28",
-        ":clientDisconnectMinutes": 150,
-        ":contactPoint": "contact-point",
-        ":created": "January 1 1970",
-        ":createdBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
-        ":description": "description",
-        ":name": "smooch",
-        ":t": "web",
-        ":updated": "January 1 1970",
-        ":updatedBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
-      },
-      "Key": Object {
-        "id": "667802d8-2260-436c-958a-2ee0f71f73f1",
-        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
-      },
-      "ReturnValues": "ALL_NEW",
-      "TableName": "us-east-1-dev-smooch",
-      "UpdateExpression": "set #type = :t, #appId = :appId, #contactPoint = :contactPoint,
-  #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
-  created = :created, updated = :updated, description = :description, #clientDisconnectMinutes = :clientDisconnectMinutes",
-    },
-  ],
-  Array [
-    Object {
-      "ExpressionAttributeNames": Object {
-        "#appId": "app-id",
-        "#contactPoint": "contact-point",
-        "#createdBy": "created-by",
-        "#name": "name",
-        "#type": "type",
-        "#updatedBy": "updated-by",
-      },
-      "ExpressionAttributeValues": Object {
-        ":appId": "5e31c81640a22c000f5d7f28",
-        ":contactPoint": "contact-point",
-        ":created": "January 1 1970",
-        ":createdBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
-        ":name": "smooch",
-        ":t": "web",
-        ":updated": "January 1 1970",
-        ":updatedBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
-      },
-      "Key": Object {
-        "id": "667802d8-2260-436c-958a-2ee0f71f73f1",
-        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
-      },
-      "ReturnValues": "ALL_NEW",
-      "TableName": "us-east-1-dev-smooch",
-      "UpdateExpression": "set #type = :t, #appId = :appId, #contactPoint = :contactPoint,
-  #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
-  created = :created, updated = :updated",
-    },
-  ],
-  Array [
-    Object {
-      "ExpressionAttributeNames": Object {
-        "#appId": "app-id",
-        "#contactPoint": "contact-point",
-        "#createdBy": "created-by",
-        "#name": "name",
-        "#type": "type",
-        "#updatedBy": "updated-by",
-      },
-      "ExpressionAttributeValues": Object {
-        ":appId": "5e31c81640a22c000f5d7f28",
-        ":contactPoint": "contact-point",
-        ":created": "January 1 1970",
-        ":createdBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
-        ":name": "smooch",
-        ":t": "web",
-        ":updated": "January 1 1970",
-        ":updatedBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
-      },
-      "Key": Object {
-        "id": "667802d8-2260-436c-958a-2ee0f71f73f1",
-        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
-      },
-      "ReturnValues": "ALL_NEW",
-      "TableName": "us-east-1-dev-smooch",
-      "UpdateExpression": "set #type = :t, #appId = :appId, #contactPoint = :contactPoint,
-  #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
-  created = :created, updated = :updated",
-    },
-  ],
   Array [
     Object {
       "ExpressionAttributeNames": Object {
@@ -218,26 +56,6 @@ Array [
       "SecretId": "us-east-1-dev-smooch-app",
     },
   ],
-  Array [
-    Object {
-      "SecretId": "us-east-1-dev-smooch-app",
-    },
-  ],
-  Array [
-    Object {
-      "SecretId": "us-east-1-dev-smooch-app",
-    },
-  ],
-  Array [
-    Object {
-      "SecretId": "us-east-1-dev-smooch-app",
-    },
-  ],
-  Array [
-    Object {
-      "SecretId": "us-east-1-dev-smooch-app",
-    },
-  ],
 ]
 `;
 
@@ -258,7 +76,10 @@ Array [
       "displayStyle": "tab",
       "fixedIntroPane": true,
       "integrationOrder": Array [],
-      "originWhitelist": null,
+      "originWhitelist": Array [
+        "url1",
+        "url2",
+      ],
       "prechatCapture": Object {
         "enabled": true,
         "fields": Array [
@@ -269,146 +90,6 @@ Array [
             "name": "name",
             "placeholder": "",
             "type": "text",
-          },
-        ],
-      },
-      "type": "web",
-    },
-  ],
-  Array [
-    "5e31c81640a22c000f5d7f28",
-    Object {
-      "actionColor": "e5711b",
-      "backgroundImageUrl": "url",
-      "brandColor": "1be54c",
-      "businessIconUrl": undefined,
-      "businessName": "business-name",
-      "buttonHeight": "50",
-      "buttonIconUrl": "50",
-      "buttonWidth": "50",
-      "conversationColor": "cde51b",
-      "displayStyle": "tab",
-      "fixedIntroPane": true,
-      "integrationOrder": Array [],
-      "originWhitelist": Array [
-        "url1",
-        "url2",
-      ],
-      "prechatCapture": Object {
-        "enabled": true,
-        "fields": Array [
-          Object {
-            "label": "Email",
-            "maxSize": 128,
-            "minSize": 1,
-            "name": "email",
-            "placeholder": "",
-            "type": "email",
-          },
-        ],
-      },
-      "type": "web",
-    },
-  ],
-  Array [
-    "5e31c81640a22c000f5d7f28",
-    Object {
-      "actionColor": "e5711b",
-      "backgroundImageUrl": "url",
-      "brandColor": "1be54c",
-      "businessIconUrl": undefined,
-      "businessName": "business-name",
-      "buttonHeight": "50",
-      "buttonIconUrl": "50",
-      "buttonWidth": "50",
-      "conversationColor": "cde51b",
-      "displayStyle": "tab",
-      "fixedIntroPane": true,
-      "integrationOrder": Array [],
-      "originWhitelist": Array [
-        "url1",
-        "url2",
-      ],
-      "prechatCapture": Object {
-        "enabled": true,
-        "fields": Array [
-          Object {
-            "label": "Email",
-            "maxSize": 128,
-            "minSize": 1,
-            "name": "email",
-            "placeholder": "",
-            "type": "email",
-          },
-        ],
-      },
-      "type": "web",
-    },
-  ],
-  Array [
-    "5e31c81640a22c000f5d7f28",
-    Object {
-      "actionColor": "e5711b",
-      "backgroundImageUrl": "url",
-      "brandColor": "1be54c",
-      "businessIconUrl": undefined,
-      "businessName": "business-name",
-      "buttonHeight": "50",
-      "buttonIconUrl": "50",
-      "buttonWidth": "50",
-      "conversationColor": "cde51b",
-      "displayStyle": "tab",
-      "fixedIntroPane": true,
-      "integrationOrder": Array [],
-      "originWhitelist": Array [
-        "url1",
-        "url2",
-      ],
-      "prechatCapture": Object {
-        "enabled": true,
-        "fields": Array [
-          Object {
-            "label": "Email",
-            "maxSize": 128,
-            "minSize": 1,
-            "name": "email",
-            "placeholder": "",
-            "type": "email",
-          },
-        ],
-      },
-      "type": "web",
-    },
-  ],
-  Array [
-    "5e31c81640a22c000f5d7f28",
-    Object {
-      "actionColor": "e5711b",
-      "backgroundImageUrl": "url",
-      "brandColor": "1be54c",
-      "businessIconUrl": undefined,
-      "businessName": "business-name",
-      "buttonHeight": "50",
-      "buttonIconUrl": "50",
-      "buttonWidth": "50",
-      "conversationColor": "cde51b",
-      "displayStyle": "tab",
-      "fixedIntroPane": true,
-      "integrationOrder": Array [],
-      "originWhitelist": Array [
-        "url1",
-        "url2",
-      ],
-      "prechatCapture": Object {
-        "enabled": true,
-        "fields": Array [
-          Object {
-            "label": "Email",
-            "maxSize": 128,
-            "minSize": 1,
-            "name": "email",
-            "placeholder": "",
-            "type": "email",
           },
         ],
       },
@@ -429,42 +110,6 @@ Array [
       "WEB_INTEGRATIONS_APP_UPDATE",
     ],
   ],
-  Array [
-    "66d83870-30df-4a3b-8801-59edff162034",
-    Object {
-      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
-    },
-    Array [
-      "WEB_INTEGRATIONS_APP_UPDATE",
-    ],
-  ],
-  Array [
-    "66d83870-30df-4a3b-8801-59edff162034",
-    Object {
-      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
-    },
-    Array [
-      "WEB_INTEGRATIONS_APP_UPDATE",
-    ],
-  ],
-  Array [
-    "66d83870-30df-4a3b-8801-59edff162034",
-    Object {
-      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
-    },
-    Array [
-      "WEB_INTEGRATIONS_APP_UPDATE",
-    ],
-  ],
-  Array [
-    "66d83870-30df-4a3b-8801-59edff162034",
-    Object {
-      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
-    },
-    Array [
-      "WEB_INTEGRATIONS_APP_UPDATE",
-    ],
-  ],
 ]
 `;
 
@@ -472,7 +117,23 @@ exports[`create-smooch-web-integration Everthing is successful sends back status
 Object {
   "body": Object {
     "result": Object {
-      "prechatCapture": "smooch",
+      "prechatCapture": "name",
+      "undefined": "done",
+      "whitelistedUrls": Array [
+        "url1",
+        "url2",
+      ],
+    },
+  },
+  "status": 201,
+}
+`;
+
+exports[`create-smooch-web-integration Everthing is successful when prechatCapture is equal to 'none' 1`] = `
+Object {
+  "body": Object {
+    "result": Object {
+      "prechatCapture": "none",
       "undefined": "done",
       "whitelistedUrls": Array [
         "url1",
