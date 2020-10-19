@@ -1,3 +1,6 @@
+# 1.24.0
+* CXV1-23118 - handle no customer name on first web chat message
+
 # 1.23.0
 * CXV1-23108 - API prechat 'none'
 

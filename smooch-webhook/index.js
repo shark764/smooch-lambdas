@@ -119,6 +119,7 @@ exports.handler = async (event) => {
                 form: message,
                 auth,
                 logContext,
+                customer,
               });
               break;
             }
@@ -213,18 +214,20 @@ exports.handleFormResponse = async function handleFormResponse({
   form,
   auth,
   logContext,
+  customer,
 }) {
+  let customerIdentifier = customer;
   if (form.name.includes('Web User ')) {
-    let customer = form
+    customerIdentifier = form
       && form.fields
       && form.fields[0]
       && (form.fields[0].text || form.fields[0].email);
-    if (!customer) {
+    if (!customerIdentifier) {
       log.warn(
         'Prechat form submitted with no customer identifier (form.field[0].text)',
         { ...logContext, form },
       );
-      customer = form.name;
+      customerIdentifier = form.name;
     }
 
     let accountSecrets;
@@ -267,9 +270,9 @@ exports.handleFormResponse = async function handleFormResponse({
         appId,
         userId,
         appUser: {
-          givenName: customer,
+          givenName: customerIdentifier,
           properties: {
-            customer,
+            customer: customerIdentifier,
           },
         },
       });
@@ -286,7 +289,7 @@ exports.handleFormResponse = async function handleFormResponse({
         tenantId,
         source: 'web',
         integrationId,
-        customer,
+        customer: customerIdentifier,
         smoochMessageId: form._id,
         auth,
         logContext,
@@ -1106,6 +1109,64 @@ exports.handleCustomerMessage = async ({
     }
   } else if (!hasInteractionItem) {
     let newInteractionId;
+    let customerIdentifier = customer;
+
+    if (!customerIdentifier) {
+      customerIdentifier = 'Customer';
+      log.info('Customer name was not provided, hard-code setting it to "Customer"');
+      let accountSecrets;
+      try {
+        accountSecrets = await secretsClient
+          .getSecretValue({
+            SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+          })
+          .promise();
+      } catch (error) {
+        log.error(
+          'An Error has occurred trying to retrieve digital channels credentials',
+          logContext,
+          error,
+        );
+        throw error;
+      }
+
+      const accountKeys = JSON.parse(accountSecrets.SecretString);
+      let smooch;
+      try {
+        smooch = new SmoochCore({
+          keyId: accountKeys[`${appId}-id`],
+          secret: accountKeys[`${appId}-secret`],
+          scope: 'app',
+          serviceUrl: smoochApiUrl,
+        });
+      } catch (error) {
+        log.error(
+          'An Error has occurred trying to retrieve digital channels credentials',
+          logContext,
+          error,
+        );
+        throw error;
+      }
+
+      let smoochUser;
+      try {
+        smoochUser = await smooch.appUsers.update({
+          appId,
+          userId,
+          appUser: {
+            givenName: customerIdentifier,
+            properties: {
+              customer: customerIdentifier,
+            },
+          },
+        });
+      } catch (error) {
+        log.error('Error updating Smooch appUser', logContext, error);
+        throw error;
+      }
+      log.debug('Updated Smooch appUser name', { ...logContext, smoochUser });
+    }
+
     try {
       newInteractionId = await exports.createInteraction({
         appId,
@@ -1113,7 +1174,7 @@ exports.handleCustomerMessage = async ({
         tenantId,
         source: 'web',
         integrationId,
-        customer,
+        customer: customerIdentifier,
         smoochMessageId: message._id,
         auth,
         logContext,

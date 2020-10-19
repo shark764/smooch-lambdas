@@ -424,7 +424,7 @@ describe('smooch-webhook', () => {
         }
       });
 
-      it('throws an error when there problem retrieving digital channels credentials (form SmoochCore)', async () => {
+      it('throws an error when there problem retrieving digital channels credentials (form SmoochCore) 1', async () => {
         mockSmoochCore.mockImplementationOnce(() => {
           throw new Error();
         });
@@ -435,7 +435,7 @@ describe('smooch-webhook', () => {
         }
       });
 
-      it('throws an error when there problem updating Smooch appUser', async () => {
+      it('throws an error when there problem updating Smooch appUser 1', async () => {
         mockSmoochUpdate.mockRejectedValueOnce(new Error());
         try {
           await handleFormResponse(input);
@@ -1226,6 +1226,75 @@ describe('smooch-webhook', () => {
         } catch (error) {
           expect(Promise.reject(new Error('Failed to upload artifact file'))).rejects.toThrowErrorMatchingSnapshot();
         }
+      });
+
+      const input = {
+        appId: 'mock-app-id',
+        userId: 'mock-user-id',
+        integrationId: 'mock-integration-id',
+        tenantId: 'mock-tenant-id',
+        interactionId: 'mock-interaction-id',
+        form: {
+          name: 'Web User ',
+          type: 'formResponse',
+          fields: [{
+            text: 'example',
+          }],
+          _id: '_id',
+          received: '10',
+        },
+        auth: 'auth',
+        logContext: 'logContext',
+        customerIdentifier: 'Test',
+        cusomter: 'Test',
+        message: 'Test',
+      };
+
+      it('throws an error when there problem retrieving digital channels credentials', async () => {
+        mockGetSecretValue.mockRejectedValueOnce(new Error());
+        try {
+          await handleCustomerMessage(input);
+        } catch (error) {
+          expect(Promise.reject(new Error('An Error has occurred trying to retrieve digital channels credentials (form getSecretValue())'))).rejects.toThrowErrorMatchingSnapshot();
+        }
+      });
+
+      it('throws an error when there problem retrieving digital channels credentials (form SmoochCore) 1', async () => {
+        mockSmoochCore.mockImplementationOnce(() => {
+          throw new Error();
+        });
+        try {
+          await handleCustomerMessage(input);
+        } catch (error) {
+          expect(Promise.reject(new Error('An Error has occurred trying to retrieve digital channels credentials'))).rejects.toThrowErrorMatchingSnapshot();
+        }
+      });
+
+      it('throws an error when there problem updating Smooch appUser 2', async () => {
+        mockSmoochUpdate.mockRejectedValueOnce(new Error());
+        try {
+          await handleCustomerMessage(input);
+        } catch (error) {
+          expect(Promise.reject(new Error('Error updating Smooch appUser'))).rejects.toThrowErrorMatchingSnapshot();
+        }
+      });
+
+      it('customerIdentifier !== "Customer"', async () => {
+        const newEvent2 = {
+          ...mockEvent,
+          hasInteractionItem: false,
+          type: 'file',
+          customerIdentifier: 'Test',
+        };
+
+        mockSmoochUpdate.mockImplementationOnce(() => { });
+        const result = await handleCustomerMessage(newEvent2);
+        expect(result).toMatchSnapshot();
+      });
+
+      it('updated smoochUser successfully', async () => {
+        const result = await handleCustomerMessage(input);
+        expect(result).toMatchSnapshot();
       });
     });
 
