@@ -1,3 +1,6 @@
+# 1.25.0
+* CXV1-21854 - Adding lambdas for Smooch Whatsapp integration handlers.
+
 # 1.24.0
 * CXV1-23118 - handle no customer name on first web chat message
 

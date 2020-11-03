@@ -3,6 +3,7 @@ timeout = 30
 memory_size = 128
 zip_path="smooch-action-send-message/smooch-action-send-message.zip"
 handler = "index.handler"
+runtime = "nodejs12.x"
 environmentVars = {
   "ENVIRONMENT" = "${ENVIRONMENT}",
   "DOMAIN" = "${DOMAIN}"
