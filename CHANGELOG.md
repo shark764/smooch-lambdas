@@ -1,3 +1,6 @@
+# 1.25.1
+* <no-jira> - Updating new lambdas iam-policy for whatsapp integration.
+
 # 1.25.0
 * CXV1-21854 - Adding lambdas for Smooch Whatsapp integration handlers.
 

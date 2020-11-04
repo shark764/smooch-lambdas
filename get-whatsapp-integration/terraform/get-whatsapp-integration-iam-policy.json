@@ -1,7 +1,7 @@
 {
   "Statement": [
     {
-      "Sid": "terraform",
+      "Sid": "Lambda",
       "Action": [
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
@@ -12,6 +12,12 @@
       ],
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+      "Sid": "GetItem",
+      "Action": "dynamodb:GetItem",
+      "Effect": "Allow",
+      "Resource": "arn:aws:dynamodb:*:*:table/*-smooch"
     }
   ]
 }
