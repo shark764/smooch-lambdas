@@ -1,3 +1,6 @@
+# 1.25.2
+* <no-jira> - Fixing permission for dynamoDb table access on get-whatsapp-apps lambda.
+
 # 1.25.1
 * <no-jira> - Updating new lambdas iam-policy for whatsapp integration.
 
