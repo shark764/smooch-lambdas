@@ -1,0 +1,119 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`get-whatsapp-apps Everything is successful Walkthrough passes in the correct arguments to validatePlatformPermissions 1`] = `
+Array [
+  Array [
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "PLATFORM_DIGITAL_CHANNELS_APP",
+    ],
+  ],
+  Array [
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "PLATFORM_DIGITAL_CHANNELS_APP",
+    ],
+  ],
+]
+`;
+
+exports[`get-whatsapp-apps Everything is successful Walkthrough passes in the correct arguments to validateTenantPermissions 1`] = `
+Array [
+  Array [
+    "66d83870-30df-4a3b-8801-59edff162034",
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "DIGITAL_CHANNELS_APP_READ",
+    ],
+  ],
+  Array [
+    "66d83870-30df-4a3b-8801-59edff162034",
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "DIGITAL_CHANNELS_APP_READ",
+    ],
+  ],
+]
+`;
+
+exports[`get-whatsapp-apps Everything is successful sends back status 200 if the code runs without error  1`] = `
+Object {
+  "body": Object {
+    "result": Object {
+      "integrations": Array [
+        Object {
+          "type": "whatsapp",
+        },
+      ],
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`get-whatsapp-apps sends back status 400 when there are invalid params value 1`] = `
+Object {
+  "body": Object {
+    "error": [ValidationError: "tenant-id" is not allowed to be empty],
+    "message": "Error: invalid params value \\"tenant-id\\" is not allowed to be empty",
+  },
+  "status": 400,
+}
+`;
+
+exports[`get-whatsapp-apps sends back status 403 when there are not enough permissions 1`] = `
+Object {
+  "body": Object {
+    "message": "Error not enough permissions",
+  },
+  "status": 403,
+}
+`;
+
+exports[`get-whatsapp-apps sends back status 500 when there is a error retrieving digital channels credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to retrieve digital channels credentials",
+  },
+  "status": 500,
+}
+`;
+
+exports[`get-whatsapp-apps sends back status 500 when there is a problem fetching apps in DynamoDB 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to fetch apps in DynamoDB",
+    "queryParams": Object {
+      "ExpressionAttributeNames": Object {
+        "#integrationType": "type",
+        "#tenantId": "tenant-id",
+      },
+      "ExpressionAttributeValues": Object {
+        ":t": "66d83870-30df-4a3b-8801-59edff162034",
+        ":type": "app",
+      },
+      "IndexName": "tenant-id-type-index",
+      "KeyConditionExpression": "#tenantId = :t and #integrationType = :type",
+      "TableName": "us-east-1-dev-smooch",
+    },
+  },
+  "status": 500,
+}
+`;
+
+exports[`get-whatsapp-apps sends back status 500 when there is an error retrieving integrations 1`] = `
+Object {
+  "body": Object {
+    "message": "An error occured trying to retrieve whatsapp integrations",
+  },
+  "status": 500,
+}
+`;

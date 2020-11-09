@@ -1,3 +1,6 @@
+# 1.25.3
+* <no-jira> - Updating get-whatsapp-apps lambda to return an array of integrations.
+
 # 1.25.2
 * <no-jira> - Fixing permission for dynamoDb table access on get-whatsapp-apps lambda.
 
