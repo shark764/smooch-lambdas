@@ -529,6 +529,7 @@ async function shouldCheckIfClientIsDisconnected({ userId, logContext }) {
 async function getClientInactivityTimeout({ logContext }) {
   const { tenantId, smoochIntegrationId: integrationId } = logContext;
   let smoochIntegration;
+  let clientDisconnectMinutes;
   try {
     smoochIntegration = await docClient
       .get({
@@ -543,10 +544,13 @@ async function getClientInactivityTimeout({ logContext }) {
     log.error('Failed to get smooch interaction record', logContext, error);
     throw error;
   }
-  const {
-    Item: { 'client-disconnect-minutes': clientDisconnectMinutes },
-  } = smoochIntegration;
-
+  if (smoochIntegration && smoochIntegration.Item) {
+    ({
+      Item: { 'client-disconnect-minutes': clientDisconnectMinutes },
+    } = smoochIntegration);
+  } else {
+    log.debug('No integration found', logContext);
+  }
   return clientDisconnectMinutes;
 }
 

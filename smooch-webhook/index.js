@@ -7,6 +7,7 @@ const AWS = require('aws-sdk');
 const uuidv4 = require('uuid/v4');
 const uuidv1 = require('uuid/v1');
 const axios = require('axios');
+const parsePhoneNumber = require('libphonenumber-js');
 const { lambda: { log } } = require('alonzo');
 
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 60 * 60;
@@ -24,13 +25,30 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
 
 exports.handler = async (event) => {
-  const body = JSON.parse(event.Records[0].body);
+  const eventBody = JSON.parse(event.Records[0].body);
+  let body;
+  let tenantId;
+  if (eventBody.body) {
+    ({ body } = eventBody);
+    ({ tenantId } = eventBody);
+  } else {
+    // TODO remove this case after API Gateway is deployed in prod
+    body = eventBody;
+    log.warn('Using original body', { body });
+  }
   const {
     appUser, messages, app, client, trigger, timestamp, activity,
   } = body;
   const { _id: appId } = app;
   const { properties, _id: userId } = appUser;
-  const { tenantId, customer } = properties;
+  const { customer } = properties;
+
+  // TODO remove this case after API Gateway is deployed in prod
+  if (!tenantId) {
+    ({ tenantId } = properties);
+    log.warn('Getting tenant id from properties', { tenantId });
+  }
+
   const logContext = {
     tenantId,
     smoochAppId: appId,
@@ -56,9 +74,11 @@ exports.handler = async (event) => {
 
   let cxAuthSecret;
   try {
-    cxAuthSecret = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
-    }).promise();
+    cxAuthSecret = await secretsClient
+      .getSecretValue({
+        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+      })
+      .promise();
   } catch (error) {
     log.error('An Error has occurred trying to retrieve cx credentials', logContext, error);
     throw error;
@@ -107,6 +127,7 @@ exports.handler = async (event) => {
       switch (platform) {
         case 'web': {
           log.debug('Platform received: web', logContext);
+          const channelType = 'messaging';
           switch (type) {
             case 'formResponse': {
               log.debug('Web type received: formResponse', { ...logContext, form: message });
@@ -120,6 +141,8 @@ exports.handler = async (event) => {
                 auth,
                 logContext,
                 customer,
+                channelType,
+                metadataSource: platform,
               });
               break;
             }
@@ -139,6 +162,8 @@ exports.handler = async (event) => {
                 integrationId,
                 customer,
                 type,
+                channelType,
+                metadataSource: platform,
               });
               break;
             }
@@ -152,8 +177,42 @@ exports.handler = async (event) => {
           }
           break;
         }
-        // case 'whatsapp':
-        // case 'messenger':
+        case 'whatsapp': {
+          log.debug('Platform received: whatsapp', logContext);
+
+          switch (type) {
+            case 'text':
+            case 'image':
+            case 'file': {
+              log.debug(`Whatsapp type received: ${type}`, logContext);
+              await exports.handleCustomerMessage({
+                hasInteractionItem,
+                interactionId,
+                tenantId,
+                auth,
+                logContext,
+                appId,
+                userId,
+                message,
+                integrationId,
+                customer,
+                type,
+                channelType: 'sms',
+                metadataSource: platform,
+                client,
+              });
+              break;
+            }
+            default: {
+              log.warn('Unsupported whatsapp type from Smooch', {
+                ...logContext,
+                type,
+              });
+              return 'Unsupported whatsapp type';
+            }
+          }
+          break;
+        }
         default: {
           log.warn('Unsupported platform from Smooch', {
             ...logContext,
@@ -215,6 +274,8 @@ exports.handleFormResponse = async function handleFormResponse({
   auth,
   logContext,
   customer,
+  channelType,
+  metadataSource,
 }) {
   let customerIdentifier = customer;
   if (form.name.includes('Web User ')) {
@@ -230,39 +291,7 @@ exports.handleFormResponse = async function handleFormResponse({
       customerIdentifier = form.name;
     }
 
-    let accountSecrets;
-    try {
-      accountSecrets = await secretsClient
-        .getSecretValue({
-          SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
-        })
-        .promise();
-    } catch (error) {
-      log.error(
-        'An Error has occurred trying to retrieve digital channels credentials',
-        logContext,
-        error,
-      );
-      throw error;
-    }
-
-    const accountKeys = JSON.parse(accountSecrets.SecretString);
-    let smooch;
-    try {
-      smooch = new SmoochCore({
-        keyId: accountKeys[`${appId}-id`],
-        secret: accountKeys[`${appId}-secret`],
-        scope: 'app',
-        serviceUrl: smoochApiUrl,
-      });
-    } catch (error) {
-      log.error(
-        'An Error has occurred trying to retrieve digital channels credentials',
-        logContext,
-        error,
-      );
-      throw error;
-    }
+    const smooch = await exports.smoochCore({ appId, logContext });
 
     let smoochUser;
     try {
@@ -287,7 +316,8 @@ exports.handleFormResponse = async function handleFormResponse({
         appId,
         userId,
         tenantId,
-        source: 'web',
+        channelType,
+        metadataSource,
         integrationId,
         customer: customerIdentifier,
         smoochMessageId: form._id,
@@ -297,6 +327,7 @@ exports.handleFormResponse = async function handleFormResponse({
       });
     } catch (error) {
       log.error('Failed to create an interaction', logContext, error);
+      await exports.deleteSmoochInteraction({ userId, logContext });
       throw error;
     }
   } else {
@@ -413,7 +444,8 @@ exports.createInteraction = async function createInteraction({
   appId,
   userId,
   tenantId,
-  source,
+  metadataSource,
+  channelType,
   integrationId,
   customer,
   logContext,
@@ -459,31 +491,43 @@ exports.createInteraction = async function createInteraction({
     return false;
   }
 
-  const customerNames = customer.split(' ');
-  const firstName = customerNames.shift();
-  const lastName = customerNames.join(' ');
   const interactionId = uuidv4();
 
-  let webIntegration;
-  try {
-    webIntegration = await docClient
-      .get({
-        TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
-        Key: {
-          'tenant-id': tenantId,
-          id: integrationId,
-        },
-      })
-      .promise();
-  } catch (error) {
-    log.error(
-      'Failed to retrieve Smooch integration from DynamoDB',
-      logContext,
-      error,
-    );
-    throw error;
+  let contactPoint;
+  if (metadataSource === 'whatsapp') {
+    const smooch = await exports.smoochCore({ appId, logContext });
+    const whatsappIntegration = await smooch.integrations.get({
+      appId,
+      integrationId,
+    });
+    log.debug('Got whatsapp integration', {
+      ...logContext,
+      whatsappIntegration,
+    });
+    contactPoint = parsePhoneNumber(whatsappIntegration.integration.phoneNumber)
+      .number;
+  } else {
+    let webIntegration;
+    try {
+      webIntegration = await docClient
+        .get({
+          TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+          Key: {
+            'tenant-id': tenantId,
+            id: integrationId,
+          },
+        })
+        .promise();
+    } catch (error) {
+      log.error(
+        'Failed to retrieve Smooch integration from DynamoDB',
+        logContext,
+        error,
+      );
+      throw error;
+    }
+    ({ 'contact-point': contactPoint } = webIntegration.Item);
   }
-  const { 'contact-point': contactPoint } = webIntegration.Item;
 
   let artifactId;
   try {
@@ -516,18 +560,16 @@ exports.createInteraction = async function createInteraction({
     customer,
     contactPoint,
     source: 'smooch',
-    channelType: 'messaging',
+    channelType,
     direction: 'inbound',
     interaction: {
       customerMetadata: {
         id: customer,
-        firstName,
-        lastName,
       },
       artifactId,
     },
     metadata: {
-      source,
+      source: metadataSource,
       appId,
       userId,
       customer,
@@ -966,6 +1008,7 @@ exports.shouldCheckIfClientIsDisconnected = async function shouldCheckIfClientIs
 exports.getClientInactivityTimeout = async ({ logContext }) => {
   const { tenantId, smoochIntegrationId: integrationId } = logContext;
   let smoochIntegration;
+  let clientDisconnectMinutes;
   try {
     smoochIntegration = await docClient
       .get({
@@ -980,10 +1023,13 @@ exports.getClientInactivityTimeout = async ({ logContext }) => {
     log.error('Failed to get smooch interaction record', logContext, error);
     throw error;
   }
-  const {
-    Item: { 'client-disconnect-minutes': clientDisconnectMinutes },
-  } = smoochIntegration;
-
+  if (smoochIntegration && smoochIntegration.Item) {
+    ({
+      Item: { 'client-disconnect-minutes': clientDisconnectMinutes },
+    } = smoochIntegration);
+  } else {
+    log.debug('No integration found', logContext);
+  }
   return clientDisconnectMinutes;
 };
 
@@ -999,6 +1045,9 @@ exports.handleCustomerMessage = async ({
   integrationId,
   customer,
   type,
+  metadataSource,
+  channelType,
+  client,
 }) => {
   if (hasInteractionItem && interactionId) {
     let workingInteractionId = interactionId;
@@ -1032,9 +1081,11 @@ exports.handleCustomerMessage = async ({
             auth,
           });
         } catch (err) {
-          log.error('An error has occurred trying to send resource interrupt',
+          log.error(
+            'An error has occurred trying to send resource interrupt',
             logContext,
-            err);
+            err,
+          );
           if (err.response.status === 404) {
             await exports.sendCustomerMessageToParticipants({
               appId,
@@ -1057,7 +1108,8 @@ exports.handleCustomerMessage = async ({
             appId,
             userId,
             tenantId,
-            source: 'web',
+            metadataSource,
+            channelType,
             integrationId,
             customer,
             smoochMessageId: message._id,
@@ -1069,11 +1121,8 @@ exports.handleCustomerMessage = async ({
             timestamp: message.received,
           });
         } catch (err) {
-          log.error(
-            'Failed to create an interaction',
-            logContext,
-            err,
-          );
+          log.error('Failed to create an interaction', logContext, err);
+          await exports.deleteSmoochInteraction({ userId, logContext });
           throw err;
         }
       }
@@ -1108,47 +1157,29 @@ exports.handleCustomerMessage = async ({
       }
     }
   } else if (!hasInteractionItem) {
-    let newInteractionId;
     let customerIdentifier = customer;
 
     if (!customerIdentifier) {
-      customerIdentifier = 'Customer';
-      log.info('Customer name was not provided, hard-code setting it to "Customer"');
-      let accountSecrets;
-      try {
-        accountSecrets = await secretsClient
-          .getSecretValue({
-            SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
-          })
-          .promise();
-      } catch (error) {
-        log.error(
-          'An Error has occurred trying to retrieve digital channels credentials',
+      if (metadataSource === 'whatsapp') {
+        const phoneNumber = parsePhoneNumber(client.displayName);
+        if (!phoneNumber) {
+          log.error('Unable to parse whatsapp customer phone number', {
+            logContext,
+            number: client.displayName,
+          });
+          return 'Unable to parse whatsapp customer phone number';
+        }
+        customerIdentifier = phoneNumber.number;
+      } else {
+        log.info(
+          'Customer name was not provided to web message, hard-code setting it to "Customer"',
           logContext,
-          error,
         );
-        throw error;
-      }
-
-      const accountKeys = JSON.parse(accountSecrets.SecretString);
-      let smooch;
-      try {
-        smooch = new SmoochCore({
-          keyId: accountKeys[`${appId}-id`],
-          secret: accountKeys[`${appId}-secret`],
-          scope: 'app',
-          serviceUrl: smoochApiUrl,
-        });
-      } catch (error) {
-        log.error(
-          'An Error has occurred trying to retrieve digital channels credentials',
-          logContext,
-          error,
-        );
-        throw error;
+        customerIdentifier = 'Customer';
       }
 
       let smoochUser;
+      const smooch = await exports.smoochCore({ appId, logContext });
       try {
         smoochUser = await smooch.appUsers.update({
           appId,
@@ -1167,12 +1198,14 @@ exports.handleCustomerMessage = async ({
       log.debug('Updated Smooch appUser name', { ...logContext, smoochUser });
     }
 
+    let newInteractionId;
     try {
       newInteractionId = await exports.createInteraction({
         appId,
         userId,
         tenantId,
-        source: 'web',
+        metadataSource,
+        channelType,
         integrationId,
         customer: customerIdentifier,
         smoochMessageId: message._id,
@@ -1184,6 +1217,7 @@ exports.handleCustomerMessage = async ({
       });
     } catch (error) {
       log.error('Failed to create an interaction', logContext, error);
+      await exports.deleteSmoochInteraction({ userId, logContext });
       throw error;
     }
     if (type === 'file' || type === 'image') {
@@ -1218,4 +1252,63 @@ exports.handleCustomerMessage = async ({
     log.info('Web type received: text, but interaction is being created by something else. Ignoring.', logContext);
   }
   return 'handleCustomerMessage Successful';
+};
+
+exports.smoochCore = async ({ appId, logContext }) => {
+  let accountSecrets;
+  try {
+    accountSecrets = await secretsClient
+      .getSecretValue({
+        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+      })
+      .promise();
+  } catch (error) {
+    log.error(
+      'An Error has occurred trying to retrieve digital channels credentials',
+      logContext,
+      error,
+    );
+    throw error;
+  }
+
+  const accountKeys = JSON.parse(accountSecrets.SecretString);
+  try {
+    return new SmoochCore({
+      keyId: accountKeys[`${appId}-id`],
+      secret: accountKeys[`${appId}-secret`],
+      scope: 'app',
+      serviceUrl: smoochApiUrl,
+    });
+  } catch (error) {
+    log.error(
+      'An Error has occurred trying to initialize SmoochCore',
+      logContext,
+      error,
+    );
+    throw error;
+  }
+};
+
+exports.deleteSmoochInteraction = async ({ userId, logContext }) => {
+  log.info('Attempting to delete interaction', logContext);
+
+  const smoochParams = {
+    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+    Key: {
+      SmoochUserId: userId,
+    },
+  };
+  try {
+    await docClient.delete(smoochParams).promise();
+  } catch (error) {
+    log.fatal(
+      'An error occurred removing the interaction record from the state table. No stuck interactions for smooch user were found.',
+      logContext,
+      userId,
+      error,
+    );
+
+    throw error;
+  }
+  log.debug('Removed interaction from state table', logContext);
 };

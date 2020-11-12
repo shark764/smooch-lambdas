@@ -1,55 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`smooch-webhook createInteraction calls axios correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "auth": "auth",
-      "data": Object {
-        "artifactType": "messaging-transcript",
-      },
-      "method": "post",
-      "url": "https://us-east-1-dev-edge.domain/v1/tenants/mock-tenant-id/interactions/new-interaction-id/artifacts",
-    },
-  ],
-  Array [
-    Object {
-      "auth": "auth",
-      "data": Object {
-        "channelType": "messaging",
-        "contactPoint": "contactPoint",
-        "customer": "firstName lastName",
-        "direction": "inbound",
-        "id": "new-interaction-id",
-        "interaction": Object {
-          "artifactId": "mock-artifact-id",
-          "customerMetadata": Object {
-            "firstName": "firstName",
-            "id": "firstName lastName",
-            "lastName": "lastName",
-          },
-        },
-        "metadata": Object {
-          "appId": "mock-app-id",
-          "artifactId": "mock-artifact-id",
-          "customer": "firstName lastName",
-          "firstCustomerMessageTimestamp": 10,
-          "latestMessageSentBy": "customer",
-          "participants": Array [],
-          "smoochIntegrationId": "mock-integration-id",
-          "source": "",
-          "userId": "mock-user-id",
-        },
-        "source": "smooch",
-        "tenantId": "mock-tenant-id",
-      },
-      "method": "post",
-      "url": "https://us-east-1-dev-edge.domain/v1/tenants/mock-tenant-id/interactions",
-    },
-  ],
-]
-`;
-
 exports[`smooch-webhook createInteraction calls docClient.get() correctly 1`] = `
 Array [
   Array [
@@ -196,25 +146,6 @@ exports[`smooch-webhook handleCollectMessageResponse throws an error when there 
 
 exports[`smooch-webhook handleCollectMessageResponse throws an error when there is a problem sending collect-message response to participants 1`] = `"Error sending collect-message response to participants"`;
 
-exports[`smooch-webhook handleCustomerMessage !hasInteractionItem calls createInteraction correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "appId": "mock-app-id",
-      "auth": "auth",
-      "customer": "customer",
-      "integrationId": "mock-integrationId-id",
-      "logContext": "logContext",
-      "smoochMessageId": "mock_id",
-      "source": "web",
-      "tenantId": "mock-tenant-id",
-      "timestamp": "10",
-      "userId": "mock-user-id",
-    },
-  ],
-]
-`;
-
 exports[`smooch-webhook handleCustomerMessage !hasInteractionItem calls uploadArtifactFile correctly 1`] = `
 Array [
   Array [
@@ -248,26 +179,6 @@ exports[`smooch-webhook handleCustomerMessage !hasInteractionItem throws an erro
 exports[`smooch-webhook handleCustomerMessage !hasInteractionItem throws an error when there problem updating Smooch appUser 2 1`] = `"Error updating Smooch appUser"`;
 
 exports[`smooch-webhook handleCustomerMessage !hasInteractionItem updated smoochUser successfully 1`] = `"handleCustomerMessage Successful"`;
-
-exports[`smooch-webhook handleCustomerMessage hasInteractionId and interactionID calls createInteraction correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "appId": "mock-app-id",
-      "auth": "auth",
-      "customer": "customer",
-      "integrationId": "mock-integrationId-id",
-      "isInteractionDead": true,
-      "logContext": "logContext",
-      "smoochMessageId": "mock_id",
-      "source": "web",
-      "tenantId": "mock-tenant-id",
-      "timestamp": "10",
-      "userId": "mock-user-id",
-    },
-  ],
-]
-`;
 
 exports[`smooch-webhook handleCustomerMessage hasInteractionId and interactionID calls sendCustomerMessageToParticipants correctly 1`] = `
 Array [
@@ -354,25 +265,6 @@ Array [
 ]
 `;
 
-exports[`smooch-webhook handleFormResponse prechat capture passes in the correct arguments to createInteraction() 1`] = `
-Array [
-  Array [
-    Object {
-      "appId": "mock-app-id",
-      "auth": "auth",
-      "customer": "mock-email",
-      "integrationId": "mock-integration-id",
-      "logContext": "",
-      "smoochMessageId": "_id",
-      "source": "web",
-      "tenantId": "mock-tenant-id",
-      "timestamp": "10",
-      "userId": "mock-user-id",
-    },
-  ],
-]
-`;
-
 exports[`smooch-webhook handleFormResponse prechat capture throws an error when there is a problem creating interaction 1`] = `"Failed to create an interaction"`;
 
 exports[`smooch-webhook handleFormResponse prechat capture throws an error when there problem retrieving digital channels credentials (form SmoochCore) 1 1`] = `"An Error has occurred trying to retrieve digital channels credentials"`;
@@ -403,157 +295,6 @@ Array [
       },
       "tenantId": "mock-tenant-id",
       "timestamp": "mock-timestamp",
-    },
-  ],
-]
-`;
-
-exports[`smooch-webhook handler message:appUser web file calls handleCustomerMessage correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "appId": "mock-smooch-app-id",
-      "auth": Object {
-        "id": "mock-secret-id",
-        "secret": "mock-secret",
-      },
-      "customer": "mock-customer",
-      "hasInteractionItem": true,
-      "integrationId": "mock-integration-id",
-      "interactionId": "1",
-      "logContext": Object {
-        "hasInteractionItem": true,
-        "interactionId": "1",
-        "smoochAppId": "mock-smooch-app-id",
-        "smoochIntegrationId": "mock-integration-id",
-        "smoochMessageType": "file",
-        "smoochPlatform": "web",
-        "smoochTrigger": "message:appUser",
-        "smoochUserId": "mock-app-user-id",
-        "tenantId": "mock-tenant-id",
-      },
-      "message": Object {
-        "fields": Array [
-          Object {},
-        ],
-        "type": "file",
-      },
-      "tenantId": "mock-tenant-id",
-      "type": "file",
-      "userId": "mock-app-user-id",
-    },
-  ],
-]
-`;
-
-exports[`smooch-webhook handler message:appUser web formResponse calls handleFormResponse correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "appId": "mock-smooch-app-id",
-      "auth": Object {
-        "id": "mock-secret-id",
-        "secret": "mock-secret",
-      },
-      "customer": "mock-customer",
-      "form": Object {
-        "fields": Array [
-          Object {},
-        ],
-        "name": "mock-name",
-        "type": "formResponse",
-      },
-      "integrationId": "mock-integration-id",
-      "interactionId": "1",
-      "logContext": Object {
-        "hasInteractionItem": true,
-        "interactionId": "1",
-        "smoochAppId": "mock-smooch-app-id",
-        "smoochIntegrationId": "mock-integration-id",
-        "smoochMessageType": "formResponse",
-        "smoochPlatform": "web",
-        "smoochTrigger": "message:appUser",
-        "smoochUserId": "mock-app-user-id",
-        "tenantId": "mock-tenant-id",
-      },
-      "tenantId": "mock-tenant-id",
-      "userId": "mock-app-user-id",
-    },
-  ],
-]
-`;
-
-exports[`smooch-webhook handler message:appUser web image calls handleCustomerMessage correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "appId": "mock-smooch-app-id",
-      "auth": Object {
-        "id": "mock-secret-id",
-        "secret": "mock-secret",
-      },
-      "customer": "mock-customer",
-      "hasInteractionItem": true,
-      "integrationId": "mock-integration-id",
-      "interactionId": "1",
-      "logContext": Object {
-        "hasInteractionItem": true,
-        "interactionId": "1",
-        "smoochAppId": "mock-smooch-app-id",
-        "smoochIntegrationId": "mock-integration-id",
-        "smoochMessageType": "image",
-        "smoochPlatform": "web",
-        "smoochTrigger": "message:appUser",
-        "smoochUserId": "mock-app-user-id",
-        "tenantId": "mock-tenant-id",
-      },
-      "message": Object {
-        "fields": Array [
-          Object {},
-        ],
-        "type": "image",
-      },
-      "tenantId": "mock-tenant-id",
-      "type": "image",
-      "userId": "mock-app-user-id",
-    },
-  ],
-]
-`;
-
-exports[`smooch-webhook handler message:appUser web text calls handleCustomerMessage correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "appId": "mock-smooch-app-id",
-      "auth": Object {
-        "id": "mock-secret-id",
-        "secret": "mock-secret",
-      },
-      "customer": "mock-customer",
-      "hasInteractionItem": true,
-      "integrationId": "mock-integration-id",
-      "interactionId": "1",
-      "logContext": Object {
-        "hasInteractionItem": true,
-        "interactionId": "1",
-        "smoochAppId": "mock-smooch-app-id",
-        "smoochIntegrationId": "mock-integration-id",
-        "smoochMessageType": "text",
-        "smoochPlatform": "web",
-        "smoochTrigger": "message:appUser",
-        "smoochUserId": "mock-app-user-id",
-        "tenantId": "mock-tenant-id",
-      },
-      "message": Object {
-        "fields": Array [
-          Object {},
-        ],
-        "type": "text",
-      },
-      "tenantId": "mock-tenant-id",
-      "type": "text",
-      "userId": "mock-app-user-id",
     },
   ],
 ]
