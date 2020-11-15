@@ -1,3 +1,7 @@
+# 1.27.0
+* CXV1-21854 - Updating handlers for "get-whatsapp-integrations" and "get-whatsapp-integration".
+* <no-jira> - Updating iam-policies for new whatsapp lambdas to handle function invoke.
+
 # 1.26.0
 * CXV1-23357 - Updating smooch-webhook to handle whatsapp messages.
 * CXV1-23380 - Fixing check for inactivity timeout to avoid breaking interactions when user has not configured it yet.

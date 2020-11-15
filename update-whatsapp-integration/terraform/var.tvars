@@ -4,5 +4,6 @@ zip_path="update-whatsapp-integration/update-whatsapp-integration.zip"
 handler = "index.handler"
 runtime = "nodejs12.x"
 environmentVars = {
-  "ENVIRONMENT" = "${ENVIRONMENT}"
+  "ENVIRONMENT" = "${ENVIRONMENT}",
+  "DOMAIN" = "${DOMAIN}"
 }

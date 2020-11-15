@@ -1,3 +1,4 @@
+const { ValidationError } = require('@hapi/joi');
 const {
   lambda: {
     api: { validateTenantPermissions, validatePlatformPermissions },
@@ -50,6 +51,7 @@ const mockQuery = jest.fn().mockImplementation(() => ({
 const mockList = jest.fn().mockImplementation(() => ({
   integrations: [
     {
+      _id: '5e31c81640a22c000f5d7f2c',
       type: 'whatsapp',
     },
   ],
@@ -83,17 +85,48 @@ describe('get-whatsapp-apps', () => {
   describe('Everything is successful', () => {
     it('sends back status 200 if the code runs without error ', async () => {
       const result = await handler(event);
-      expect(result).toMatchSnapshot();
+      expect(result).toEqual({
+        body: {
+          result: [
+            {
+              appId: '5e31c81640a22c000f5d7f28',
+              id: '5e31c81640a22c000f5d7f2c',
+              type: 'whatsapp',
+            },
+          ],
+        },
+        status: 200,
+      });
     });
     describe('Walkthrough', () => {
       beforeAll(async () => {
         await handler(event);
       });
       it('passes in the correct arguments to validateTenantPermissions', async () => {
-        expect(validateTenantPermissions.mock.calls).toMatchSnapshot();
+        expect(validateTenantPermissions.mock.calls).toEqual([
+          [
+            '66d83870-30df-4a3b-8801-59edff162034',
+            { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
+            ['DIGITAL_CHANNELS_APP_READ'],
+          ],
+          [
+            '66d83870-30df-4a3b-8801-59edff162034',
+            { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
+            ['DIGITAL_CHANNELS_APP_READ'],
+          ],
+        ]);
       });
       it('passes in the correct arguments to validatePlatformPermissions', async () => {
-        expect(validatePlatformPermissions.mock.calls).toMatchSnapshot();
+        expect(validatePlatformPermissions.mock.calls).toEqual([
+          [
+            { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
+            ['PLATFORM_DIGITAL_CHANNELS_APP'],
+          ],
+          [
+            { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
+            ['PLATFORM_DIGITAL_CHANNELS_APP'],
+          ],
+        ]);
       });
       it('passes in the correct arguments to secretClient.getSecretValue() to get digital channels credentials', async () => {
         expect(mockGetSecretValue.mock.calls[0]).toEqual(
@@ -159,20 +192,38 @@ describe('get-whatsapp-apps', () => {
       },
     };
     const result = await handler(mockEvent);
-    expect(result).toMatchSnapshot();
+    expect(result).toEqual({
+      body: {
+        error: new ValidationError('"tenant-id" is not allowed to be empty'),
+        message:
+          'Error: invalid params value "tenant-id" is not allowed to be empty',
+      },
+      status: 400,
+    });
   });
 
   it('sends back status 403 when there are not enough permissions', async () => {
     validateTenantPermissions.mockReturnValueOnce(false);
     validatePlatformPermissions.mockReturnValueOnce(false);
     const result = await handler(event);
-    expect(result).toMatchSnapshot();
+    expect(result).toEqual({
+      body: {
+        message: 'Error not enough permissions',
+      },
+      status: 403,
+    });
   });
 
   it('sends back status 500 when there is a error retrieving digital channels credentials', async () => {
     mockGetSecretValue.mockRejectedValueOnce(new Error());
     const result = await handler(event);
-    expect(result).toMatchSnapshot();
+    expect(result).toEqual({
+      body: {
+        message:
+          'An Error has occurred trying to retrieve digital channels credentials',
+      },
+      status: 500,
+    });
   });
 
   it('throws an error when there is a problem retrieving digital channels credentials', async () => {
@@ -226,12 +277,35 @@ describe('get-whatsapp-apps', () => {
   it('sends back status 500 when there is a problem fetching apps in DynamoDB', async () => {
     mockQuery.mockRejectedValueOnce(new Error());
     const result = await handler(event);
-    expect(result).toMatchSnapshot();
+    expect(result).toEqual({
+      body: {
+        message: 'An Error has occurred trying to fetch apps in DynamoDB',
+        queryParams: {
+          ExpressionAttributeNames: {
+            '#integrationType': 'type',
+            '#tenantId': 'tenant-id',
+          },
+          ExpressionAttributeValues: {
+            ':t': '66d83870-30df-4a3b-8801-59edff162034',
+            ':type': 'app',
+          },
+          IndexName: 'tenant-id-type-index',
+          KeyConditionExpression: '#tenantId = :t and #integrationType = :type',
+          TableName: 'us-east-1-dev-smooch',
+        },
+      },
+      status: 500,
+    });
   });
 
   it('sends back status 500 when there is an error retrieving integrations', async () => {
     mockList.mockRejectedValueOnce(new Error());
     const result = await handler(event);
-    expect(result).toMatchSnapshot();
+    expect(result).toEqual({
+      body: {
+        message: 'An error occured trying to retrieve whatsapp integrations',
+      },
+      status: 500,
+    });
   });
 });

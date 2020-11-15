@@ -1,6 +1,6 @@
 /**
  * Lambda that gets the whatsapp apps from Smooch
- * */
+ */
 
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
@@ -108,7 +108,7 @@ exports.handler = async (event) => {
   }
 
   /**
-   * Getting apps from smooch
+   * Getting apps records from dynamo
    */
   const queryParams = {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
@@ -139,6 +139,9 @@ exports.handler = async (event) => {
     };
   }
 
+  /**
+   * Getting apps from smooch
+   */
   let smoochApps;
   try {
     smoochApps = await Promise.all(
@@ -168,10 +171,17 @@ exports.handler = async (event) => {
     };
   }
 
+  /**
+   * Getting integrations from every smooch app
+   */
   const integrations = smoochApps.reduce(
-    (appIntegrations, smoochApp) => [
+    (appIntegrations, smoochApp, index) => [
       ...appIntegrations,
-      ...smoochApp.integrations,
+      ...smoochApp.integrations.map(({ _id, ...integration }) => ({
+        ...integration,
+        id: _id,
+        appId: smoochAppDynamoRecords[index].id,
+      })),
     ],
     [],
   );
@@ -179,13 +189,14 @@ exports.handler = async (event) => {
   log.info('get-whatsapp-apps complete', {
     ...logContext,
     smoochAppDynamoRecords,
+    smoochApps,
     integrations,
   });
 
   return {
     status: 200,
     body: {
-      result: { integrations },
+      result: integrations,
     },
   };
 };

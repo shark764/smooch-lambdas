@@ -1,12 +1,180 @@
-const event = {};
+const { ValidationError } = require('@hapi/joi');
+const {
+  lambda: {
+    api: { validateTenantPermissions, validatePlatformPermissions },
+  },
+} = require('alonzo');
+
+jest.mock('aws-sdk');
+jest.mock('alonzo');
+
+validateTenantPermissions.mockReturnValue(true);
+validatePlatformPermissions.mockReturnValue(true);
+
+beforeAll(() => {
+  global.process.env = {
+    AWS_REGION: 'us-east-1',
+    ENVIRONMENT: 'dev',
+    smooch_api_url: 'mock-smooch-api-url',
+  };
+});
+
+const event = {
+  params: {
+    'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+  },
+  identity: {
+    'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0',
+  },
+};
+
+const mockQuery = jest.fn().mockImplementation(() => ({
+  promise: () => ({
+    Count: 1,
+    Items: [
+      {
+        'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+        id: '5e31c81640a22c000f5d7f28',
+      },
+    ],
+  }),
+}));
+
+jest.mock('aws-sdk', () => ({
+  config: {
+    update: jest.fn(),
+  },
+  DynamoDB: {
+    DocumentClient: jest.fn().mockImplementation(() => ({ query: mockQuery })),
+  },
+}));
 
 const { handler } = require('../index');
 
 describe('get-whatsapp-integrations', () => {
   describe('Everything is successful', () => {
-    it('returns when the code runs without any error', async () => {
-      const result = handler(event);
-      expect(result).toBeTruthy();
+    it('sends back status 200 if the code runs without error ', async () => {
+      const result = await handler(event);
+      expect(result).toEqual({
+        body: {
+          result: [
+            {
+              id: '5e31c81640a22c000f5d7f28',
+              'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+            },
+          ],
+        },
+        status: 200,
+      });
+    });
+    describe('Walkthrough', () => {
+      beforeAll(async () => {
+        await handler(event);
+      });
+      it('passes in the correct arguments to validateTenantPermissions', async () => {
+        expect(validateTenantPermissions.mock.calls).toEqual(
+          expect.arrayContaining([
+            [
+              '66d83870-30df-4a3b-8801-59edff162034',
+              { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
+              ['DIGITAL_CHANNELS_APP_READ', 'WEB_INTEGRATIONS_APP_UPDATE'],
+            ],
+            [
+              '66d83870-30df-4a3b-8801-59edff162034',
+              { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
+              ['DIGITAL_CHANNELS_APP_READ', 'WEB_INTEGRATIONS_APP_UPDATE'],
+            ],
+          ]),
+        );
+      });
+      it('passes in the correct arguments to validatePlatformPermissions', async () => {
+        expect(validatePlatformPermissions.mock.calls).toEqual(
+          expect.arrayContaining([
+            [
+              { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
+              ['PLATFORM_DIGITAL_CHANNELS_APP'],
+            ],
+            [
+              { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
+              ['PLATFORM_DIGITAL_CHANNELS_APP'],
+            ],
+          ]),
+        );
+      });
+      it('passes in the correct arguments to docClient.query()', async () => {
+        expect(mockQuery.mock.calls[0]).toEqual([
+          {
+            ExpressionAttributeNames: {
+              '#integrationType': 'type',
+              '#tenantId': 'tenant-id',
+            },
+            ExpressionAttributeValues: {
+              ':t': '66d83870-30df-4a3b-8801-59edff162034',
+              ':type': 'whatsapp',
+            },
+            IndexName: 'tenant-id-type-index',
+            KeyConditionExpression:
+              '#tenantId = :t and #integrationType = :type',
+            TableName: 'us-east-1-dev-smooch',
+          },
+        ]);
+      });
+    });
+  });
+
+  it('sends back status 400 when there are invalid params value', async () => {
+    const mockEvent = {
+      params: {
+        'tenant-id': '',
+      },
+      identity: {
+        'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0',
+      },
+    };
+    const result = await handler(mockEvent);
+    expect(result).toEqual({
+      body: {
+        error: new ValidationError('"tenant-id" is not allowed to be empty'),
+        message:
+          'Error: invalid params value "tenant-id" is not allowed to be empty',
+      },
+      status: 400,
+    });
+  });
+
+  it('sends back status 403 when there are not enough permissions', async () => {
+    validateTenantPermissions.mockReturnValueOnce(false);
+    validatePlatformPermissions.mockReturnValueOnce(false);
+    const result = await handler(event);
+    expect(result).toEqual({
+      body: {
+        message: 'Error not enough permissions',
+      },
+      status: 403,
+    });
+  });
+
+  it('sends back status 500 when there is a problem fetching apps in DynamoDB', async () => {
+    mockQuery.mockRejectedValueOnce(new Error());
+    const result = await handler(event);
+    expect(result).toEqual({
+      body: {
+        message: 'An Error has occurred trying to fetch integrations in DynamoDB',
+        queryParams: {
+          ExpressionAttributeNames: {
+            '#integrationType': 'type',
+            '#tenantId': 'tenant-id',
+          },
+          ExpressionAttributeValues: {
+            ':t': '66d83870-30df-4a3b-8801-59edff162034',
+            ':type': 'whatsapp',
+          },
+          IndexName: 'tenant-id-type-index',
+          KeyConditionExpression: '#tenantId = :t and #integrationType = :type',
+          TableName: 'us-east-1-dev-smooch',
+        },
+      },
+      status: 500,
     });
   });
 });

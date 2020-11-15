@@ -14,10 +14,22 @@
       "Resource": "*"
     },
     {
+      "Sid": "InvokeLambda",
+      "Action": ["lambda:InvokeFunction", "lambda:InvokeAsync"],
+      "Effect": "Allow",
+      "Resource": "arn:aws:lambda:*:*:function:*"
+    },
+    {
       "Sid": "PutDynamoTable",
       "Action": ["dynamodb:GetItem", "dynamodb:UpdateItem"],
       "Effect": "Allow",
       "Resource": "arn:aws:dynamodb:*:*:table/*-smooch"
+    },
+    {
+      "Sid": "GetSecrets",
+      "Action": "secretsmanager:GetSecretValue",
+      "Effect": "Allow",
+      "Resource": ["arn:aws:secretsmanager:*:*:secret:*-smooch-app-??????"]
     }
   ]
 }
