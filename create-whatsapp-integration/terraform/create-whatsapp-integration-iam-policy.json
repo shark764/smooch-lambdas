@@ -14,10 +14,10 @@
       "Resource": "*"
     },
     {
-      "Sid": "InvokeLambda",
-      "Action": ["lambda:InvokeFunction", "lambda:InvokeAsync"],
+      "Sid": "Query",
+      "Action": "dynamodb:Query",
       "Effect": "Allow",
-      "Resource": "arn:aws:lambda:*:*:function:*"
+      "Resource": "arn:aws:dynamodb:*:*:table/*-smooch/index/tenant-id-type-index"
     },
     {
       "Sid": "PutDynamoTable",

@@ -53,6 +53,11 @@ const mockList = jest.fn().mockImplementation(() => ({
     {
       _id: '5e31c81640a22c000f5d7f2c',
       type: 'whatsapp',
+      status: 'active',
+      sandbox: true,
+      displayName: 'WhatsApp Sandbox',
+      phoneNumber: '+1 (438) 476-3261',
+      sandboxExternalId: '50371675753',
     },
   ],
   hasMore: false,
@@ -90,7 +95,12 @@ describe('get-whatsapp-apps', () => {
           result: [
             {
               appId: '5e31c81640a22c000f5d7f28',
+              displayName: 'WhatsApp Sandbox',
               id: '5e31c81640a22c000f5d7f2c',
+              phoneNumber: '+1 (438) 476-3261',
+              sandbox: true,
+              sandboxExternalId: '50371675753',
+              status: 'active',
               type: 'whatsapp',
             },
           ],

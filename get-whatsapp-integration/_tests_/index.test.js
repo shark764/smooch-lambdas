@@ -31,12 +31,19 @@ const event = {
 
 const mockGet = jest.fn().mockImplementation(() => ({
   promise: () => ({
-    Item: [
-      {
-        'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
-        id: '5e31c81640a22c000f5d7f28',
-      },
-    ],
+    Item: {
+      created: '2020-11-10T19:56:39.673Z',
+      'client-disconnect-minutes': 5,
+      'updated-by': 'b47027e0-1126-11ea-953d-9bdc6d6573af',
+      'app-id': '5fa425ef26770c000c171f9c',
+      name: 'My test whatsapp integration',
+      'created-by': 'b47027e0-1126-11ea-953d-9bdc6d6573af',
+      type: 'whatsapp',
+      updated: '2020-11-10T19:56:39.673Z',
+      description: 'This is a test',
+      'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+      id: '5e31c81640a22c000f5d7f28',
+    },
   }),
 }));
 
@@ -57,12 +64,19 @@ describe('get-whatsapp-integration', () => {
       const result = await handler(event);
       expect(result).toEqual({
         body: {
-          result: [
-            {
-              id: '5e31c81640a22c000f5d7f28',
-              'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
-            },
-          ],
+          result: {
+            appId: '5fa425ef26770c000c171f9c',
+            clientDisconnectMinutes: 5,
+            created: '2020-11-10T19:56:39.673Z',
+            createdBy: 'b47027e0-1126-11ea-953d-9bdc6d6573af',
+            description: 'This is a test',
+            id: '5e31c81640a22c000f5d7f28',
+            name: 'My test whatsapp integration',
+            tenantId: '66d83870-30df-4a3b-8801-59edff162034',
+            type: 'whatsapp',
+            updated: '2020-11-10T19:56:39.673Z',
+            updatedBy: 'b47027e0-1126-11ea-953d-9bdc6d6573af',
+          },
         },
         status: 200,
       });
@@ -147,14 +161,14 @@ describe('get-whatsapp-integration', () => {
     });
   });
 
-  it('sends back status 500 when the app does not exit for tenant', async () => {
+  it('sends back status 404 when the app does not exit for tenant', async () => {
     mockGet.mockImplementationOnce(() => ({
       promise: () => ({}),
     }));
     const result = await handler(event);
     expect(result).toEqual({
       body: { message: 'The app does not exist for this tenant' },
-      status: 500,
+      status: 404,
     });
   });
 

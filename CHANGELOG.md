@@ -1,3 +1,7 @@
+# 1.28.0
+* CXV1-21854 - Updating handlers for "create-whatsapp-integration" and "update-whatsapp-integration".
+* <no-jira> - Removing unneeded in iam-policies for whatsapp lambdas.
+
 # 1.27.0
 * CXV1-21854 - Updating handlers for "get-whatsapp-integrations" and "get-whatsapp-integration".
 * <no-jira> - Updating iam-policies for new whatsapp lambdas to handle function invoke.

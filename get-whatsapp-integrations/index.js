@@ -6,6 +6,7 @@ const {
     api: { validateTenantPermissions, validatePlatformPermissions },
   },
 } = require('alonzo');
+const string = require('serenova-js-utils/strings');
 
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid(),
@@ -115,15 +116,23 @@ exports.handler = async (event) => {
     };
   }
 
+  const result = integrations.map((integration) => {
+    const integrationCased = {};
+    Object.keys(integration).forEach((v) => {
+      integrationCased[string.kebabCaseToCamelCase(v)] = integration[v];
+    });
+    return integrationCased;
+  });
+
   log.info('get-whatsapp-integrations complete', {
     ...logContext,
-    integrations,
+    integrations: result,
   });
 
   return {
     status: 200,
     body: {
-      result: integrations,
+      result,
     },
   };
 };

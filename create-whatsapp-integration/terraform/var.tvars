@@ -4,6 +4,5 @@ zip_path="create-whatsapp-integration/create-whatsapp-integration.zip"
 handler = "index.handler"
 runtime = "nodejs12.x"
 environmentVars = {
-  "ENVIRONMENT" = "${ENVIRONMENT}",
-  "DOMAIN" = "${DOMAIN}"
+  "ENVIRONMENT" = "${ENVIRONMENT}"
 }

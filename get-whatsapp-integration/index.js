@@ -6,6 +6,7 @@ const {
     api: { validateTenantPermissions, validatePlatformPermissions },
   },
 } = require('alonzo');
+const string = require('serenova-js-utils/strings');
 
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid().required(),
@@ -86,7 +87,7 @@ exports.handler = async (event) => {
   }
 
   /**
-   * Getting apps records from dynamo
+   * Getting app record from dynamo
    */
   const queryParams = {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
@@ -107,7 +108,7 @@ exports.handler = async (event) => {
       log.error(errMsg, logContext);
 
       return {
-        status: 500,
+        status: 404,
         body: { message: errMsg },
       };
     }
@@ -122,15 +123,20 @@ exports.handler = async (event) => {
     };
   }
 
+  const result = {};
+  Object.keys(integration).forEach((v) => {
+    result[string.kebabCaseToCamelCase(v)] = integration[v];
+  });
+
   log.info('get-whatsapp-integration complete', {
     ...logContext,
-    integration,
+    integration: result,
   });
 
   return {
     status: 200,
     body: {
-      result: integration,
+      result,
     },
   };
 };
