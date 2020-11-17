@@ -84,7 +84,7 @@ exports.handler = async (event) => {
     log.debug('Disconnecting whatsapp customer after 24 hours', logContext);
     await disconnectClient({ logContext, cxAuth });
   } else {
-    await checkIfWhatsappIsDisconnected({
+    await checkIfClientPastInactiveTimeout({
       userId,
       logContext,
     });
@@ -142,7 +142,7 @@ async function deleteCustomerInteraction({ logContext }) {
   log.debug('Removed interaction from state table', logContext);
 }
 
-async function checkIfWhatsappIsDisconnected({
+async function checkIfClientPastInactiveTimeout({
   userId, logContext,
 }) {
   const { tenantId, interactionId } = logContext;

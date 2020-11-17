@@ -1,3 +1,6 @@
+# 1.29.2
+* CXV1-23358 - Adding changes to "smooch-webhook" to trigger "smooch-whatsapp-disconnect-checker" in case of whatsapp
+
 # 1.29.1
 * CXV1-21854 - Adding unit tests for "create-whatsapp-integration" and "update-whatsapp-integration". Updating unit tests for the rest of whatsapp lambdas.
 

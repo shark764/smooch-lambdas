@@ -1220,6 +1220,19 @@ exports.handleCustomerMessage = async ({
       await exports.deleteSmoochInteraction({ userId, logContext });
       throw error;
     }
+
+    if (metadataSource === 'whatsapp') {
+      await exports.updateSmoochClientLastActivity({
+        latestCustomerMessageTimestamp: (new Date()).getTime(),
+        userId: logContext.smoochUserId,
+        logContext: { ...logContext, interactionId: newInteractionId },
+      });
+      await exports.checkIfClientPastInactiveTimeout({
+        userId: logContext.smoochUserId,
+        logContext: { ...logContext, interactionId: newInteractionId },
+      });
+    }
+
     if (type === 'file' || type === 'image') {
       let artifactId;
       try {
@@ -1311,4 +1324,25 @@ exports.deleteSmoochInteraction = async ({ userId, logContext }) => {
     throw error;
   }
   log.debug('Removed interaction from state table', logContext);
+};
+
+exports.checkIfClientPastInactiveTimeout = async function checkIfClientPastInactiveTimeout({
+  userId,
+  logContext,
+}) {
+  const { tenantId, interactionId } = logContext;
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-smooch-whatsapp-disconnect-checker`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const DelaySeconds = 15 * 60;
+  const MessageBody = JSON.stringify({
+    interactionId,
+    tenantId,
+    userId,
+  });
+  const sqsMessageAction = {
+    MessageBody,
+    QueueUrl,
+    DelaySeconds,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
 };
