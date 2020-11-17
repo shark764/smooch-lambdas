@@ -5,13 +5,13 @@
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
+const string = require('serenova-js-utils/strings');
 const {
   lambda: {
     log,
     api: { validateTenantPermissions, validatePlatformPermissions },
   },
 } = require('alonzo');
-const string = require('serenova-js-utils/strings');
 
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid(),
@@ -63,12 +63,16 @@ exports.handler = async (event) => {
   );
 
   if (!(validPermissions || validPlatformPermissions)) {
+    const expectedPermissions = {
+      tenant: lambdaPermissions,
+      platform: lambdaPlatformPermissions,
+    };
     const errMsg = 'Error not enough permissions';
-    log.warn(errMsg, logContext);
+    log.warn(errMsg, logContext, expectedPermissions);
 
     return {
       status: 403,
-      body: { message: errMsg },
+      body: { message: errMsg, expectedPermissions },
     };
   }
 
@@ -115,6 +119,7 @@ exports.handler = async (event) => {
 
   /**
    * There should be no record in dynamo table with passed app-id as key
+   * appId will become new record id
    */
   const { appId: integrationId } = body;
   const getParams = {
@@ -126,13 +131,16 @@ exports.handler = async (event) => {
   };
   try {
     const { Item } = await docClient.get(getParams).promise();
+    /**
+     * There can't be two records with the same id
+     */
     if (Item) {
       const errMsg = 'A record already exists for this appId in this tenant';
 
       log.error(errMsg, logContext);
 
       return {
-        status: 409,
+        status: 400,
         body: { message: errMsg, appId: integrationId },
       };
     }
@@ -201,7 +209,8 @@ exports.handler = async (event) => {
   }
 
   /**
-   * Getting apps from smooch
+   * Getting apps (type: "whatsapp") from smooch
+   * for each app found in dynamo
    */
   let smoochApps;
   try {
@@ -251,21 +260,26 @@ exports.handler = async (event) => {
     appId, name, description, clientDisconnectMinutes,
   } = body;
 
+  /**
+   * Getting smooch integration that corresponds to appId passed
+   */
   const whatsappIntegration = integrations.find(
     (integration) => integration.id === appId,
   );
   if (!whatsappIntegration) {
-    const errMsg = 'The app-id provided in the request body does not exist for this tenant';
+    const errMsg = 'The appId provided in the request body does not exist for this tenant';
     return {
-      status: 404,
+      status: 400,
       body: { message: errMsg },
     };
   }
 
+  /**
+   * Preparing query to insert a new record
+   */
   let updateExpression = `set #type = :t, #appId = :appId,
   #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
   created = :created, updated = :updated`;
-
   const expressionAttributeNames = {
     '#appId': 'app-id',
     '#type': 'type',
@@ -273,7 +287,6 @@ exports.handler = async (event) => {
     '#createdBy': 'created-by',
     '#updatedBy': 'updated-by',
   };
-
   const expressionAttributeValues = {
     ':t': 'whatsapp',
     ':appId': whatsappIntegration.appId,
@@ -306,8 +319,10 @@ exports.handler = async (event) => {
     ReturnValues: 'ALL_NEW',
   };
 
+  /**
+   * Creating record in dynamo table
+   */
   let dynamoValue;
-
   log.debug('Creating record in DynamoDB', { ...logContext, updateParams });
   try {
     const { Attributes } = await docClient.update(updateParams).promise();
@@ -323,15 +338,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const dynamoValueCased = {};
-
-  Object.keys(dynamoValue).forEach((v) => {
-    dynamoValueCased[string.kebabCaseToCamelCase(v)] = dynamoValue[v];
-  });
-
-  const result = {
-    ...dynamoValueCased,
-  };
+  const result = string.keysToCamelCase(dynamoValue);
 
   log.info('User created a new whatsapp integration', {
     userId: identity['user-id'],

@@ -1,12 +1,12 @@
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
+const string = require('serenova-js-utils/strings');
 const {
   lambda: {
     log,
     api: { validateTenantPermissions, validatePlatformPermissions },
   },
 } = require('alonzo');
-const string = require('serenova-js-utils/strings');
 
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid(),
@@ -59,12 +59,16 @@ exports.handler = async (event) => {
   );
 
   if (!(validPermissions || validPlatformPermissions)) {
+    const expectedPermissions = {
+      tenant: lambdaPermissions,
+      platform: lambdaPlatformPermissions,
+    };
     const errMsg = 'Error not enough permissions';
-    log.warn(errMsg, logContext);
+    log.warn(errMsg, logContext, expectedPermissions);
 
     return {
       status: 403,
-      body: { message: errMsg },
+      body: { message: errMsg, expectedPermissions },
     };
   }
 
@@ -121,6 +125,9 @@ exports.handler = async (event) => {
   };
   try {
     const { Item } = await docClient.get(getParams).promise();
+    /**
+     * If no record is found, we throw an error
+     */
     if (!Item) {
       const errMsg = 'The app does not exist for this tenant';
 
@@ -143,7 +150,9 @@ exports.handler = async (event) => {
   }
 
   const { name, description, clientDisconnectMinutes } = body;
-
+  /**
+   * Preparing query to update a record
+   */
   let updateExpression = `set
     #updatedBy = :updatedBy,
     updated = :updated`;
@@ -212,15 +221,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const dynamoValueCased = {};
-
-  Object.keys(dynamoValue).forEach((v) => {
-    dynamoValueCased[string.kebabCaseToCamelCase(v)] = dynamoValue[v];
-  });
-
-  const result = {
-    ...dynamoValueCased,
-  };
+  const result = string.keysToCamelCase(dynamoValue);
 
   log.info('User updated a whatsapp integration', {
     userId: identity['user-id'],

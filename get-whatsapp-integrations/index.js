@@ -1,12 +1,12 @@
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
+const string = require('serenova-js-utils/strings');
 const {
   lambda: {
     log,
     api: { validateTenantPermissions, validatePlatformPermissions },
   },
 } = require('alonzo');
-const string = require('serenova-js-utils/strings');
 
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid(),
@@ -54,12 +54,16 @@ exports.handler = async (event) => {
   );
 
   if (!(validPermissions || validPlatformPermissions)) {
+    const expectedPermissions = {
+      tenant: lambdaPermissions,
+      platform: lambdaPlatformPermissions,
+    };
     const errMsg = 'Error not enough permissions';
-    log.warn(errMsg, logContext);
+    log.warn(errMsg, logContext, expectedPermissions);
 
     return {
       status: 403,
-      body: { message: errMsg },
+      body: { message: errMsg, expectedPermissions },
     };
   }
 
@@ -116,13 +120,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const result = integrations.map((integration) => {
-    const integrationCased = {};
-    Object.keys(integration).forEach((v) => {
-      integrationCased[string.kebabCaseToCamelCase(v)] = integration[v];
-    });
-    return integrationCased;
-  });
+  const result = string.keysToCamelCase(integrations);
 
   log.info('get-whatsapp-integrations complete', {
     ...logContext,

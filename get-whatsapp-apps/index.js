@@ -29,8 +29,9 @@ const lambdaPlatformPermissions = ['PLATFORM_DIGITAL_CHANNELS_APP'];
 exports.handler = async (event) => {
   const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
   const { params, identity } = event;
+  const { 'tenant-id': tenantId } = params;
   const logContext = {
-    tenantId: params['tenant-id'],
+    tenantId,
     smoochUserId: identity['user-id'],
   };
 
@@ -39,6 +40,33 @@ exports.handler = async (event) => {
     params,
     smoochApiUrl,
   });
+
+  /**
+   * Validating permissions
+   */
+  const validPermissions = validateTenantPermissions(
+    tenantId,
+    identity,
+    lambdaPermissions,
+  );
+  const validPlatformPermissions = validatePlatformPermissions(
+    identity,
+    lambdaPlatformPermissions,
+  );
+
+  if (!(validPermissions || validPlatformPermissions)) {
+    const expectedPermissions = {
+      tenant: lambdaPermissions,
+      platform: lambdaPlatformPermissions,
+    };
+    const errMsg = 'Error not enough permissions';
+    log.warn(errMsg, logContext, expectedPermissions);
+
+    return {
+      status: 403,
+      body: { message: errMsg, expectedPermissions },
+    };
+  }
 
   /**
    * Validating parameters
@@ -58,31 +86,6 @@ exports.handler = async (event) => {
         message: `Error: invalid params value ${error.details[0].message}`,
         error,
       },
-    };
-  }
-
-  const { 'tenant-id': tenantId } = params;
-
-  /**
-   * Validating permissions
-   */
-  const validPermissions = validateTenantPermissions(
-    tenantId,
-    identity,
-    lambdaPermissions,
-  );
-  const validPlatformPermissions = validatePlatformPermissions(
-    identity,
-    lambdaPlatformPermissions,
-  );
-
-  if (!(validPermissions || validPlatformPermissions)) {
-    const errMsg = 'Error not enough permissions';
-    log.warn(errMsg, logContext);
-
-    return {
-      status: 403,
-      body: { message: errMsg },
     };
   }
 
@@ -140,7 +143,8 @@ exports.handler = async (event) => {
   }
 
   /**
-   * Getting apps from smooch
+   * Getting apps (type: "whatsapp") from smooch
+   * for each app found in dynamo
    */
   let smoochApps;
   try {

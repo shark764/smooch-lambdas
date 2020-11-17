@@ -166,6 +166,11 @@ describe('get-whatsapp-integrations', () => {
     const result = await handler(event);
     expect(result).toEqual({
       body: {
+        expectedPermissions: {
+          platform: ['PLATFORM_DIGITAL_CHANNELS_APP'],
+          tenant: ['DIGITAL_CHANNELS_APP_READ',
+            'WEB_INTEGRATIONS_APP_UPDATE'],
+        },
         message: 'Error not enough permissions',
       },
       status: 403,

@@ -1,3 +1,6 @@
+# 1.29.1
+* CXV1-21854 - Adding unit tests for "create-whatsapp-integration" and "update-whatsapp-integration". Updating unit tests for the rest of whatsapp lambdas.
+
 # 1.29.0
 * CXV1-23358 -  Added whatsapp disconnect lambda to disconnect whatsapp client after 24 hours of inactivity, by queue delay.
 

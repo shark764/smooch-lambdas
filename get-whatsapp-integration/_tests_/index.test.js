@@ -155,6 +155,10 @@ describe('get-whatsapp-integration', () => {
     const result = await handler(event);
     expect(result).toEqual({
       body: {
+        expectedPermissions: {
+          platform: ['PLATFORM_DIGITAL_CHANNELS_APP'],
+          tenant: ['DIGITAL_CHANNELS_APP_READ', 'WEB_INTEGRATIONS_APP_UPDATE'],
+        },
         message: 'Error not enough permissions',
       },
       status: 403,
@@ -172,7 +176,7 @@ describe('get-whatsapp-integration', () => {
     });
   });
 
-  it('sends back status 500 when there is a error fetching the app in DynamoDB', async () => {
+  it('sends back status 500 when there is an error fetching the app in DynamoDB', async () => {
     mockGet.mockRejectedValueOnce(new Error());
     const result = await handler(event);
     expect(result).toEqual({

@@ -8,6 +8,6 @@
     "@hapi/joi": "^16.1.7",
     "alonzo": "^7.1.0",
     "aws-sdk": "^2.585.0",
-    "serenova-js-utils": "^2.0.0"
+    "serenova-js-utils": "^4.4.0"
   }
 }

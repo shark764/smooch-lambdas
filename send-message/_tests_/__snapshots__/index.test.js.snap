@@ -258,6 +258,24 @@ Array [
       "userId": "5e31c81640a22c000f5d7c75",
     },
   ],
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7c55",
+      "message": Object {
+        "metadata": Object {
+          "firstName": "first-name",
+          "from": "first-name last-name",
+          "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+          "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+          "type": "agent",
+        },
+        "role": "appMaker",
+        "text": "",
+        "type": "text",
+      },
+      "userId": "5e31c81640a22c000f5d7c75",
+    },
+  ],
 ]
 `;
 
@@ -281,6 +299,24 @@ Array [
 `;
 
 exports[`send-message Everthing is successful When client disconnect minutes are not provided 1`] = `
+Object {
+  "body": Object {
+    "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+    "message": Object {
+      "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+      "from": "first-name last-name",
+      "id": "5e31c81640a22c000f5d7c80",
+      "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      "text": "text",
+      "timestamp": 50000,
+      "type": "agent",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`send-message Everthing is successful When no register in table is found for client disconnect minutes checker 1`] = `
 Object {
   "body": Object {
     "interactionId": "66d83870-30df-4a3b-8801-59edff162040",

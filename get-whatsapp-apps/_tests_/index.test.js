@@ -218,13 +218,17 @@ describe('get-whatsapp-apps', () => {
     const result = await handler(event);
     expect(result).toEqual({
       body: {
+        expectedPermissions: {
+          platform: ['PLATFORM_DIGITAL_CHANNELS_APP'],
+          tenant: ['DIGITAL_CHANNELS_APP_READ'],
+        },
         message: 'Error not enough permissions',
       },
       status: 403,
     });
   });
 
-  it('sends back status 500 when there is a error retrieving digital channels credentials', async () => {
+  it('sends back status 500 when there is an error retrieving digital channels credentials', async () => {
     mockGetSecretValue.mockRejectedValueOnce(new Error());
     const result = await handler(event);
     expect(result).toEqual({

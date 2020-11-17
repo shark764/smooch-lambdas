@@ -281,6 +281,16 @@ describe('send-attachment', () => {
       expect(result).toMatchSnapshot();
     });
 
+    it('When no register in table is found for client disconnect minutes checker', async () => {
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: null,
+        }),
+      }));
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
+
     describe('Walkthrough', () => {
       beforeAll(async () => {
         jest.clearAllMocks();
