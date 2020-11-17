@@ -1,3 +1,6 @@
+# 1.29.0
+* CXV1-23358 -  Added whatsapp disconnect lambda to disconnect whatsapp client after 24 hours of inactivity, by queue delay.
+
 # 1.28.0
 * CXV1-21854 - Updating handlers for "create-whatsapp-integration" and "update-whatsapp-integration".
 * <no-jira> - Removing unneeded in iam-policies for whatsapp lambdas.

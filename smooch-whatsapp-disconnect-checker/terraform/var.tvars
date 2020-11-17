@@ -1,0 +1,11 @@
+include_queue = "true"
+queue_delay_seconds = 300
+timeout = 30
+memory_size = 128
+zip_path="smooch-whatsapp-disconnect-checker/smooch-whatsapp-disconnect-checker.zip"
+handler = "index.handler"
+runtime = "nodejs12.x"
+environmentVars = {
+  "ENVIRONMENT" = "${ENVIRONMENT}",
+  "DOMAIN" = "${DOMAIN}"
+}
