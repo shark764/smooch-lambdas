@@ -188,6 +188,34 @@ describe('create-messaging-transcript', () => {
       expect(spyOnUploadArtifactFile.mock.calls[0][1]).toMatchSnapshot();
     });
 
+    it('messages for whatsapp interaction use phonenumber as display name', async () => {
+      mockGetMessages.mockImplementationOnce(() => ({
+        previous: 'https://www.unit-tests.com?before=100',
+        messages: [
+          {
+            type: 'text',
+            _id: '5e31c81640a22c000f5d7f29',
+            name: '+50371675753 lastName',
+            role: 'appMaker',
+            received: 50,
+            metadata: {
+              type: 'TYPE',
+              from: 'first-Name last-Name',
+            },
+            source: {
+              type: 'whatsapp',
+            },
+          },
+        ],
+      }));
+      mockGetMessages.mockImplementationOnce(() => ({
+        previous: 'https://www.unit-tests.com',
+        messages: [],
+      }));
+      await handler(event);
+      expect(spyOnUploadArtifactFile.mock.calls[4][1]).toMatchSnapshot();
+    });
+
     it("messages are mapped for role 'appMaker' and type 'form'", async () => {
       mockGetMessages.mockImplementationOnce(() => ({
         previous: 'https://www.unit-tests.com?before=100',

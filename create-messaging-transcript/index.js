@@ -242,17 +242,14 @@ function formatMessages({ messages }, tenantId, { firstCustomerMessageTimestamp 
     .map((message) => ({
       payload: {
         metadata: {
-          name: message.name || (message.metadata && message.metadata.from) || 'system',
+          name:
+            message.source && message.source.type === 'whatsapp'
+              ? message.name.split(' ')[0]
+              : message.name
+                || (message.metadata && message.metadata.from)
+                || 'system',
           source: 'smooch',
           type: message.role === 'appMaker' ? message.metadata.type : 'customer',
-          'first-name':
-            (message.metadata && message.metadata.from && message.metadata.from.split(' ')[0])
-            || (message.name && message.name.split(' ')[0])
-            || 'System',
-          'last-name':
-            (message.metadata && message.metadata.from && message.metadata.from.split(' ')[1])
-            || (message.name && message.name.split(' ')[1])
-            || 'System',
         },
         body: {
           id: message._id,

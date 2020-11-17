@@ -1,3 +1,6 @@
+# 1.29.3
+* CXV1-23360 -  Fixing use customer phone number as display name on reporting transcript for whatsapp interactions.
+
 # 1.29.2
 * CXV1-23358 - Adding changes to "smooch-webhook" to trigger "smooch-whatsapp-disconnect-checker" in case of whatsapp
 
