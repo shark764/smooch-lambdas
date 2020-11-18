@@ -44,6 +44,7 @@ const mockQuery = jest.fn().mockImplementation(() => ({
         description: 'This is a test',
         'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
         id: '5e31c81640a22c000f5d7f28',
+        active: true,
       },
     ],
   }),
@@ -68,6 +69,7 @@ describe('get-whatsapp-integrations', () => {
         body: {
           result: [
             {
+              active: true,
               appId: '5fa425ef26770c000c171f9c',
               clientDisconnectMinutes: 5,
               created: '2020-11-10T19:56:39.673Z',

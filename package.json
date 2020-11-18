@@ -1,6 +1,6 @@
 {
   "name": "smooch-lambdas",
-  "version": "1.29.3",
+  "version": "1.29.4",
   "dependencies": {},
   "scripts": {
     "alonzo": "alonzo",

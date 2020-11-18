@@ -1,3 +1,6 @@
+# 1.29.4
+* CXV1-21854 - Adding "active" property to dynamo table record creation for whatsapp integrations.
+
 # 1.29.3
 * CXV1-23360 -  Fixing use customer phone number as display name on reporting transcript for whatsapp interactions.
 

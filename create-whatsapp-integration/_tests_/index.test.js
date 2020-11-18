@@ -90,6 +90,7 @@ const mockUpdate = jest.fn().mockImplementation(() => ({
       name: 'smooch',
       description: 'description',
       'client-disconnect-minutes': 15,
+      active: true,
     },
   }),
 }));
@@ -121,6 +122,7 @@ describe('create-whatsapp-integration', () => {
       expect(result).toEqual({
         body: {
           result: {
+            active: true,
             appId: '5e31c81640a22c000f5d7f27',
             clientDisconnectMinutes: 15,
             description: 'description',
@@ -222,6 +224,7 @@ describe('create-whatsapp-integration', () => {
         expect(mockUpdate.mock.calls[0]).toEqual([
           {
             ExpressionAttributeNames: {
+              '#active': 'active',
               '#appId': 'app-id',
               '#cdm': 'client-disconnect-minutes',
               '#createdBy': 'created-by',
@@ -230,6 +233,7 @@ describe('create-whatsapp-integration', () => {
               '#updatedBy': 'updated-by',
             },
             ExpressionAttributeValues: {
+              ':active': true,
               ':appId': '5e31c81640a22c000f5d7f27',
               ':cdm': 150,
               ':created': 'January 1 1970',
@@ -246,8 +250,8 @@ describe('create-whatsapp-integration', () => {
             },
             ReturnValues: 'ALL_NEW',
             TableName: 'us-east-1-dev-smooch',
-            UpdateExpression: `set #type = :t, #appId = :appId,
-  #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
+            UpdateExpression: `set #type = :t, #appId = :appId, #name = :name,
+  #active = :active, #createdBy = :createdBy, #updatedBy = :updatedBy,
   created = :created, updated = :updated, description = :description, #cdm = :cdm`,
           },
         ]);
@@ -265,6 +269,7 @@ describe('create-whatsapp-integration', () => {
         expect(mockUpdate.mock.calls[2]).toEqual([
           {
             ExpressionAttributeNames: {
+              '#active': 'active',
               '#appId': 'app-id',
               '#cdm': 'client-disconnect-minutes',
               '#createdBy': 'created-by',
@@ -273,6 +278,7 @@ describe('create-whatsapp-integration', () => {
               '#updatedBy': 'updated-by',
             },
             ExpressionAttributeValues: {
+              ':active': true,
               ':appId': '5e31c81640a22c000f5d7f27',
               ':cdm': 150,
               ':created': 'January 1 1970',
@@ -288,8 +294,8 @@ describe('create-whatsapp-integration', () => {
             },
             ReturnValues: 'ALL_NEW',
             TableName: 'us-east-1-dev-smooch',
-            UpdateExpression: `set #type = :t, #appId = :appId,
-  #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
+            UpdateExpression: `set #type = :t, #appId = :appId, #name = :name,
+  #active = :active, #createdBy = :createdBy, #updatedBy = :updatedBy,
   created = :created, updated = :updated, #cdm = :cdm`,
           },
         ]);
@@ -307,6 +313,7 @@ describe('create-whatsapp-integration', () => {
         expect(mockUpdate.mock.calls[3]).toEqual([
           {
             ExpressionAttributeNames: {
+              '#active': 'active',
               '#appId': 'app-id',
               '#createdBy': 'created-by',
               '#name': 'name',
@@ -314,6 +321,7 @@ describe('create-whatsapp-integration', () => {
               '#updatedBy': 'updated-by',
             },
             ExpressionAttributeValues: {
+              ':active': true,
               ':appId': '5e31c81640a22c000f5d7f27',
               ':created': 'January 1 1970',
               ':createdBy': '667802d8-2260-436c-958a-2ee0f71f73f0',
@@ -329,9 +337,56 @@ describe('create-whatsapp-integration', () => {
             },
             ReturnValues: 'ALL_NEW',
             TableName: 'us-east-1-dev-smooch',
-            UpdateExpression: `set #type = :t, #appId = :appId,
-  #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
+            UpdateExpression: `set #type = :t, #appId = :appId, #name = :name,
+  #active = :active, #createdBy = :createdBy, #updatedBy = :updatedBy,
   created = :created, updated = :updated, description = :description`,
+          },
+        ]);
+      });
+      it('passes in the correct arguments to docClient.update() when active is provided', async () => {
+        const mockEvent = {
+          ...event,
+          body: {
+            appId: '5e31c81640a22c000f5d7f28',
+            name: 'smooch',
+            description: 'description',
+            clientDisconnectMinutes: 150,
+            active: false,
+          },
+        };
+        await handler(mockEvent);
+        expect(mockUpdate.mock.calls[4]).toEqual([
+          {
+            ExpressionAttributeNames: {
+              '#active': 'active',
+              '#appId': 'app-id',
+              '#cdm': 'client-disconnect-minutes',
+              '#createdBy': 'created-by',
+              '#name': 'name',
+              '#type': 'type',
+              '#updatedBy': 'updated-by',
+            },
+            ExpressionAttributeValues: {
+              ':active': false,
+              ':appId': '5e31c81640a22c000f5d7f27',
+              ':cdm': 150,
+              ':created': 'January 1 1970',
+              ':createdBy': '667802d8-2260-436c-958a-2ee0f71f73f0',
+              ':description': 'description',
+              ':name': 'smooch',
+              ':t': 'whatsapp',
+              ':updated': 'January 1 1970',
+              ':updatedBy': '667802d8-2260-436c-958a-2ee0f71f73f0',
+            },
+            Key: {
+              id: '5e31c81640a22c000f5d7f28',
+              'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+            },
+            ReturnValues: 'ALL_NEW',
+            TableName: 'us-east-1-dev-smooch',
+            UpdateExpression: `set #type = :t, #appId = :appId, #name = :name,
+  #active = :active, #createdBy = :createdBy, #updatedBy = :updatedBy,
+  created = :created, updated = :updated, description = :description, #cdm = :cdm`,
           },
         ]);
       });
@@ -371,6 +426,26 @@ describe('create-whatsapp-integration', () => {
     expect(result).toEqual({
       body: {
         message: 'Error: invalid body value "appId" is not allowed to be empty',
+      },
+      status: 400,
+    });
+  });
+
+  it('sends back status 400 when there is an invalid boolean value for active in body', async () => {
+    const mockEvent = {
+      ...event,
+      body: {
+        appId: '5e31c81640a22c000f5d7f28',
+        name: 'something',
+        description: 'something',
+        clientDisconnectMinutes: 1440,
+        active: null,
+      },
+    };
+    const result = await handler(mockEvent);
+    expect(result).toEqual({
+      body: {
+        message: 'Error: invalid body value "active" must be a boolean',
       },
       status: 400,
     });

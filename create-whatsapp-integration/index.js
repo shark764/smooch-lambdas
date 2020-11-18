@@ -25,6 +25,7 @@ const bodySchema = Joi.object({
   name: Joi.string().required(),
   description: Joi.string().allow(''),
   clientDisconnectMinutes: Joi.number().min(1).max(1440).allow(null),
+  active: Joi.boolean(),
 });
 
 AWS.config.update({ region: process.env.AWS_REGION });
@@ -257,7 +258,11 @@ exports.handler = async (event) => {
   );
 
   const {
-    appId, name, description, clientDisconnectMinutes,
+    appId,
+    name,
+    description,
+    clientDisconnectMinutes,
+    active = true,
   } = body;
 
   /**
@@ -277,13 +282,14 @@ exports.handler = async (event) => {
   /**
    * Preparing query to insert a new record
    */
-  let updateExpression = `set #type = :t, #appId = :appId,
-  #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
+  let updateExpression = `set #type = :t, #appId = :appId, #name = :name,
+  #active = :active, #createdBy = :createdBy, #updatedBy = :updatedBy,
   created = :created, updated = :updated`;
   const expressionAttributeNames = {
     '#appId': 'app-id',
     '#type': 'type',
     '#name': 'name',
+    '#active': 'active',
     '#createdBy': 'created-by',
     '#updatedBy': 'updated-by',
   };
@@ -291,6 +297,7 @@ exports.handler = async (event) => {
     ':t': 'whatsapp',
     ':appId': whatsappIntegration.appId,
     ':name': name,
+    ':active': active,
     ':createdBy': identity['user-id'],
     ':updatedBy': identity['user-id'],
     ':created': new Date().toISOString(),

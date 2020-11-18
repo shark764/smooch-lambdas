@@ -21,6 +21,7 @@ const bodySchema = Joi.object({
   name: Joi.string(),
   description: Joi.string().allow(''),
   clientDisconnectMinutes: Joi.number().min(1).max(1440).allow(null),
+  active: Joi.boolean(),
 });
 
 AWS.config.update({ region: process.env.AWS_REGION });
@@ -149,7 +150,9 @@ exports.handler = async (event) => {
     };
   }
 
-  const { name, description, clientDisconnectMinutes } = body;
+  const {
+    name, description, clientDisconnectMinutes, active,
+  } = body;
   /**
    * Preparing query to update a record
    */
@@ -181,7 +184,20 @@ exports.handler = async (event) => {
     expressionAttributeValues[':cdm'] = clientDisconnectMinutes;
   }
 
-  if (!(name || description || clientDisconnectMinutes)) {
+  if (typeof active === 'boolean') {
+    updateExpression += ', #active = :active';
+    expressionAttributeNames['#active'] = 'active';
+    expressionAttributeValues[':active'] = active;
+  }
+
+  if (
+    !(
+      name
+      || description
+      || clientDisconnectMinutes
+      || typeof active === 'boolean'
+    )
+  ) {
     const errMsg = 'Request body is empty or provided data does not match schema';
 
     log.error(errMsg, logContext);

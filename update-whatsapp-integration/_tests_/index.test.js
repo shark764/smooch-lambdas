@@ -32,7 +32,8 @@ const mockParams = {
 const mockBody = {
   name: 'smooch',
   description: 'description',
-  clientDisconnectMinutes: 150,
+  clientDisconnectMinutes: 15,
+  active: false,
 };
 
 const event = {
@@ -61,6 +62,7 @@ const mockUpdate = jest.fn().mockImplementation(() => ({
       name: 'smooch',
       description: 'description',
       'client-disconnect-minutes': 15,
+      active: false,
     },
   }),
 }));
@@ -86,6 +88,7 @@ describe('update-whatsapp-integration', () => {
       expect(result).toEqual({
         body: {
           result: {
+            active: false,
             appId: '5e31c81640a22c000f5d7f27',
             clientDisconnectMinutes: 15,
             description: 'description',
@@ -141,12 +144,159 @@ describe('update-whatsapp-integration', () => {
         expect(mockUpdate.mock.calls[0]).toEqual([
           {
             ExpressionAttributeNames: {
+              '#active': 'active',
               '#cdm': 'client-disconnect-minutes',
               '#name': 'name',
               '#updatedBy': 'updated-by',
             },
             ExpressionAttributeValues: {
+              ':active': false,
+              ':cdm': 15,
+              ':description': 'description',
+              ':name': 'smooch',
+              ':updated': 'January 1 1970',
+              ':updatedBy': '667802d8-2260-436c-958a-2ee0f71f73f0',
+            },
+            Key: {
+              id: '5e31c81640a22c000f5d7f28',
+              'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+            },
+            ReturnValues: 'ALL_NEW',
+            TableName: 'us-east-1-dev-smooch',
+            UpdateExpression: `set
+    #updatedBy = :updatedBy,
+    updated = :updated, #name = :name, description = :description, #cdm = :cdm, #active = :active`,
+          },
+        ]);
+      });
+      it('passes in the correct arguments to docClient.update() when name is not provided', async () => {
+        const mockEvent = {
+          ...event,
+          body: {
+            description: 'description',
+            clientDisconnectMinutes: 150,
+            active: true,
+          },
+        };
+        await handler(mockEvent);
+        expect(mockUpdate.mock.calls[2]).toEqual([
+          {
+            ExpressionAttributeNames: {
+              '#active': 'active',
+              '#cdm': 'client-disconnect-minutes',
+              '#updatedBy': 'updated-by',
+            },
+            ExpressionAttributeValues: {
+              ':active': true,
               ':cdm': 150,
+              ':description': 'description',
+              ':updated': 'January 1 1970',
+              ':updatedBy': '667802d8-2260-436c-958a-2ee0f71f73f0',
+            },
+            Key: {
+              id: '5e31c81640a22c000f5d7f28',
+              'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+            },
+            ReturnValues: 'ALL_NEW',
+            TableName: 'us-east-1-dev-smooch',
+            UpdateExpression: `set
+    #updatedBy = :updatedBy,
+    updated = :updated, description = :description, #cdm = :cdm, #active = :active`,
+          },
+        ]);
+      });
+      it('passes in the correct arguments to docClient.update() when description is not provided', async () => {
+        const mockEvent = {
+          ...event,
+          body: {
+            name: 'smooch',
+            clientDisconnectMinutes: 150,
+            active: false,
+          },
+        };
+        await handler(mockEvent);
+        expect(mockUpdate.mock.calls[3]).toEqual([
+          {
+            ExpressionAttributeNames: {
+              '#active': 'active',
+              '#cdm': 'client-disconnect-minutes',
+              '#name': 'name',
+              '#updatedBy': 'updated-by',
+            },
+            ExpressionAttributeValues: {
+              ':active': false,
+              ':cdm': 150,
+              ':name': 'smooch',
+              ':updated': 'January 1 1970',
+              ':updatedBy': '667802d8-2260-436c-958a-2ee0f71f73f0',
+            },
+            Key: {
+              id: '5e31c81640a22c000f5d7f28',
+              'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+            },
+            ReturnValues: 'ALL_NEW',
+            TableName: 'us-east-1-dev-smooch',
+            UpdateExpression: `set
+    #updatedBy = :updatedBy,
+    updated = :updated, #name = :name, #cdm = :cdm, #active = :active`,
+          },
+        ]);
+      });
+      it('passes in the correct arguments to docClient.update() when clientDisconnectMinutes is not provided', async () => {
+        const mockEvent = {
+          ...event,
+          body: {
+            name: 'smooch',
+            description: 'description',
+            active: true,
+          },
+        };
+        await handler(mockEvent);
+        expect(mockUpdate.mock.calls[4]).toEqual([
+          {
+            ExpressionAttributeNames: {
+              '#active': 'active',
+              '#name': 'name',
+              '#updatedBy': 'updated-by',
+            },
+            ExpressionAttributeValues: {
+              ':active': true,
+              ':description': 'description',
+              ':name': 'smooch',
+              ':updated': 'January 1 1970',
+              ':updatedBy': '667802d8-2260-436c-958a-2ee0f71f73f0',
+            },
+            Key: {
+              id: '5e31c81640a22c000f5d7f28',
+              'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+            },
+            ReturnValues: 'ALL_NEW',
+            TableName: 'us-east-1-dev-smooch',
+            UpdateExpression: `set
+    #updatedBy = :updatedBy,
+    updated = :updated, #name = :name, description = :description, #active = :active`,
+          },
+        ]);
+      });
+      it('passes in the correct arguments to docClient.update() when active is not provided', async () => {
+        const mockEvent = {
+          ...event,
+          body: {
+            name: 'smooch',
+            description: 'description',
+            clientDisconnectMinutes: 15,
+          },
+        };
+        await handler(mockEvent);
+        expect(mockUpdate.mock.calls[5]).toEqual([
+          {
+            ExpressionAttributeNames: {
+              '#cdm': 'client-disconnect-minutes',
+              '#name': 'name',
+              '#updatedBy': 'updated-by',
+            },
+            ExpressionAttributeValues: {
+              ':cdm': 15,
               ':description': 'description',
               ':name': 'smooch',
               ':updated': 'January 1 1970',
@@ -164,24 +314,22 @@ describe('update-whatsapp-integration', () => {
           },
         ]);
       });
-      it('passes in the correct arguments to docClient.update() when name is not provided', async () => {
+      it('passes in the correct arguments to docClient.update() when only active is provided', async () => {
         const mockEvent = {
           ...event,
           body: {
-            description: 'description',
-            clientDisconnectMinutes: 150,
+            active: false,
           },
         };
         await handler(mockEvent);
-        expect(mockUpdate.mock.calls[2]).toEqual([
+        expect(mockUpdate.mock.calls[6]).toEqual([
           {
             ExpressionAttributeNames: {
-              '#cdm': 'client-disconnect-minutes',
+              '#active': 'active',
               '#updatedBy': 'updated-by',
             },
             ExpressionAttributeValues: {
-              ':cdm': 150,
-              ':description': 'description',
+              ':active': false,
               ':updated': 'January 1 1970',
               ':updatedBy': '667802d8-2260-436c-958a-2ee0f71f73f0',
             },
@@ -193,74 +341,7 @@ describe('update-whatsapp-integration', () => {
             TableName: 'us-east-1-dev-smooch',
             UpdateExpression: `set
     #updatedBy = :updatedBy,
-    updated = :updated, description = :description, #cdm = :cdm`,
-          },
-        ]);
-      });
-      it('passes in the correct arguments to docClient.update() when description is not provided', async () => {
-        const mockEvent = {
-          ...event,
-          body: {
-            name: 'smooch',
-            clientDisconnectMinutes: 150,
-          },
-        };
-        await handler(mockEvent);
-        expect(mockUpdate.mock.calls[3]).toEqual([
-          {
-            ExpressionAttributeNames: {
-              '#cdm': 'client-disconnect-minutes',
-              '#name': 'name',
-              '#updatedBy': 'updated-by',
-            },
-            ExpressionAttributeValues: {
-              ':cdm': 150,
-              ':name': 'smooch',
-              ':updated': 'January 1 1970',
-              ':updatedBy': '667802d8-2260-436c-958a-2ee0f71f73f0',
-            },
-            Key: {
-              id: '5e31c81640a22c000f5d7f28',
-              'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
-            },
-            ReturnValues: 'ALL_NEW',
-            TableName: 'us-east-1-dev-smooch',
-            UpdateExpression: `set
-    #updatedBy = :updatedBy,
-    updated = :updated, #name = :name, #cdm = :cdm`,
-          },
-        ]);
-      });
-      it('passes in the correct arguments to docClient.update() when clientDisconnectMinutes is not provided', async () => {
-        const mockEvent = {
-          ...event,
-          body: {
-            name: 'smooch',
-            description: 'description',
-          },
-        };
-        await handler(mockEvent);
-        expect(mockUpdate.mock.calls[4]).toEqual([
-          {
-            ExpressionAttributeNames: {
-              '#name': 'name',
-              '#updatedBy': 'updated-by',
-            },
-            ExpressionAttributeValues: {
-              ':description': 'description',
-              ':name': 'smooch',
-              ':updated': 'January 1 1970',
-              ':updatedBy': '667802d8-2260-436c-958a-2ee0f71f73f0',
-            },
-            Key: {
-              id: '5e31c81640a22c000f5d7f28',
-              'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
-            },
-            ReturnValues: 'ALL_NEW',
-            TableName: 'us-east-1-dev-smooch',
-            UpdateExpression: `set
-    #updatedBy = :updatedBy,
-    updated = :updated, #name = :name, description = :description`,
+    updated = :updated, #active = :active`,
           },
         ]);
       });
@@ -301,6 +382,25 @@ describe('update-whatsapp-integration', () => {
       body: {
         message:
           'Error: invalid body value "clientDisconnectMinutes" must be less than or equal to 1440',
+      },
+      status: 400,
+    });
+  });
+
+  it('sends back status 400 when there is an invalid boolean value for active in body', async () => {
+    const mockEvent = {
+      ...event,
+      body: {
+        name: 'something',
+        description: 'something',
+        clientDisconnectMinutes: 1440,
+        active: null,
+      },
+    };
+    const result = await handler(mockEvent);
+    expect(result).toEqual({
+      body: {
+        message: 'Error: invalid body value "active" must be a boolean',
       },
       status: 400,
     });
