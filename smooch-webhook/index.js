@@ -629,7 +629,7 @@ exports.sendCustomerMessageToParticipants = async function sendCustomerMessageTo
   try {
     const { data } = await getMetadata({ tenantId, interactionId, auth });
     log.debug('Got interaction metadata', { ...logContext, interaction: data });
-    const { participants } = data;
+    const { participants, customer } = data;
     ({ artifactId } = data);
 
     await Promise.all(
@@ -646,7 +646,7 @@ exports.sendCustomerMessageToParticipants = async function sendCustomerMessageTo
           messageType: 'received-message',
           message: {
             id: message._id,
-            from: message.name,
+            from: customer || message.name,
             contentType,
             timestamp: message.received * 1000,
             type: message.text === 'INTERACTION_NOT_FOUND_ERROR' ? 'system' : 'customer',

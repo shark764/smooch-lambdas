@@ -189,6 +189,38 @@ describe('create-messaging-transcript', () => {
     });
 
     it('messages for whatsapp interaction use phonenumber as display name', async () => {
+      axios.mockImplementationOnce(() => ({
+        data: {
+          appId: '5e31c81640a22c000f5d7f28',
+          userId: '667802d8-2260-436c-958a-2ee0f71f73f2',
+          customer: '+50371675753',
+          firstCustomerMessageTimestamp: 50,
+        },
+      }));
+      mockGetMessages.mockImplementationOnce(() => ({
+        previous: 'https://www.unit-tests.com?before=100',
+        messages: [
+          {
+            type: 'text',
+            _id: '5e31c81640a22c000f5d7f29',
+            role: 'appUser',
+            received: 50,
+            metadata: {
+              type: 'TYPE',
+              from: 'first-Name last-Name',
+            },
+          },
+        ],
+      }));
+      mockGetMessages.mockImplementationOnce(() => ({
+        previous: 'https://www.unit-tests.com',
+        messages: [],
+      }));
+      await handler(event);
+      expect(spyOnUploadArtifactFile.mock.calls[4][1]).toMatchSnapshot();
+    });
+
+    it('messages from agent uses "name" from message object to display name', async () => {
       mockGetMessages.mockImplementationOnce(() => ({
         previous: 'https://www.unit-tests.com?before=100',
         messages: [
@@ -202,8 +234,29 @@ describe('create-messaging-transcript', () => {
               type: 'TYPE',
               from: 'first-Name last-Name',
             },
-            source: {
-              type: 'whatsapp',
+          },
+        ],
+      }));
+      mockGetMessages.mockImplementationOnce(() => ({
+        previous: 'https://www.unit-tests.com',
+        messages: [],
+      }));
+      await handler(event);
+      expect(spyOnUploadArtifactFile.mock.calls[5][1]).toMatchSnapshot();
+    });
+
+    it('messages from agent uses "from" from metadata to display name', async () => {
+      mockGetMessages.mockImplementationOnce(() => ({
+        previous: 'https://www.unit-tests.com?before=100',
+        messages: [
+          {
+            type: 'text',
+            _id: '5e31c81640a22c000f5d7f29',
+            role: 'appMaker',
+            received: 50,
+            metadata: {
+              type: 'TYPE',
+              from: 'first-Name last-Name',
             },
           },
         ],
@@ -213,7 +266,30 @@ describe('create-messaging-transcript', () => {
         messages: [],
       }));
       await handler(event);
-      expect(spyOnUploadArtifactFile.mock.calls[4][1]).toMatchSnapshot();
+      expect(spyOnUploadArtifactFile.mock.calls[6][1]).toMatchSnapshot();
+    });
+
+    it('messages from system shows "system" as display name', async () => {
+      mockGetMessages.mockImplementationOnce(() => ({
+        previous: 'https://www.unit-tests.com?before=100',
+        messages: [
+          {
+            type: 'text',
+            _id: '5e31c81640a22c000f5d7f29',
+            role: 'appMaker',
+            received: 50,
+            metadata: {
+              type: 'TYPE',
+            },
+          },
+        ],
+      }));
+      mockGetMessages.mockImplementationOnce(() => ({
+        previous: 'https://www.unit-tests.com',
+        messages: [],
+      }));
+      await handler(event);
+      expect(spyOnUploadArtifactFile.mock.calls[7][1]).toMatchSnapshot();
     });
 
     it("messages are mapped for role 'appMaker' and type 'form'", async () => {

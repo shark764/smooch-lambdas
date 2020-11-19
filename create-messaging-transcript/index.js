@@ -229,7 +229,7 @@ function getMessageText(message) {
   return message.text; // normal messages
 }
 
-function formatMessages({ messages }, tenantId, { firstCustomerMessageTimestamp }) {
+function formatMessages({ messages }, tenantId, { customer, firstCustomerMessageTimestamp }) {
   return messages
     .filter(
       (message) => ((message.type === 'formResponse' && message.quotedMessage.content.metadata)
@@ -243,11 +243,11 @@ function formatMessages({ messages }, tenantId, { firstCustomerMessageTimestamp 
       payload: {
         metadata: {
           name:
-            message.source && message.source.type === 'whatsapp'
-              ? message.name.split(' ')[0]
-              : message.name
+            message.role === 'appMaker'
+              ? message.name
                 || (message.metadata && message.metadata.from)
-                || 'system',
+                || 'system'
+              : customer,
           source: 'smooch',
           type: message.role === 'appMaker' ? message.metadata.type : 'customer',
         },

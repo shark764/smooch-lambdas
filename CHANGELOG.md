@@ -1,3 +1,6 @@
+# 1.29.5
+* CXV1-23440 - Customer phoneNumber used for whatsapp interactions when messages are sent after interaction is created.
+
 # 1.29.4
 * CXV1-21854 - Adding "active" property to dynamo table record creation for whatsapp integrations.
 
