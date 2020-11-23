@@ -518,7 +518,7 @@ describe('smooch-webhook', () => {
 
     const { handleCollectMessageResponse } = index;
     const sendCustomerMessageToParticipants = jest.spyOn(index, 'sendCustomerMessageToParticipants');
-    const updateInteractionMetadata = jest.spyOn(index, 'updateInteractionMetadata');
+    const updateInteractionMetadataAsync = jest.spyOn(index, 'updateInteractionMetadataAsync');
 
     it('calls sendFlowActionResponse correctly', async () => {
       const sendFlowActionResponse = jest.spyOn(index, 'sendFlowActionResponse')
@@ -533,10 +533,10 @@ describe('smooch-webhook', () => {
       expect(sendCustomerMessageToParticipants.mock.calls).toMatchSnapshot();
     });
 
-    it('calls updateInteractionMetadata correctly', async () => {
-      updateInteractionMetadata.mockImplementationOnce(() => {});
+    it('calls updateInteractionMetadataAsync correctly', async () => {
+      updateInteractionMetadataAsync.mockImplementationOnce(() => {});
       await handleCollectMessageResponse(input);
-      expect(updateInteractionMetadata.mock.calls).toMatchSnapshot();
+      expect(updateInteractionMetadataAsync.mock.calls).toMatchSnapshot();
     });
 
     it('returns when no interactionID is provided', async () => {
@@ -586,15 +586,12 @@ describe('smooch-webhook', () => {
       }
     });
 
-    it('throws an error when there is a problem removing pending collect-message action from metadata', async () => {
-      updateInteractionMetadata.mockImplementationOnce(() => {
+    it('continues when there is a problem removing pending collect-message action from metadata', async () => {
+      updateInteractionMetadataAsync.mockImplementationOnce(() => {
         throw new Error();
       });
-      try {
-        await handleCollectMessageResponse(input);
-      } catch (error) {
-        expect(Promise.reject(new Error('Error removing pending collect-message action from metadata'))).rejects.toThrowErrorMatchingSnapshot();
-      }
+      const result = await handleCollectMessageResponse(input);
+      expect(result).toEqual('handleFormResponse Successful');
     });
   });
 

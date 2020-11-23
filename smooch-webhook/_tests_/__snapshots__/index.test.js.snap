@@ -116,11 +116,12 @@ Array [
 ]
 `;
 
-exports[`smooch-webhook handleCollectMessageResponse calls updateInteractionMetadata correctly 1`] = `
+exports[`smooch-webhook handleCollectMessageResponse calls updateInteractionMetadataAsync correctly 1`] = `
 Array [
   Array [
     Object {
       "interactionId": "mock-interaction-id",
+      "logContext": "logContext",
       "metadata": Object {
         "artifactId": "mock-artifact-id",
         "collectActions": Array [],
@@ -141,10 +142,6 @@ Array [
 exports[`smooch-webhook handleCollectMessageResponse throws an error when there are no action found in pending-actions 1`] = `"Action could not be found in pending-actions"`;
 
 exports[`smooch-webhook handleCollectMessageResponse throws an error when there are no pending actions 1`] = `"There are no pending actions"`;
-
-exports[`smooch-webhook handleCollectMessageResponse throws an error when there is a problem removing pending collect-message action from metadata 1`] = `"Error removing pending collect-message action from metadata"`;
-
-exports[`smooch-webhook handleCollectMessageResponse throws an error when there is a problem sending collect-message response to participants 1`] = `"Error sending collect-message response to participants"`;
 
 exports[`smooch-webhook handleCustomerMessage !hasInteractionItem calls uploadArtifactFile correctly 1`] = `
 Array [

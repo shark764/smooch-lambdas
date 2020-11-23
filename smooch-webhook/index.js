@@ -395,6 +395,23 @@ exports.handleCollectMessageResponse = async function handleCollectMessageRespon
     throw new Error('Action could not be found in pending-actions');
   }
 
+  // Remove action from pending actions
+  try {
+    await exports.updateInteractionMetadataAsync({
+      tenantId,
+      interactionId,
+      metadata,
+      logContext,
+    });
+    log.info('Removed collect-message action from metadata', logContext);
+  } catch (error) {
+    log.warn(
+      'Error removing pending collect-message action from metadata. Continuing.',
+      logContext,
+      error,
+    );
+  }
+
   // Update flow
   await exports.sendFlowActionResponse({
     logContext, actionId, subId, response,
@@ -419,23 +436,6 @@ exports.handleCollectMessageResponse = async function handleCollectMessageRespon
       logContext,
       error,
     );
-    throw error;
-  }
-  // Remove action from pending actions
-  try {
-    await exports.updateInteractionMetadata({
-      tenantId,
-      interactionId,
-      metadata,
-    });
-    log.info('Removed collect-message action from metadata', logContext);
-  } catch (error) {
-    log.fatal(
-      'Error removing pending collect-message action from metadata',
-      logContext,
-      error,
-    );
-    throw error;
   }
   return 'handleFormResponse Successful';
 };
@@ -799,11 +799,11 @@ async function getMetadata({ tenantId, interactionId, auth }) {
   });
 }
 
-exports.updateInteractionMetadata = async function updateInteractionMetadata({
+exports.updateInteractionMetadata = async ({
   tenantId,
   interactionId,
   metadata,
-}) {
+}) => {
   const QueueName = `${AWS_REGION}-${ENVIRONMENT}-update-interaction-metadata`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const payload = JSON.stringify({
@@ -817,6 +817,44 @@ exports.updateInteractionMetadata = async function updateInteractionMetadata({
     QueueUrl,
   };
   await sqs.sendMessage(sqsMessageAction).promise();
+};
+
+exports.updateInteractionMetadataAsync = async ({
+  tenantId,
+  interactionId,
+  metadata,
+  logContext,
+}) => {
+  log.info('Updating interaction metadata', { ...logContext, metadata });
+
+  let cxAuthSecret;
+  try {
+    cxAuthSecret = await secretsClient.getSecretValue({
+      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+    }).promise();
+  } catch (error) {
+    log.error('An Error has occurred trying to retrieve cx credentials', logContext, error);
+
+    throw error;
+  }
+
+  const auth = JSON.parse(cxAuthSecret.SecretString);
+
+  try {
+    const { data } = await axios({
+      method: 'post',
+      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata?id=${uuidv1()}`,
+      data: {
+        source: 'smooch',
+        metadata,
+      },
+      auth,
+    });
+    log.info('Updated interaction metadata', { ...logContext, data });
+  } catch (error) {
+    log.error('Failed to update interaction metadata', logContext, error);
+    throw error;
+  }
 };
 
 exports.uploadArtifactFile = async function uploadArtifactFile(
