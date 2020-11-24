@@ -1,3 +1,6 @@
+# 1.29.8
+* <no-jira> - Updated smooch webhook logging
+
 # 1.29.7
 * CXV1-23358 - Added edge case scenario for whatsapp disconnect checker, timeout not multiple of delay time
 

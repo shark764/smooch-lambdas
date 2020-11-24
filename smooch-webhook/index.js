@@ -120,9 +120,10 @@ exports.handler = async (event) => {
         );
       }
       const message = messages[0];
-      const { type } = message;
+      const { type, _id: smoochMessageId } = message;
 
       logContext.smoochMessageType = type;
+      logContext.smoochMessageId = smoochMessageId;
 
       switch (platform) {
         case 'web': {
@@ -742,12 +743,14 @@ exports.sendConversationEvent = async ({
     );
 
     if (conversationEvent === 'typing-stop') {
+      log.trace('updating smooch client last activity typing-stop', logContext);
       await exports.updateSmoochClientLastActivity({
         latestCustomerMessageTimestamp: (new Date()).getTime(),
         userId: logContext.smoochUserId,
         logContext,
       });
     } else if (conversationEvent !== 'conversation-read') {
+      log.trace('updating smooch client last activity, not conversation-read', { ...logContext, conversationEvent });
       await exports.updateSmoochClientLastActivity({
         latestCustomerMessageTimestamp: timestamp * 1000,
         userId: logContext.smoochUserId,
@@ -1300,7 +1303,7 @@ exports.handleCustomerMessage = async ({
       }
     }
   } else {
-    log.info('Web type received: text, but interaction is being created by something else. Ignoring.', logContext);
+    log.info('Called handleCustomerMessage, but there is an interactionItem appearing to being created by another message. Ignoring.', logContext);
   }
   return 'handleCustomerMessage Successful';
 };
