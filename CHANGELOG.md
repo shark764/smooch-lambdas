@@ -1,3 +1,9 @@
+# 1.29.7
+* CXV1-23358 - Added edge case scenario for whatsapp disconnect checker, timeout not multiple of delay time
+
+# 1.29.6
+* CXV1-23541 - Make collect message interaction metadata update async and in correct order
+
 # 1.29.5
 * CXV1-23440 - Customer phoneNumber used for whatsapp interactions when messages are sent after interaction is created.
 

@@ -3,6 +3,9 @@ const axios = require('axios');
 const AWS = require('aws-sdk');
 const uuidv1 = require('uuid/v1');
 
+const DISCONNECT_TIMEOUT_MINUTES = 1440;
+const DELAY_MINUTES = 15;
+
 const {
   AWS_REGION,
   ENVIRONMENT,
@@ -35,7 +38,6 @@ exports.handler = async (event) => {
     throw error;
   }
   const cxAuth = JSON.parse(cxAuthSecret.SecretString);
-
   let smoochInteractionRecord;
   try {
     smoochInteractionRecord = await docClient
@@ -63,12 +65,13 @@ exports.handler = async (event) => {
     log.info('No active interaction for user', logContext);
     return;
   }
-
   if (interactionIdToCheck !== interactionId) {
     log.info('Check Event for an old interaction. Not disconnecting client.', logContext);
     return;
   }
-
+  if (!LatestCustomerMessageTimestamp) {
+    log.info('Customer is inactive', logContext);
+  }
 
   const clientTimeDifference = Math.abs(
     new Date(
@@ -78,13 +81,22 @@ exports.handler = async (event) => {
       LatestCustomerMessageTimestamp,
     ),
   );
+  if (DISCONNECT_TIMEOUT_MINUTES < DELAY_MINUTES) {
+    log.error('Disconnect Timeout cannot be less than Delay Minutes', logContext);
+    return;
+  }
+  let newDelayMinutes;
   const clientTimeDifferenceInMinutes = Math.floor((clientTimeDifference / 1000) / 60);
-  // Check for 24 hours = 1440 minutes
-  if (clientTimeDifferenceInMinutes >= 1440) {
-    log.debug('Disconnecting whatsapp customer after 24 hours', logContext);
+  if (clientTimeDifferenceInMinutes >= DISCONNECT_TIMEOUT_MINUTES) {
+    log.debug('Disconnecting whatsapp customer', logContext);
     await disconnectClient({ logContext, cxAuth });
   } else {
+    newDelayMinutes = Math.min(DELAY_MINUTES,
+      (DISCONNECT_TIMEOUT_MINUTES - clientTimeDifferenceInMinutes));
+    log.info('Setting delayMinutes ', { ...logContext, delayMinutes: newDelayMinutes });
+    newDelayMinutes = (newDelayMinutes < DELAY_MINUTES) ? newDelayMinutes - 1 : DELAY_MINUTES;
     await checkIfClientPastInactiveTimeout({
+      delayMinutes: newDelayMinutes,
       userId,
       logContext,
     });
@@ -143,12 +155,12 @@ async function deleteCustomerInteraction({ logContext }) {
 }
 
 async function checkIfClientPastInactiveTimeout({
-  userId, logContext,
+  delayMinutes, userId, logContext,
 }) {
   const { tenantId, interactionId } = logContext;
   const QueueName = `${AWS_REGION}-${ENVIRONMENT}-smooch-whatsapp-disconnect-checker`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
-  const DelaySeconds = 15 * 60;
+  const DelaySeconds = Math.min(delayMinutes, 15) * 60;
   const MessageBody = JSON.stringify({
     interactionId,
     tenantId,
