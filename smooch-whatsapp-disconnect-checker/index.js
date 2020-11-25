@@ -57,7 +57,7 @@ exports.handler = async (event) => {
   const hasInteractionItem = interactionItem && Object.entries(interactionItem).length !== 0;
   const interactionId = interactionItem && interactionItem.InteractionId;
   const LatestCustomerMessageTimestamp = interactionItem
-    && interactionItem.LatestCustomerMessageTimestamp;
+    && interactionItem.LatestWhatsappCustomerMessageTimestamp;
   logContext.hasInteractionItem = hasInteractionItem;
   logContext.interactionId = interactionId;
 
@@ -70,7 +70,8 @@ exports.handler = async (event) => {
     return;
   }
   if (!LatestCustomerMessageTimestamp) {
-    log.info('Customer is inactive', logContext);
+    log.info('Customer Message Timestamp does not exists', logContext);
+    throw new Error('Customer Message Timestamp does not exists');
   }
 
   const clientTimeDifference = Math.abs(
@@ -93,13 +94,18 @@ exports.handler = async (event) => {
   } else {
     newDelayMinutes = Math.min(DELAY_MINUTES,
       (DISCONNECT_TIMEOUT_MINUTES - clientTimeDifferenceInMinutes));
-    log.info('Setting delayMinutes ', { ...logContext, delayMinutes: newDelayMinutes });
     newDelayMinutes = (newDelayMinutes < DELAY_MINUTES) ? newDelayMinutes - 1 : DELAY_MINUTES;
-    await checkIfClientPastInactiveTimeout({
-      delayMinutes: newDelayMinutes,
-      userId,
-      logContext,
-    });
+    if (newDelayMinutes > 0) {
+      log.info('Setting delayMinutes ', { ...logContext, delayMinutes: newDelayMinutes });
+      await checkIfClientPastInactiveTimeout({
+        delayMinutes: newDelayMinutes,
+        userId,
+        logContext,
+      });
+    } else {
+      log.debug('Disconnecting whatsapp customer', logContext);
+      await disconnectClient({ logContext, cxAuth });
+    }
   }
 };
 

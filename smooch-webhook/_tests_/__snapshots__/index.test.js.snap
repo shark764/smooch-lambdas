@@ -206,6 +206,7 @@ Array [
         "mediaUrl": "http://mockurl",
         "received": "10",
       },
+      "metadataSource": undefined,
       "tenantId": "mock-tenant-id",
       "userId": "mock-user-id",
     },

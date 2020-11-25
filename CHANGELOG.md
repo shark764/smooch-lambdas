@@ -1,3 +1,6 @@
+# 1.29.9
+* CXV1-23358 - Created whatsapp customer message timestamp attribute for disconnect checker
+
 # 1.29.8
 * <no-jira> - Updated smooch webhook logging
 

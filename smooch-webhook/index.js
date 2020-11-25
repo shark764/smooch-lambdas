@@ -625,6 +625,7 @@ exports.sendCustomerMessageToParticipants = async function sendCustomerMessageTo
   message,
   auth,
   logContext,
+  metadataSource,
 }) {
   let artifactId;
   try {
@@ -694,6 +695,14 @@ exports.sendCustomerMessageToParticipants = async function sendCustomerMessageTo
     userId: logContext.smoochUserId,
     logContext,
   });
+
+  if (metadataSource === 'whatsapp') {
+    await exports.setWhatsappCustomerMessageTimestamp({
+      latestCustomerMessageTimestamp: message.received * 1000,
+      userId: logContext.smoochUserId,
+      logContext: { ...logContext, interactionId },
+    });
+  }
 
   return 'sendCustomerMessageToParticipants Successful';
 };
@@ -1177,6 +1186,7 @@ exports.handleCustomerMessage = async ({
       message,
       auth,
       logContext,
+      metadataSource,
     });
     const { data: metadata } = await getMetadata({
       tenantId,
@@ -1263,7 +1273,7 @@ exports.handleCustomerMessage = async ({
     }
 
     if (metadataSource === 'whatsapp') {
-      await exports.updateSmoochClientLastActivity({
+      await exports.setWhatsappCustomerMessageTimestamp({
         latestCustomerMessageTimestamp: (new Date()).getTime(),
         userId: logContext.smoochUserId,
         logContext: { ...logContext, interactionId: newInteractionId },
@@ -1386,4 +1396,27 @@ exports.checkIfClientPastInactiveTimeout = async function checkIfClientPastInact
     DelaySeconds,
   };
   await sqs.sendMessage(sqsMessageAction).promise();
+};
+
+
+exports.setWhatsappCustomerMessageTimestamp = async function setWhatsappCustomerMessageTimestamp({
+  latestCustomerMessageTimestamp, userId, logContext,
+}) {
+  const params = {
+    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+    Key: {
+      SmoochUserId: userId,
+    },
+    UpdateExpression: 'set LatestWhatsappCustomerMessageTimestamp = :t',
+    ExpressionAttributeValues: {
+      ':t': latestCustomerMessageTimestamp,
+    },
+    ReturnValues: 'UPDATED_NEW',
+  };
+  try {
+    const data = await docClient.update(params).promise();
+    log.debug('Updated latest whatsapp customer message timestamp', { ...logContext, updated: data });
+  } catch (error) {
+    log.error('An error ocurred updating the latest whatsapp customer message timestamp', logContext, error);
+  }
 };
