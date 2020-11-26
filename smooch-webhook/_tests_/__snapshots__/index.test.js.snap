@@ -38,13 +38,14 @@ Array [
   Array [
     Object {
       "ExpressionAttributeValues": Object {
+        ":c": Array [],
         ":i": "new-interaction-id",
       },
       "Key": Object {
         "SmoochUserId": "mock-user-id",
       },
       "TableName": "us-east-1-dev-smooch-interactions",
-      "UpdateExpression": "set InteractionId = :i",
+      "UpdateExpression": "set InteractionId = :i, CollectActions = :c",
     },
   ],
 ]
@@ -206,7 +207,7 @@ Array [
         "mediaUrl": "http://mockurl",
         "received": "10",
       },
-      "metadataSource": undefined,
+      "metadataSource": "web",
       "tenantId": "mock-tenant-id",
       "userId": "mock-user-id",
     },

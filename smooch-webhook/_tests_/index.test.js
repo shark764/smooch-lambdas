@@ -1026,6 +1026,7 @@ describe('smooch-webhook', () => {
       integrationId: 'mock-integrationId-id',
       customer: 'customer',
       type: 'type',
+      metadataSource: 'web',
     };
 
     const inActiveInteractionError = new Error();

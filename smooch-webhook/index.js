@@ -105,6 +105,7 @@ exports.handler = async (event) => {
   const interactionId = interactionItem && (
     interactionItem.InteractionId === 'interaction-404' ? undefined : interactionItem.InteractionId
   );
+
   const { integrationId } = client;
   logContext.hasInteractionItem = hasInteractionItem;
   logContext.interactionId = interactionId;
@@ -121,7 +122,11 @@ exports.handler = async (event) => {
       }
       const message = messages[0];
       const { type, _id: smoochMessageId } = message;
+      const collectActions = interactionItem && (
+        interactionItem.CollectActions === [] ? undefined : interactionItem.CollectActions
+      );
 
+      logContext.collectActions = collectActions;
       logContext.smoochMessageType = type;
       logContext.smoochMessageId = smoochMessageId;
 
@@ -201,6 +206,7 @@ exports.handler = async (event) => {
                 channelType: 'sms',
                 metadataSource: platform,
                 client,
+                collectActions,
               });
               break;
             }
@@ -602,9 +608,10 @@ exports.createInteraction = async function createInteraction({
     Key: {
       SmoochUserId: userId,
     },
-    UpdateExpression: 'set InteractionId = :i',
+    UpdateExpression: 'set InteractionId = :i, CollectActions = :c',
     ExpressionAttributeValues: {
       ':i': interactionId,
+      ':c': [],
     },
   };
   try {
@@ -1098,6 +1105,7 @@ exports.handleCustomerMessage = async ({
   metadataSource,
   channelType,
   client,
+  collectActions,
 }) => {
   if (hasInteractionItem && interactionId) {
     let workingInteractionId = interactionId;
@@ -1176,6 +1184,25 @@ exports.handleCustomerMessage = async ({
           throw err;
         }
       }
+    }
+
+    if (metadataSource !== 'web' && collectActions.length > 0 && type === 'text') {
+      const { actionId, subId } = collectActions[0];
+      const response = message.text;
+      try {
+        await exports.sendFlowActionResponse({
+          logContext, actionId, subId, response,
+        });
+      } catch (error) {
+        log.error('Error sending flow response', logContext, error);
+        throw error;
+      }
+      await exports.setCollectActions({
+        collectAction: [],
+        userId: logContext.smoochUserId,
+        logContext,
+      });
+      log.info('Handled non-web collect message', logContext);
     }
     await exports.sendCustomerMessageToParticipants({
       appId,
@@ -1398,7 +1425,6 @@ exports.checkIfClientPastInactiveTimeout = async function checkIfClientPastInact
   await sqs.sendMessage(sqsMessageAction).promise();
 };
 
-
 exports.setWhatsappCustomerMessageTimestamp = async function setWhatsappCustomerMessageTimestamp({
   latestCustomerMessageTimestamp, userId, logContext,
 }) {
@@ -1418,5 +1444,27 @@ exports.setWhatsappCustomerMessageTimestamp = async function setWhatsappCustomer
     log.debug('Updated latest whatsapp customer message timestamp', { ...logContext, updated: data });
   } catch (error) {
     log.error('An error ocurred updating the latest whatsapp customer message timestamp', logContext, error);
+  }
+};
+
+exports.setCollectActions = async function setCollectActions({
+  collectAction, userId, logContext,
+}) {
+  const params = {
+    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+    Key: {
+      SmoochUserId: userId,
+    },
+    UpdateExpression: 'set CollectActions = :c',
+    ExpressionAttributeValues: {
+      ':c': collectAction,
+    },
+    ReturnValues: 'UPDATED_NEW',
+  };
+  try {
+    const data = await docClient.update(params).promise();
+    log.debug('Updated collectActions', { ...logContext, updated: data });
+  } catch (error) {
+    log.error('An error ocurred updating collectActions', logContext, error);
   }
 };

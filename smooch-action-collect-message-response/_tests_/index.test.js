@@ -13,6 +13,27 @@ const event = {
       metadata: {
         'app-id': '5e31c81640a22c000f5d7f28',
         'user-id': '5e31c81640a22c000f5d7f90',
+        source: 'web',
+      },
+      parameters: {
+        message: 'message',
+        from: 'from',
+      },
+      id: '5e31c81640a22c000f5d7f28',
+      'sub-id': '5e31c81640a22c000f5d7f55',
+    }),
+  }],
+};
+
+const whatsappEvent = {
+  Records: [{
+    body: JSON.stringify({
+      'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+      'interaction-id': '66d83870-30df-4a3b-8801-59edff162070',
+      metadata: {
+        'app-id': '5e31c81640a22c000f5d7f28',
+        'user-id': '5e31c81640a22c000f5d7f90',
+        source: 'whatsapp',
       },
       parameters: {
         message: 'message',
@@ -46,6 +67,16 @@ const mockSendMessage = jest.fn()
     promise: () => ({}),
   }));
 
+const mockUpdate = jest.fn()
+  .mockImplementation(() => ({
+    promise: () => ({}),
+  }));
+
+const mockGet = jest.fn()
+  .mockImplementation(() => ({
+    promise: () => ({}),
+  }));
+
 const mockSmoochSendMessage = jest.fn()
   .mockImplementation(() => ({
     promise: () => ({}),
@@ -65,6 +96,12 @@ jest.mock('aws-sdk', () => ({
     getQueueUrl: mockGetQueueUrl,
     sendMessage: mockSendMessage,
   })),
+  DynamoDB: {
+    DocumentClient: jest.fn().mockImplementation(() => ({
+      get: mockGet,
+      update: mockUpdate,
+    })),
+  },
   SecretsManager: jest.fn().mockImplementation(() => ({
     getSecretValue: mockGetSecretValue,
   })),
@@ -88,6 +125,7 @@ describe('smooch-action-collect-message-response', () => {
               'collect-actions': [{
                 'action-id': '5e31c81640a22c000f5d7f28',
               }],
+              source: 'web',
             },
             parameters: {
               message: 'message',
@@ -117,6 +155,7 @@ describe('smooch-action-collect-message-response', () => {
             metadata: {
               'app-id': '5e31c81640a22c000f5d7f28',
               'user-id': '5e31c81640a22c000f5d7f90',
+              source: 'web',
             },
             parameters: {
               message: 'messagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessage',
@@ -131,6 +170,61 @@ describe('smooch-action-collect-message-response', () => {
       expect(mockSmoochSendMessage.mock.calls[0][0].message.fields[0].label).toMatchSnapshot();
     });
 
+    it('Collect message for whatsapp', async () => {
+      jest.clearAllMocks();
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+            InteractionId: '66d83870-30df-4a3b-8801-59edff162070',
+            LatestCustomerMessageTimestamp: 50,
+            CollectActions: [],
+          },
+        }),
+      }));
+      const result = await handler(whatsappEvent);
+      expect(result).toBeUndefined();
+    });
+
+    it('Collect message for whatsapp no last customer message', async () => {
+      jest.clearAllMocks();
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+            InteractionId: '66d83870-30df-4a3b-8801-59edff162070',
+            CollectActions: [],
+          },
+        }),
+      }));
+      const result = await handler(whatsappEvent);
+      expect(result).toBeUndefined();
+    });
+
+    it('Collect message for whatsapp old event', async () => {
+      jest.clearAllMocks();
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+            InteractionId: '66d83870-30df-4a3b-8801-59edff162034',
+            LatestCustomerMessageTimestamp: 50,
+            CollectActions: [],
+          },
+        }),
+      }));
+      const result = await handler(whatsappEvent);
+      expect(result).toBeUndefined();
+    });
+
+    it('Collect message for whatsapp no active interaction', async () => {
+      jest.clearAllMocks();
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+          },
+        }),
+      }));
+      const result = await handler(whatsappEvent);
+      expect(result).toBeUndefined();
+    });
     describe('Walkthrough', () => {
       beforeAll(async () => {
         jest.clearAllMocks();
@@ -196,4 +290,49 @@ describe('smooch-action-collect-message-response', () => {
       expect(Promise.reject(new Error('Error sending collect-message'))).rejects.toThrowErrorMatchingSnapshot();
     }
   });
+
+  it('throws an error when there is a problem sending whatsapp collect-message', async () => {
+    try {
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+            InteractionId: '66d83870-30df-4a3b-8801-59edff162070',
+            LatestCustomerMessageTimestamp: 50,
+            CollectActions: [{ actionId: '5e31c81640a22c000f5d7f28', subId: '5e31c81640a22c000f5d7f55' }],
+          },
+        }),
+      }));
+      mockSmoochSendMessage.mockRejectedValueOnce(new Error());
+      await handler(whatsappEvent);
+    } catch (error) {
+      expect(Promise.reject(new Error('Error sending Whatsapp collect message'))).rejects.toThrowErrorMatchingSnapshot();
+    }
+  });
+
+  it('throws an error when there is a problem updating collectActions', async () => {
+    try {
+      mockUpdate.mockRejectedValueOnce(new Error());
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+            InteractionId: '66d83870-30df-4a3b-8801-59edff162070',
+            LatestCustomerMessageTimestamp: 50,
+            CollectActions: [{ actionId: '5e31c81640a22c000f5d7f28', subId: '5e31c81640a22c000f5d7f55' }],
+          },
+        }),
+      }));
+      await handler(whatsappEvent);
+    } catch (error) {
+      expect(Promise.reject(new Error('An error ocurred updating collectActions'))).rejects.toThrowErrorMatchingSnapshot();
+    }
+  });
+});
+
+it('throws an error when there is a problem getting collectActions', async () => {
+  try {
+    mockGet.mockRejectedValueOnce(new Error());
+    await handler(whatsappEvent);
+  } catch (error) {
+    expect(Promise.reject(new Error('Failed to get smooch interaction record'))).rejects.toThrowErrorMatchingSnapshot();
+  }
 });

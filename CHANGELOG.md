@@ -1,3 +1,6 @@
+# 1.30.0
+* CXV1-21863 - Adding collect-message-response flow for whatsapp, message collected via text
+
 # 1.29.9
 * CXV1-23358 - Created whatsapp customer message timestamp attribute for disconnect checker
 

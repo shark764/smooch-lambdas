@@ -67,7 +67,7 @@ exports[`smooch-action-collect-message-response Everthing is successful Walkthro
 Array [
   Array [
     Object {
-      "MessageBody": "{\\"tenantId\\":\\"66d83870-30df-4a3b-8801-59edff162034\\",\\"interactionId\\":\\"66d83870-30df-4a3b-8801-59edff162070\\",\\"source\\":\\"smooch\\",\\"metadata\\":{\\"app-id\\":\\"5e31c81640a22c000f5d7f28\\",\\"user-id\\":\\"5e31c81640a22c000f5d7f90\\",\\"collect-actions\\":[{\\"actionId\\":\\"5e31c81640a22c000f5d7f28\\",\\"subId\\":\\"5e31c81640a22c000f5d7f55\\"}]}}",
+      "MessageBody": "{\\"tenantId\\":\\"66d83870-30df-4a3b-8801-59edff162034\\",\\"interactionId\\":\\"66d83870-30df-4a3b-8801-59edff162070\\",\\"source\\":\\"smooch\\",\\"metadata\\":{\\"app-id\\":\\"5e31c81640a22c000f5d7f28\\",\\"user-id\\":\\"5e31c81640a22c000f5d7f90\\",\\"source\\":\\"web\\",\\"collect-actions\\":[{\\"actionId\\":\\"5e31c81640a22c000f5d7f28\\",\\"subId\\":\\"5e31c81640a22c000f5d7f55\\"}]}}",
       "QueueUrl": "queueurl",
     },
   ],
@@ -82,4 +82,10 @@ exports[`smooch-action-collect-message-response throws an error when there is a 
 
 exports[`smooch-action-collect-message-response throws an error when there is a problem sending collect-message 1`] = `"Error sending collect-message"`;
 
+exports[`smooch-action-collect-message-response throws an error when there is a problem sending whatsapp collect-message 1`] = `"Error sending Whatsapp collect message"`;
+
+exports[`smooch-action-collect-message-response throws an error when there is a problem updating collectActions 1`] = `"An error ocurred updating collectActions"`;
+
 exports[`smooch-action-collect-message-response throws an error when there is a problem updating interaction metadata 1`] = `"Error updating interaction metadata"`;
+
+exports[`throws an error when there is a problem getting collectActions 1`] = `"Failed to get smooch interaction record"`;
