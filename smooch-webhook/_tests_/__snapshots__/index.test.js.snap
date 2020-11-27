@@ -74,20 +74,6 @@ exports[`smooch-webhook createInteraction throws an error when there is a proble
 
 exports[`smooch-webhook createInteraction throws an error when there is a problem retrieving smooch integration from DynamoDB 1`] = `"Failed to retrieve Smooch integration from DynamoDB"`;
 
-exports[`smooch-webhook getClientInactivityTimeout calls docClient.get() correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "Key": Object {
-        "id": "mock-integration-id",
-        "tenant-id": "mock-tenant-id",
-      },
-      "TableName": "us-east-1-dev-smooch",
-    },
-  ],
-]
-`;
-
 exports[`smooch-webhook getClientInactivityTimeout throws an error when there is a problem retrieving smooch integration from DynamoDB 1`] = `"Failed to retrieve Smooch integration from DynamoDB"`;
 
 exports[`smooch-webhook handleCollectMessageResponse calls sendCustomerMessageToParticipants correctly 1`] = `
@@ -144,26 +130,6 @@ exports[`smooch-webhook handleCollectMessageResponse throws an error when there 
 
 exports[`smooch-webhook handleCollectMessageResponse throws an error when there are no pending actions 1`] = `"There are no pending actions"`;
 
-exports[`smooch-webhook handleCustomerMessage !hasInteractionItem calls uploadArtifactFile correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "interactionId": "new-interaction-id",
-      "tenantId": "mock-tenant-id",
-    },
-    "mock-artifact-id",
-    Object {
-      "_id": "mock_id",
-      "mediaUrl": "http://mockurl",
-      "received": "10",
-    },
-    "auth",
-  ],
-]
-`;
-
-exports[`smooch-webhook handleCustomerMessage !hasInteractionItem customerIdentifier !== "Customer" 1`] = `"handleCustomerMessage Successful"`;
-
 exports[`smooch-webhook handleCustomerMessage !hasInteractionItem throws an error when failed to upload artifact file 1`] = `"Failed to upload artifact file"`;
 
 exports[`smooch-webhook handleCustomerMessage !hasInteractionItem throws an error when there is a problem creating interaction 1`] = `"Failed to create an interaction"`;
@@ -177,43 +143,6 @@ exports[`smooch-webhook handleCustomerMessage !hasInteractionItem throws an erro
 exports[`smooch-webhook handleCustomerMessage !hasInteractionItem throws an error when there problem updating Smooch appUser 2 1`] = `"Error updating Smooch appUser"`;
 
 exports[`smooch-webhook handleCustomerMessage !hasInteractionItem updated smoochUser successfully 1`] = `"handleCustomerMessage Successful"`;
-
-exports[`smooch-webhook handleCustomerMessage hasInteractionId and interactionID calls sendCustomerMessageToParticipants correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "appId": "mock-app-id",
-      "auth": "auth",
-      "contentType": "text",
-      "interactionId": "mock-interaction-id",
-      "logContext": "logContext",
-      "message": Object {
-        "received": "10",
-        "text": "INTERACTION_NOT_FOUND_ERROR",
-      },
-      "tenantId": "mock-tenant-id",
-      "userId": "mock-user-id",
-    },
-  ],
-  Array [
-    Object {
-      "appId": "mock-app-id",
-      "auth": "auth",
-      "contentType": "type",
-      "interactionId": "new-interaction-id",
-      "logContext": "logContext",
-      "message": Object {
-        "_id": "mock_id",
-        "mediaUrl": "http://mockurl",
-        "received": "10",
-      },
-      "metadataSource": "web",
-      "tenantId": "mock-tenant-id",
-      "userId": "mock-user-id",
-    },
-  ],
-]
-`;
 
 exports[`smooch-webhook handleCustomerMessage hasInteractionId and interactionID calls sendSmoochInteractionHeartbeat correctly 1`] = `
 Array [
@@ -414,46 +343,6 @@ Array [
 ]
 `;
 
-exports[`smooch-webhook sendConversationEvent latestMessageSentBy !== 'customer' calls checkIfClientIsDisconnected correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "disconnectTimeoutInMinutes": true,
-      "latestAgentMessageTimestamp": "00:00:00",
-      "logContext": Object {
-        "smoochUserId": "mock-smooch-user-id",
-      },
-      "userId": "mock-smooch-user-id",
-    },
-  ],
-]
-`;
-
-exports[`smooch-webhook sendConversationEvent latestMessageSentBy !== 'customer' calls getClientInactivityTimeout correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "logContext": Object {
-        "smoochUserId": "mock-smooch-user-id",
-      },
-    },
-  ],
-]
-`;
-
-exports[`smooch-webhook sendConversationEvent latestMessageSentBy !== 'customer' calls shouldCheckIfClientIsDisconnected correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "logContext": Object {
-        "smoochUserId": "mock-smooch-user-id",
-      },
-      "userId": "mock-smooch-user-id",
-    },
-  ],
-]
-`;
-
 exports[`smooch-webhook sendConversationEvent throws an error when there is problem sending conversation event to participants 1`] = `"Error sending conversation event to participants"`;
 
 exports[`smooch-webhook sendCustomerMessageToParticipants calls getMetadata correctly 1`] = `
@@ -512,19 +401,6 @@ Array [
 `;
 
 exports[`smooch-webhook sendCustomerMessageToParticipants throws an error when there is a problem sending message to participants 1`] = `"Error sending message to participants"`;
-
-exports[`smooch-webhook shouldCheckIfClientIsDisconnected calls docClient.get() correctly 1`] = `
-Array [
-  Array [
-    Object {
-      "Key": Object {
-        "SmoochUserId": "mock-user-id",
-      },
-      "TableName": "us-east-1-dev-smooch-interactions",
-    },
-  ],
-]
-`;
 
 exports[`smooch-webhook shouldCheckIfClientIsDisconnected throws an error when there is a problem retrieving smooch integration from DynamoDB 1`] = `"Failed to retrieve Smooch integration from DynamoDB"`;
 

@@ -1,0 +1,467 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`send-message Everthing is successful Walkthrough passes in the correct arguments to SmoochCore 1`] = `
+  Array [
+    Object {
+      "keyId": "id",
+      "scope": "app",
+      "secret": undefined,
+      "serviceUrl": "mock-amooch-api-url",
+    },
+  ]
+`;
+
+exports[`send-message Everthing is successful Walkthrough passes in the correct arguments to axios to get interaction metadata 1`] = `
+  Object {
+    "auth": Object {
+      "5e31c81640a22c000f5d7c55-id": "id",
+      "5e31c81640a22c000f5d7c55-secert": "secret",
+    },
+    "method": "get",
+    "url": "https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata",
+  }
+`;
+
+exports[`send-message Everthing is successful Walkthrough passes in the correct arguments to smooch.appUsers.sendMessage() 1`] = `
+  Array [
+    Array [
+      Object {
+        "appId": "5e31c81640a22c000f5d7c55",
+        "message": Object {
+          "metadata": Object {
+            "firstName": "first-name",
+            "from": "first-name last-name",
+            "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+            "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+            "type": "agent",
+          },
+          "role": "appMaker",
+          "text": "",
+          "type": "text",
+        },
+        "userId": "5e31c81640a22c000f5d7c75",
+      },
+    ],
+    Array [
+      Object {
+        "appId": "5e31c81640a22c000f5d7c55",
+        "message": Object {
+          "metadata": Object {
+            "firstName": "first-name",
+            "from": "first-name last-name",
+            "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+            "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+            "type": "agent",
+          },
+          "role": "appMaker",
+          "text": "",
+          "type": "text",
+        },
+        "userId": "5e31c81640a22c000f5d7c75",
+      },
+    ],
+    Array [
+      Object {
+        "appId": "5e31c81640a22c000f5d7f28",
+        "message": Object {
+          "metadata": Object {
+            "firstName": "first-name",
+            "from": "first-name last-name",
+            "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+            "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+            "type": "agent",
+          },
+          "role": "appMaker",
+          "text": "",
+          "type": "text",
+        },
+        "userId": "5e31c81640a22c000f5d7f30",
+      },
+    ],
+    Array [
+      Object {
+        "appId": "5e31c81640a22c000f5d7c55",
+        "message": Object {
+          "metadata": Object {
+            "firstName": "first-name",
+            "from": "first-name last-name",
+            "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+            "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+            "type": "agent",
+          },
+          "role": "appMaker",
+          "text": "",
+          "type": "text",
+        },
+        "userId": "5e31c81640a22c000f5d7c75",
+      },
+    ],
+    Array [
+      Object {
+        "appId": "5e31c81640a22c000f5d7c55",
+        "message": Object {
+          "metadata": Object {
+            "firstName": "first-name",
+            "from": "first-name last-name",
+            "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+            "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+            "type": "agent",
+          },
+          "role": "appMaker",
+          "text": "",
+          "type": "text",
+        },
+        "userId": "5e31c81640a22c000f5d7c75",
+      },
+    ],
+    Array [
+      Object {
+        "appId": "5e31c81640a22c000f5d7c55",
+        "message": Object {
+          "metadata": Object {
+            "firstName": "first-name",
+            "from": "first-name last-name",
+            "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+            "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+            "type": "agent",
+          },
+          "role": "appMaker",
+          "text": "",
+          "type": "text",
+        },
+        "userId": "5e31c81640a22c000f5d7c75",
+      },
+    ],
+    Array [
+      Object {
+        "appId": "5e31c81640a22c000f5d7c55",
+        "message": Object {
+          "metadata": Object {
+            "firstName": "first-name",
+            "from": "first-name last-name",
+            "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+            "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+            "type": "agent",
+          },
+          "role": "appMaker",
+          "text": "",
+          "type": "text",
+        },
+        "userId": "5e31c81640a22c000f5d7c75",
+      },
+    ],
+    Array [
+      Object {
+        "appId": "5e31c81640a22c000f5d7c55",
+        "message": Object {
+          "metadata": Object {
+            "firstName": "first-name",
+            "from": "first-name last-name",
+            "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+            "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+            "type": "agent",
+          },
+          "role": "appMaker",
+          "text": "",
+          "type": "text",
+        },
+        "userId": "5e31c81640a22c000f5d7c75",
+      },
+    ],
+    Array [
+      Object {
+        "appId": "5e31c81640a22c000f5d7c55",
+        "message": Object {
+          "metadata": Object {
+            "firstName": "first-name",
+            "from": "first-name last-name",
+            "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+            "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+            "type": "agent",
+          },
+          "role": "appMaker",
+          "text": "",
+          "type": "text",
+        },
+        "userId": "5e31c81640a22c000f5d7c75",
+      },
+    ],
+    Array [
+      Object {
+        "appId": "5e31c81640a22c000f5d7c55",
+        "message": Object {
+          "metadata": Object {
+            "firstName": "first-name",
+            "from": "first-name last-name",
+            "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+            "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+            "type": "agent",
+          },
+          "role": "appMaker",
+          "text": "",
+          "type": "text",
+        },
+        "userId": "5e31c81640a22c000f5d7c75",
+      },
+    ],
+    Array [
+      Object {
+        "appId": "5e31c81640a22c000f5d7c55",
+        "message": Object {
+          "metadata": Object {
+            "firstName": "first-name",
+            "from": "first-name last-name",
+            "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+            "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+            "type": "agent",
+          },
+          "role": "appMaker",
+          "text": "",
+          "type": "text",
+        },
+        "userId": "5e31c81640a22c000f5d7c75",
+      },
+    ],
+    Array [
+      Object {
+        "appId": "5e31c81640a22c000f5d7c55",
+        "message": Object {
+          "metadata": Object {
+            "firstName": "first-name",
+            "from": "first-name last-name",
+            "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+            "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+            "type": "agent",
+          },
+          "role": "appMaker",
+          "text": "",
+          "type": "text",
+        },
+        "userId": "5e31c81640a22c000f5d7c75",
+      },
+    ],
+    Array [
+      Object {
+        "appId": "5e31c81640a22c000f5d7c55",
+        "message": Object {
+          "metadata": Object {
+            "firstName": "first-name",
+            "from": "first-name last-name",
+            "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+            "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+            "type": "agent",
+          },
+          "role": "appMaker",
+          "text": "",
+          "type": "text",
+        },
+        "userId": "5e31c81640a22c000f5d7c75",
+      },
+    ],
+    Array [
+      Object {
+        "appId": "5e31c81640a22c000f5d7c55",
+        "message": Object {
+          "metadata": Object {
+            "firstName": "first-name",
+            "from": "first-name last-name",
+            "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+            "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+            "type": "agent",
+          },
+          "role": "appMaker",
+          "text": "",
+          "type": "text",
+        },
+        "userId": "5e31c81640a22c000f5d7c75",
+      },
+    ],
+  ]
+`;
+
+exports[`send-message Everthing is successful Walkthrough passes in the correct arguments to sqs.sendMessages() in checkIfClientIsDisconnected() 1`] = `
+  Array [
+    Object {
+      "DelaySeconds": 900,
+      "MessageBody": "{\\"interactionId\\":\\"66d83870-30df-4a3b-8801-59edff162040\\",\\"tenantId\\":\\"66d83870-30df-4a3b-8801-59edff162034\\",\\"userId\\":\\"5e31c81640a22c000f5d7c75\\",\\"latestAgentMessageTimestamp\\":50000,\\"disconnectTimeoutInMinutes\\":50}",
+      "QueueUrl": "queue-url",
+    },
+  ]
+`;
+
+exports[`send-message Everthing is successful Walkthrough passes in the correct arguments to sqs.sendMessages() in sendReportingEvent() 1`] = `
+  Array [
+    Object {
+      "MessageBody": "{\\"tenantId\\":\\"66d83870-30df-4a3b-8801-59edff162034\\",\\"interactionId\\":\\"66d83870-30df-4a3b-8801-59edff162040\\",\\"source\\":\\"smooch\\",\\"metadata\\":{\\"smoochIntegrationId\\":\\"66d83870-30df-4a3b-8801-59edff162055\\",\\"latestMessageSentBy\\":\\"agent\\",\\"appId\\":\\"5e31c81640a22c000f5d7c55\\",\\"userId\\":\\"5e31c81640a22c000f5d7c75\\",\\"method\\":\\"get\\",\\"url\\":\\"https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata\\"}}",
+      "QueueUrl": "queue-url",
+    },
+  ]
+`;
+
+exports[`send-message Everthing is successful When client disconnect minutes are not provided 1`] = `
+  Object {
+    "body": Object {
+      "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+      "message": Object {
+        "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+        "from": "first-name last-name",
+        "id": "5e31c81640a22c000f5d7c80",
+        "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        "text": "text",
+        "timestamp": 50000,
+        "type": "agent",
+      },
+    },
+    "status": 200,
+  }
+`;
+
+exports[`send-message Everthing is successful When no register in table is found for client disconnect minutes checker 1`] = `
+  Object {
+    "body": Object {
+      "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+      "message": Object {
+        "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+        "from": "first-name last-name",
+        "id": "5e31c81640a22c000f5d7c80",
+        "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        "text": "text",
+        "timestamp": 50000,
+        "type": "agent",
+      },
+    },
+    "status": 200,
+  }
+`;
+
+exports[`send-message Everthing is successful sends back status 200 when the code runs without any error 1`] = `
+  Object {
+    "body": Object {
+      "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+      "message": Object {
+        "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+        "from": "first-name last-name",
+        "id": "5e31c81640a22c000f5d7c80",
+        "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        "text": "text",
+        "timestamp": 50000,
+        "type": "agent",
+      },
+    },
+    "status": 200,
+  }
+`;
+
+exports[`send-message Everthing is successful when customer message timestamp is greater than agent message timestamp 1`] = `
+  Object {
+    "body": Object {
+      "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+      "message": Object {
+        "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+        "from": "first-name last-name",
+        "id": "5e31c81640a22c000f5d7c80",
+        "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        "text": "text",
+        "timestamp": 50000,
+        "type": "agent",
+      },
+    },
+    "status": 200,
+  }
+`;
+
+exports[`send-message Everthing is successful when customer message timestamp is less than agent message timestamp 1`] = `
+  Object {
+    "body": Object {
+      "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+      "message": Object {
+        "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+        "from": "first-name last-name",
+        "id": "5e31c81640a22c000f5d7c80",
+        "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        "text": "text",
+        "timestamp": 50000,
+        "type": "agent",
+      },
+    },
+    "status": 200,
+  }
+`;
+
+exports[`send-message Everthing is successful when customer message timestamp or agent message timestamp are not provided 1`] = `
+  Object {
+    "body": Object {
+      "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+      "message": Object {
+        "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+        "from": "first-name last-name",
+        "id": "5e31c81640a22c000f5d7c80",
+        "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        "text": "text",
+        "timestamp": 50000,
+        "type": "agent",
+      },
+    },
+    "status": 200,
+  }
+`;
+
+exports[`send-message Everthing is successful when there is a error checking for dead interaction 1`] = `
+  Object {
+    "body": Object {
+      "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+      "message": Object {
+        "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+        "from": "first-name last-name",
+        "id": "5e31c81640a22c000f5d7c80",
+        "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        "text": "text",
+        "timestamp": 50000,
+        "type": "agent",
+      },
+    },
+    "status": 200,
+  }
+`;
+
+exports[`send-message Everthing is successful when there is a error sending reporting event 1`] = `
+  Object {
+    "body": Object {
+      "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+      "message": Object {
+        "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+        "from": "first-name last-name",
+        "id": "5e31c81640a22c000f5d7c80",
+        "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        "text": "text",
+        "timestamp": 50000,
+        "type": "agent",
+      },
+    },
+    "status": 200,
+  }
+`;
+
+exports[`send-message Everthing is successful when time stamps are not provided 1`] = `
+  Object {
+    "body": Object {
+      "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
+      "message": Object {
+        "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+        "from": "first-name last-name",
+        "id": "5e31c81640a22c000f5d7c80",
+        "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        "text": "text",
+        "timestamp": 50000,
+        "type": "agent",
+      },
+    },
+    "status": 200,
+  }
+`;
+
+exports[`send-message throws an error when there is an error getting smooch interaction record (thrown by getClientInactivityTimeout()) 1`] = `"Failed to get smooch interaction record"`;
+
+exports[`send-message throws an error when there is an error getting smooch interaction record (thrown by shouldCheckIfClientIsDisconnected()) 1`] = `"Failed to get smooch interaction record"`;
+
+exports[`send-message throws an error when there is an error updating latestMessageSentBy flag from metadata 1`] = `"Error updating latestMessageSentBy flag from metadata"`;

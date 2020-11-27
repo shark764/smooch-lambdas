@@ -1,3 +1,6 @@
+# 1.30.1
+* CXV1-21854 - Adding checker for activated whatsapp integration to apply customer disconnect after minutes.
+
 # 1.30.0
 * CXV1-21863 - Adding collect-message-response flow for whatsapp, message collected via text
 
