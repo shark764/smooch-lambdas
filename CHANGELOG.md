@@ -1,3 +1,6 @@
+# 1.30.2
+* CXV1-21854 - Applying correct permissions to whatsapp configuration lambdas.
+
 # 1.30.1
 * CXV1-21854 - Adding checker for activated whatsapp integration to apply customer disconnect after minutes.
 

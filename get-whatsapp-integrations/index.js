@@ -4,7 +4,7 @@ const string = require('serenova-js-utils/strings');
 const {
   lambda: {
     log,
-    api: { validateTenantPermissions, validatePlatformPermissions },
+    api: { validateTenantPermissions },
   },
 } = require('alonzo');
 
@@ -18,11 +18,7 @@ const paramsSchema = Joi.object({
 AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
 
-const lambdaPermissions = [
-  'DIGITAL_CHANNELS_APP_READ',
-  'WEB_INTEGRATIONS_APP_UPDATE',
-];
-const lambdaPlatformPermissions = ['PLATFORM_DIGITAL_CHANNELS_APP'];
+const lambdaPermissions = ['WHATSAPP_INTEGRATIONS_APP_READ'];
 
 exports.handler = async (event) => {
   const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
@@ -48,15 +44,10 @@ exports.handler = async (event) => {
     identity,
     lambdaPermissions,
   );
-  const validPlatformPermissions = validatePlatformPermissions(
-    identity,
-    lambdaPlatformPermissions,
-  );
 
-  if (!(validPermissions || validPlatformPermissions)) {
+  if (!validPermissions) {
     const expectedPermissions = {
       tenant: lambdaPermissions,
-      platform: lambdaPlatformPermissions,
     };
     const errMsg = 'Error not enough permissions';
     log.warn(errMsg, logContext, expectedPermissions);

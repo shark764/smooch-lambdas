@@ -1,7 +1,7 @@
 const { ValidationError } = require('@hapi/joi');
 const {
   lambda: {
-    api: { validateTenantPermissions, validatePlatformPermissions },
+    api: { validateTenantPermissions },
   },
 } = require('alonzo');
 
@@ -9,7 +9,6 @@ jest.mock('aws-sdk');
 jest.mock('alonzo');
 
 validateTenantPermissions.mockReturnValue(true);
-validatePlatformPermissions.mockReturnValue(true);
 
 beforeAll(() => {
   global.process.env = {
@@ -97,26 +96,12 @@ describe('get-whatsapp-integrations', () => {
             [
               '66d83870-30df-4a3b-8801-59edff162034',
               { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
-              ['DIGITAL_CHANNELS_APP_READ', 'WEB_INTEGRATIONS_APP_UPDATE'],
+              ['WHATSAPP_INTEGRATIONS_APP_READ'],
             ],
             [
               '66d83870-30df-4a3b-8801-59edff162034',
               { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
-              ['DIGITAL_CHANNELS_APP_READ', 'WEB_INTEGRATIONS_APP_UPDATE'],
-            ],
-          ]),
-        );
-      });
-      it('passes in the correct arguments to validatePlatformPermissions', async () => {
-        expect(validatePlatformPermissions.mock.calls).toEqual(
-          expect.arrayContaining([
-            [
-              { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
-              ['PLATFORM_DIGITAL_CHANNELS_APP'],
-            ],
-            [
-              { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
-              ['PLATFORM_DIGITAL_CHANNELS_APP'],
+              ['WHATSAPP_INTEGRATIONS_APP_READ'],
             ],
           ]),
         );
@@ -164,14 +149,11 @@ describe('get-whatsapp-integrations', () => {
 
   it('sends back status 403 when there are not enough permissions', async () => {
     validateTenantPermissions.mockReturnValueOnce(false);
-    validatePlatformPermissions.mockReturnValueOnce(false);
     const result = await handler(event);
     expect(result).toEqual({
       body: {
         expectedPermissions: {
-          platform: ['PLATFORM_DIGITAL_CHANNELS_APP'],
-          tenant: ['DIGITAL_CHANNELS_APP_READ',
-            'WEB_INTEGRATIONS_APP_UPDATE'],
+          tenant: ['WHATSAPP_INTEGRATIONS_APP_READ'],
         },
         message: 'Error not enough permissions',
       },
