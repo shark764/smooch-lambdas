@@ -193,7 +193,7 @@ describe('get-whatsapp-apps', () => {
       body: {
         error: new ValidationError('"tenant-id" is not allowed to be empty'),
         message:
-          'Error: invalid params value "tenant-id" is not allowed to be empty',
+          'Error: invalid params value(s). "tenant-id" is not allowed to be empty',
       },
       status: 400,
     });

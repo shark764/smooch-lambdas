@@ -71,18 +71,19 @@ exports.handler = async (event) => {
    * Validating parameters
    */
   try {
-    await paramsSchema.validateAsync(params);
+    await paramsSchema.validateAsync(params, { abortEarly: false });
   } catch (error) {
-    log.warn(
-      'Error: invalid params value',
-      { ...logContext, validationMessage: error.details[0].message },
-      error,
-    );
+    const errMsg = 'Error: invalid params value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
+
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
 
     return {
       status: 400,
       body: {
-        message: `Error: invalid params value ${error.details[0].message}`,
+        message: `${errMsg} ${validationMessage}`,
         error,
       },
     };
@@ -92,19 +93,18 @@ exports.handler = async (event) => {
    * Validating body
    */
   try {
-    await bodySchema.validateAsync(body);
+    await bodySchema.validateAsync(body, { abortEarly: false });
   } catch (error) {
-    const errMsg = 'Error: invalid body value';
+    const errMsg = 'Error: invalid body value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
 
-    log.warn(
-      errMsg,
-      { ...logContext, validationMessage: error.details[0].message },
-      error,
-    );
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
 
     return {
       status: 400,
-      body: { message: `${errMsg} ${error.details[0].message}` },
+      body: { message: `${errMsg} ${validationMessage}` },
     };
   }
 
@@ -130,7 +130,17 @@ exports.handler = async (event) => {
 
       return {
         status: 404,
-        body: { message: errMsg, appId: integrationId },
+        body: { message: errMsg, whatsappId: integrationId },
+      };
+    }
+    if (Item.type !== 'whatsapp') {
+      const errMsg = 'Invalid parameter value, whatsappId provided is invalid for this request';
+
+      log.error(errMsg, logContext);
+
+      return {
+        status: 400,
+        body: { message: errMsg, whatsappId: integrationId },
       };
     }
   } catch (error) {

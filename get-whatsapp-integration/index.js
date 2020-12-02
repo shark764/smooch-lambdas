@@ -64,18 +64,19 @@ exports.handler = async (event) => {
    * Validating parameters
    */
   try {
-    await paramsSchema.validateAsync(params);
+    await paramsSchema.validateAsync(params, { abortEarly: false });
   } catch (error) {
-    log.warn(
-      'Error: invalid params value',
-      { ...logContext, validationMessage: error.details[0].message },
-      error,
-    );
+    const errMsg = 'Error: invalid params value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
+
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
 
     return {
       status: 400,
       body: {
-        message: `Error: invalid params value ${error.details[0].message}`,
+        message: `${errMsg} ${validationMessage}`,
         error,
       },
     };
@@ -100,6 +101,17 @@ exports.handler = async (event) => {
      */
     if (Item) {
       integration = Item;
+
+      if (Item.type !== 'whatsapp') {
+        const errMsg = 'Invalid parameter value, whatsappId provided is invalid for this request';
+
+        log.error(errMsg, logContext);
+
+        return {
+          status: 400,
+          body: { message: errMsg, whatsappId: integrationId },
+        };
+      }
     } else {
       const errMsg = 'The app does not exist for this tenant';
 

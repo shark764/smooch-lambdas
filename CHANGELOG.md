@@ -1,3 +1,6 @@
+# 1.30.3
+* CXV1-21854 - Fixing parameter and body validation for whatsappId value. Adding back unit tests for send-message / send-attachment / smooch-webhook.
+
 # 1.30.2
 * CXV1-21854 - Applying correct permissions to whatsapp configuration lambdas.
 

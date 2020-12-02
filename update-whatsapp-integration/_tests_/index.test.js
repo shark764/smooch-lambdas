@@ -46,7 +46,8 @@ const event = {
 const mockGet = jest.fn().mockImplementation(() => ({
   promise: () => ({
     Item: {
-      'app-id': '5fa425ef26770c000c171f9b',
+      'app-id': '5e31c81640a22c000f5d7f27',
+      type: 'whatsapp',
       'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
       id: '5e31c81640a22c000f5d7f28',
     },
@@ -349,7 +350,8 @@ describe('update-whatsapp-integration', () => {
     expect(result).toEqual({
       body: {
         error: new ValidationError('"id" is not allowed to be empty'),
-        message: 'Error: invalid params value "id" is not allowed to be empty',
+        message:
+          'Error: invalid params value(s). "id" is not allowed to be empty',
       },
       status: 400,
     });
@@ -368,7 +370,7 @@ describe('update-whatsapp-integration', () => {
     expect(result).toEqual({
       body: {
         message:
-          'Error: invalid body value "clientDisconnectMinutes" must be less than or equal to 1440',
+          'Error: invalid body value(s). "clientDisconnectMinutes" must be less than or equal to 1440',
       },
       status: 400,
     });
@@ -387,7 +389,7 @@ describe('update-whatsapp-integration', () => {
     const result = await handler(mockEvent);
     expect(result).toEqual({
       body: {
-        message: 'Error: invalid body value "active" must be a boolean',
+        message: 'Error: invalid body value(s). "active" must be a boolean',
       },
       status: 400,
     });
@@ -416,10 +418,32 @@ describe('update-whatsapp-integration', () => {
     const result = await handler(event);
     expect(result).toEqual({
       body: {
-        appId: '5e31c81640a22c000f5d7f28',
         message: 'The app does not exist for this tenant',
+        whatsappId: '5e31c81640a22c000f5d7f28',
       },
       status: 404,
+    });
+  });
+
+  it('sends back status 400 when provided whatsappId as key is invalid for this request', async () => {
+    mockGet.mockImplementationOnce(() => ({
+      promise: () => ({
+        Item: {
+          'app-id': '5fa425ef26770c000c171f9b',
+          type: 'web',
+          'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+          id: '5e31c81640a22c000f5d7f28',
+        },
+      }),
+    }));
+    const result = await handler(event);
+    expect(result).toEqual({
+      body: {
+        whatsappId: '5e31c81640a22c000f5d7f28',
+        message:
+          'Invalid parameter value, whatsappId provided is invalid for this request',
+      },
+      status: 400,
     });
   });
 

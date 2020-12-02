@@ -21,7 +21,7 @@ beforeAll(() => {
 const event = {
   params: {
     'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
-    id: '667802d8-2260-436c-958a-2ee0f71f73f0',
+    id: '5e31c81640a22c000f5d7f28',
   },
   identity: {
     'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0',
@@ -106,7 +106,7 @@ describe('get-whatsapp-integration', () => {
         expect(mockGet.mock.calls[0]).toEqual([
           {
             Key: {
-              id: '667802d8-2260-436c-958a-2ee0f71f73f0',
+              id: '5e31c81640a22c000f5d7f28',
               'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
             },
             TableName: 'us-east-1-dev-smooch',
@@ -128,9 +128,11 @@ describe('get-whatsapp-integration', () => {
     const result = await handler(mockEvent);
     expect(result).toEqual({
       body: {
-        error: new ValidationError('"tenant-id" is not allowed to be empty'),
+        error: new ValidationError(
+          '"tenant-id" is not allowed to be empty. "id" is required',
+        ),
         message:
-          'Error: invalid params value "tenant-id" is not allowed to be empty',
+          'Error: invalid params value(s). "tenant-id" is not allowed to be empty / "id" is required',
       },
       status: 400,
     });
@@ -161,6 +163,28 @@ describe('get-whatsapp-integration', () => {
     });
   });
 
+  it('sends back status 400 when provided whatsappId as key is invalid for this request', async () => {
+    mockGet.mockImplementationOnce(() => ({
+      promise: () => ({
+        Item: {
+          'app-id': '5fa425ef26770c000c171f9b',
+          type: 'web',
+          'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+          id: '5e31c81640a22c000f5d7f28',
+        },
+      }),
+    }));
+    const result = await handler(event);
+    expect(result).toEqual({
+      body: {
+        whatsappId: '5e31c81640a22c000f5d7f28',
+        message:
+          'Invalid parameter value, whatsappId provided is invalid for this request',
+      },
+      status: 400,
+    });
+  });
+
   it('sends back status 500 when there is an error fetching the app in DynamoDB', async () => {
     mockGet.mockRejectedValueOnce(new Error());
     const result = await handler(event);
@@ -169,7 +193,7 @@ describe('get-whatsapp-integration', () => {
         message: 'An Error has occurred trying to fetch an app in DynamoDB',
         queryParams: {
           Key: {
-            id: '667802d8-2260-436c-958a-2ee0f71f73f0',
+            id: '5e31c81640a22c000f5d7f28',
             'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
           },
           TableName: 'us-east-1-dev-smooch',

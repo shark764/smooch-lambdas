@@ -21,7 +21,7 @@ beforeAll(() => {
 });
 
 const mockBody = {
-  appId: '5e31c81640a22c000f5d7f28',
+  whatsappId: '5e31c81640a22c000f5d7f28',
   name: 'smooch',
   description: 'description',
   clientDisconnectMinutes: 150,
@@ -247,7 +247,7 @@ describe('create-whatsapp-integration', () => {
         const mockEvent = {
           ...event,
           body: {
-            appId: '5e31c81640a22c000f5d7f28',
+            whatsappId: '5e31c81640a22c000f5d7f28',
             name: 'smooch',
             clientDisconnectMinutes: 150,
           },
@@ -291,7 +291,7 @@ describe('create-whatsapp-integration', () => {
         const mockEvent = {
           ...event,
           body: {
-            appId: '5e31c81640a22c000f5d7f28',
+            whatsappId: '5e31c81640a22c000f5d7f28',
             name: 'smooch',
             description: 'description',
           },
@@ -334,7 +334,7 @@ describe('create-whatsapp-integration', () => {
         const mockEvent = {
           ...event,
           body: {
-            appId: '5e31c81640a22c000f5d7f28',
+            whatsappId: '5e31c81640a22c000f5d7f28',
             name: 'smooch',
             description: 'description',
             clientDisconnectMinutes: 150,
@@ -394,7 +394,7 @@ describe('create-whatsapp-integration', () => {
       body: {
         error: new ValidationError('"tenant-id" is not allowed to be empty'),
         message:
-          'Error: invalid params value "tenant-id" is not allowed to be empty',
+          'Error: invalid params value(s). "tenant-id" is not allowed to be empty',
       },
       status: 400,
     });
@@ -404,7 +404,7 @@ describe('create-whatsapp-integration', () => {
     const mockEvent = {
       ...event,
       body: {
-        appId: '',
+        whatsappId: '',
         name: 'smooch',
         description: '',
       },
@@ -412,7 +412,8 @@ describe('create-whatsapp-integration', () => {
     const result = await handler(mockEvent);
     expect(result).toEqual({
       body: {
-        message: 'Error: invalid body value "appId" is not allowed to be empty',
+        message:
+          'Error: invalid body value(s). "whatsappId" is not allowed to be empty',
       },
       status: 400,
     });
@@ -422,7 +423,7 @@ describe('create-whatsapp-integration', () => {
     const mockEvent = {
       ...event,
       body: {
-        appId: '5e31c81640a22c000f5d7f28',
+        whatsappId: '5e31c81640a22c000f5d7f28',
         name: 'something',
         description: 'something',
         clientDisconnectMinutes: 1440,
@@ -432,7 +433,28 @@ describe('create-whatsapp-integration', () => {
     const result = await handler(mockEvent);
     expect(result).toEqual({
       body: {
-        message: 'Error: invalid body value "active" must be a boolean',
+        message: 'Error: invalid body value(s). "active" must be a boolean',
+      },
+      status: 400,
+    });
+  });
+
+  it('sends back status 400 when there is more than one invalid values in body', async () => {
+    const mockEvent = {
+      ...event,
+      body: {
+        whatsappId: '',
+        name: 'something',
+        description: 'something',
+        clientDisconnectMinutes: 1441,
+        active: null,
+      },
+    };
+    const result = await handler(mockEvent);
+    expect(result).toEqual({
+      body: {
+        message:
+          'Error: invalid body value(s). "whatsappId" is not allowed to be empty / "clientDisconnectMinutes" must be less than or equal to 1440 / "active" must be a boolean',
       },
       status: 400,
     });
@@ -464,11 +486,12 @@ describe('create-whatsapp-integration', () => {
     });
   });
 
-  it('sends back status 400 when there exist already an app with provided appId as key', async () => {
+  it('sends back status 400 when there exist already an app with provided whatsappId as key', async () => {
     mockGet.mockImplementationOnce(() => ({
       promise: () => ({
         Item: {
           'app-id': '5fa425ef26770c000c171f9b',
+          type: 'whatsapp',
           'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
           id: '5e31c81640a22c000f5d7f28',
         },
@@ -477,8 +500,30 @@ describe('create-whatsapp-integration', () => {
     const result = await handler(event);
     expect(result).toEqual({
       body: {
-        appId: '5e31c81640a22c000f5d7f28',
-        message: 'A record already exists for this appId in this tenant',
+        whatsappId: '5e31c81640a22c000f5d7f28',
+        message: 'A record already exists for this whatsappId in this tenant',
+      },
+      status: 400,
+    });
+  });
+
+  it('sends back status 400 when provided whatsappId as key is invalid for this request', async () => {
+    mockGet.mockImplementationOnce(() => ({
+      promise: () => ({
+        Item: {
+          'app-id': '5fa425ef26770c000c171f9b',
+          type: 'web',
+          'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+          id: '5e31c81640a22c000f5d7f28',
+        },
+      }),
+    }));
+    const result = await handler(event);
+    expect(result).toEqual({
+      body: {
+        whatsappId: '5e31c81640a22c000f5d7f28',
+        message:
+          'Invalid body value, whatsappId provided is invalid for this request',
       },
       status: 400,
     });
@@ -497,7 +542,7 @@ describe('create-whatsapp-integration', () => {
           TableName: 'us-east-1-dev-smooch',
         },
         message:
-          'An Error has occurred trying to fetch an app with passed appId in DynamoDB',
+          'An Error has occurred trying to fetch an app with passed whatsappId in DynamoDB',
       },
       status: 500,
     });
@@ -540,7 +585,7 @@ describe('create-whatsapp-integration', () => {
     });
   });
 
-  it('sends back status 400 when there is no app that matches provided appId for the tenant', async () => {
+  it('sends back status 400 when there is no app that matches provided whatsappId for the tenant', async () => {
     mockList.mockImplementationOnce(() => ({
       integrations: [
         {
@@ -555,7 +600,7 @@ describe('create-whatsapp-integration', () => {
     expect(result).toEqual({
       body: {
         message:
-          'The appId provided in the request body does not exist for this tenant',
+          'The whatsappId provided in the request body does not exist in smooch for this tenant',
       },
       status: 400,
     });

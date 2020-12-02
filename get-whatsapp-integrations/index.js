@@ -62,18 +62,19 @@ exports.handler = async (event) => {
    * Validating parameters
    */
   try {
-    await paramsSchema.validateAsync(params);
+    await paramsSchema.validateAsync(params, { abortEarly: false });
   } catch (error) {
-    log.warn(
-      'Error: invalid params value',
-      { ...logContext, validationMessage: error.details[0].message },
-      error,
-    );
+    const errMsg = 'Error: invalid params value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
+
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
 
     return {
       status: 400,
       body: {
-        message: `Error: invalid params value ${error.details[0].message}`,
+        message: `${errMsg} ${validationMessage}`,
         error,
       },
     };

@@ -3,6 +3,12 @@ const axios = require('axios');
 const uuidv4 = require('uuid/v4');
 const uuidv1 = require('uuid/v1');
 
+const {
+  checkIfClientIsDisconnected,
+  shouldCheckIfClientIsDisconnected,
+  getClientInactivityTimeout,
+} = require('../resources/commonFunctions');
+
 jest.mock('axios');
 jest.mock('smooch-core');
 jest.mock('uuid/v4');
@@ -12,6 +18,13 @@ uuidv4.mockImplementation(() => 'new-interaction-id');
 uuidv1.mockImplementation(() => 'mock-uuid-v1');
 global.Date.now = jest.fn(() => 1588787136364);
 global.Date.prototype.getTime = jest.fn(() => '00:00:00');
+
+jest.mock('../resources/commonFunctions');
+checkIfClientIsDisconnected.mockImplementation(() => ({
+  promise: () => ({}),
+}));
+shouldCheckIfClientIsDisconnected.mockImplementation(() => false);
+getClientInactivityTimeout.mockImplementation(() => 5);
 
 global.process.env = {
   AWS_REGION: 'us-east-1',
@@ -57,6 +70,11 @@ const mockUpdate = jest.fn()
     promise: () => ({}),
   }));
 
+const mockDelete = jest.fn()
+  .mockImplementation(() => ({
+    promise: () => ({}),
+  }));
+
 const mockSmoochCore = jest.fn(() => ({
   appUsers: {
     update: mockSmoochUpdate,
@@ -85,6 +103,7 @@ jest.mock('aws-sdk', () => ({
       get: mockGet,
       put: mockPut, // mockPut,
       update: mockUpdate, // mockUpdate,
+      delete: mockDelete,
     })),
   },
   SecretsManager: jest.fn().mockImplementation(() => ({
@@ -192,68 +211,68 @@ describe('smooch-webhook', () => {
 
       describe('web', () => {
         describe('formResponse', () => {
-          // it('calls handleFormResponse correctly', async () => {
-          //   const spyOnHandleFormResponse = jest.spyOn(index, 'handleFormResponse')
-          //     .mockImplementationOnce(() => { });
-          //   await handler(event({
-          //     ...body,
-          //     trigger: 'message:appUser',
-          //     messages: [{
-          //       type: 'formResponse',
-          //       name: 'mock-name',
-          //       fields: [{}],
-          //     }],
-          //   }));
-          //   expect(spyOnHandleFormResponse.mock.calls).toMatchSnapshot();
-          // });
+          it('calls handleFormResponse correctly', async () => {
+            const spyOnHandleFormResponse = jest.spyOn(index, 'handleFormResponse')
+              .mockImplementationOnce(() => { });
+            await handler(event({
+              ...body,
+              trigger: 'message:appUser',
+              messages: [{
+                type: 'formResponse',
+                name: 'mock-name',
+                fields: [{}],
+              }],
+            }));
+            expect(spyOnHandleFormResponse.mock.calls).toMatchSnapshot();
+          });
         });
 
         describe('text', () => {
-          // it('calls handleCustomerMessage correctly', async () => {
-          //   const handleCustomerMessage = jest.spyOn(index, 'handleCustomerMessage')
-          //     .mockImplementationOnce(() => {});
-          //   await handler(event({
-          //     ...body,
-          //     trigger: 'message:appUser',
-          //     messages: [{
-          //       type: 'text',
-          //       fields: [{}],
-          //     }],
-          //   }));
-          //   expect(handleCustomerMessage.mock.calls).toMatchSnapshot();
-          // });
+          it('calls handleCustomerMessage correctly', async () => {
+            const handleCustomerMessage = jest.spyOn(index, 'handleCustomerMessage')
+              .mockImplementationOnce(() => {});
+            await handler(event({
+              ...body,
+              trigger: 'message:appUser',
+              messages: [{
+                type: 'text',
+                fields: [{}],
+              }],
+            }));
+            expect(handleCustomerMessage.mock.calls).toMatchSnapshot();
+          });
         });
 
         describe('image', () => {
-          // it('calls handleCustomerMessage correctly', async () => {
-          //   const handleCustomerMessage = jest.spyOn(index, 'handleCustomerMessage')
-          //     .mockImplementationOnce(() => {});
-          //   await handler(event({
-          //     ...body,
-          //     trigger: 'message:appUser',
-          //     messages: [{
-          //       type: 'image',
-          //       fields: [{}],
-          //     }],
-          //   }));
-          //   expect(handleCustomerMessage.mock.calls).toMatchSnapshot();
-          // });
+          it('calls handleCustomerMessage correctly', async () => {
+            const handleCustomerMessage = jest.spyOn(index, 'handleCustomerMessage')
+              .mockImplementationOnce(() => {});
+            await handler(event({
+              ...body,
+              trigger: 'message:appUser',
+              messages: [{
+                type: 'image',
+                fields: [{}],
+              }],
+            }));
+            expect(handleCustomerMessage.mock.calls).toMatchSnapshot();
+          });
         });
 
         describe('file', () => {
-        //   it('calls handleCustomerMessage correctly', async () => {
-        //     const handleCustomerMessage = jest.spyOn(index, 'handleCustomerMessage')
-        //       .mockImplementationOnce(() => {});
-        //     await handler(event({
-        //       ...body,
-        //       trigger: 'message:appUser',
-        //       messages: [{
-        //         type: 'file',
-        //         fields: [{}],
-        //       }],
-        //     }));
-        //     expect(handleCustomerMessage.mock.calls).toMatchSnapshot();
-        //   });
+          it('calls handleCustomerMessage correctly', async () => {
+            const handleCustomerMessage = jest.spyOn(index, 'handleCustomerMessage')
+              .mockImplementationOnce(() => {});
+            await handler(event({
+              ...body,
+              trigger: 'message:appUser',
+              messages: [{
+                type: 'file',
+                fields: [{}],
+              }],
+            }));
+            expect(handleCustomerMessage.mock.calls).toMatchSnapshot();
+          });
         });
 
         describe('when unsupported type is received', () => {
@@ -389,21 +408,21 @@ describe('smooch-webhook', () => {
         expect(result).toEqual('handleFormResponse Successful');
       });
 
-      // it('passes in the correct arguments to createInteraction()', async () => {
-      //   await handleFormResponse({
-      //     ...input,
-      //     form: {
-      //       name: 'Web User ',
-      //       type: 'formResponse',
-      //       fields: [{
-      //         email: 'mock-email',
-      //       }],
-      //       _id: '_id',
-      //       received: '10',
-      //     },
-      //   });
-      //   expect(spyOnCreateInteraction.mock.calls).toMatchSnapshot();
-      // });
+      it('passes in the correct arguments to createInteraction()', async () => {
+        await handleFormResponse({
+          ...input,
+          form: {
+            name: 'Web User ',
+            type: 'formResponse',
+            fields: [{
+              email: 'mock-email',
+            }],
+            _id: '_id',
+            received: '10',
+          },
+        });
+        expect(spyOnCreateInteraction.mock.calls).toMatchSnapshot();
+      });
 
       it('when prechat form is submitted with no customer indentifier', async () => {
         const mockInput = {
@@ -623,10 +642,10 @@ describe('smooch-webhook', () => {
       expect(mockGet.mock.calls).toMatchSnapshot();
     });
 
-    // it('calls axios correctly', async () => {
-    //   await createInteraction(input);
-    //   expect(axios.mock.calls).toMatchSnapshot();
-    // });
+    it('calls axios correctly', async () => {
+      await createInteraction(input);
+      expect(axios.mock.calls).toMatchSnapshot();
+    });
 
     it('calls docClient.update() correctly', async () => {
       await createInteraction(input);
@@ -773,106 +792,106 @@ describe('smooch-webhook', () => {
     });
   });
 
-  describe('shouldCheckIfClientIsDisconnected', () => {
-    const input = {
-      userId: 'mock-user-id',
-      logContext: 'logContext',
-    };
+  // describe('shouldCheckIfClientIsDisconnected', () => {
+  //   const input = {
+  //     userId: 'mock-user-id',
+  //     logContext: 'logContext',
+  //   };
 
-    const { shouldCheckIfClientIsDisconnected } = index;
+  //   // const { shouldCheckIfClientIsDisconnected } = index;
 
-    // it('calls docClient.get() correctly', async () => {
-    //   await shouldCheckIfClientIsDisconnected(input);
-    //   expect(mockGet.mock.calls).toMatchSnapshot();
-    // });
+  //   it('calls docClient.get() correctly', async () => {
+  //     await shouldCheckIfClientIsDisconnected(input);
+  //     expect(mockGet.mock.calls).toMatchSnapshot();
+  //   });
 
-    // it('!hasInteractionItem', async () => {
-    //   mockGet.mockImplementationOnce(() => ({
-    //     promise: () => ({ Item: {} }),
-    //   }));
+  //   it('!hasInteractionItem', async () => {
+  //     mockGet.mockImplementationOnce(() => ({
+  //       promise: () => ({ Item: {} }),
+  //     }));
 
-    //   const result = await shouldCheckIfClientIsDisconnected(input);
-    //   expect(result).toEqual(false);
-    // });
+  //     const result = await shouldCheckIfClientIsDisconnected(input);
+  //     expect(result).toEqual(false);
+  //   });
 
-    // it('LatestCustomerMsgTs > LatestAgentMsgTs', async () => {
-    //   mockGet.mockImplementationOnce(() => ({
-    //     promise: () => ({
-    //       Item: {
-    //         'client-disconnect-minutes': 50,
-    //         LatestCustomerMessageTimestamp: '2020-02-18T20:47:50.670Z',
-    //         LatestAgentMessageTimestamp: '2020-02-18T20:47:38.670Z',
-    //       },
-    //     }),
-    //   }));
+  //   it('LatestCustomerMsgTs > LatestAgentMsgTs', async () => {
+  //     mockGet.mockImplementationOnce(() => ({
+  //       promise: () => ({
+  //         Item: {
+  //           'client-disconnect-minutes': 50,
+  //           LatestCustomerMessageTimestamp: '2020-02-18T20:47:50.670Z',
+  //           LatestAgentMessageTimestamp: '2020-02-18T20:47:38.670Z',
+  //         },
+  //       }),
+  //     }));
 
-    //   const result = await shouldCheckIfClientIsDisconnected(input);
-    //   expect(result).toEqual(true);
-    // });
+  //     const result = await shouldCheckIfClientIsDisconnected(input);
+  //     expect(result).toEqual(true);
+  //   });
 
-    // it('InteractionItem exists and LatestCustomerMsgTs <= LatestAgentMsgTs', async () => {
-    //   mockGet.mockImplementationOnce(() => ({
-    //     promise: () => ({
-    //       Item: {
-    //         'client-disconnect-minutes': 50,
-    //         LatestCustomerMessageTimestamp: '2020-02-18T20:47:38.670Z',
-    //         LatestAgentMessageTimestamp: '2020-02-18T20:47:50.670Z',
-    //       },
-    //     }),
-    //   }));
+  //   it('InteractionItem exists and LatestCustomerMsgTs <= LatestAgentMsgTs', async () => {
+  //     mockGet.mockImplementationOnce(() => ({
+  //       promise: () => ({
+  //         Item: {
+  //           'client-disconnect-minutes': 50,
+  //           LatestCustomerMessageTimestamp: '2020-02-18T20:47:38.670Z',
+  //           LatestAgentMessageTimestamp: '2020-02-18T20:47:50.670Z',
+  //         },
+  //       }),
+  //     }));
 
-    //   const result = await shouldCheckIfClientIsDisconnected(input);
-    //   expect(result).toEqual(false);
-    // });
+  //     const result = await shouldCheckIfClientIsDisconnected(input);
+  //     expect(result).toEqual(false);
+  //   });
 
-    it('throws an error when there is a problem retrieving smooch integration from DynamoDB', async () => {
-      mockGet.mockRejectedValueOnce(new Error());
-      try {
-        await shouldCheckIfClientIsDisconnected(input);
-      } catch (error) {
-        expect(
-          Promise.reject(new Error('Failed to retrieve Smooch integration from DynamoDB')),
-        ).rejects.toThrowErrorMatchingSnapshot();
-      }
-    });
-  });
+  //   it('throws an error when there is a problem retrieving smooch integration from DynamoDB', async () => {
+  //     mockGet.mockRejectedValueOnce(new Error());
+  //     try {
+  //       await shouldCheckIfClientIsDisconnected(input);
+  //     } catch (error) {
+  //       expect(
+  //         Promise.reject(new Error('Failed to retrieve Smooch integration from DynamoDB')),
+  //       ).rejects.toThrowErrorMatchingSnapshot();
+  //     }
+  //   });
+  // });
 
-  describe('getClientInactivityTimeout', () => {
-    const input = {
-      logContext: {
-        smoochUserId: 'mock-smooch-user-id',
-        smoochIntegrationId: 'mock-integration-id',
-        tenantId: 'mock-tenant-id',
-      },
-    };
+  // describe('getClientInactivityTimeout', () => {
+  //   const input = {
+  //     logContext: {
+  //       smoochUserId: 'mock-smooch-user-id',
+  //       smoochIntegrationId: 'mock-integration-id',
+  //       tenantId: 'mock-tenant-id',
+  //     },
+  //   };
 
-    const { getClientInactivityTimeout } = index;
+  //   // const { getClientInactivityTimeout } = index;
 
-    // it('calls docClient.get() correctly', async () => {
-    //   mockGet.mockImplementationOnce(() => ({
-    //     promise: () => ({
-    //       Item: {
-    //         InteractionId: '1',
-    //         'contact-point': 'contactPoint',
-    //         'client-disconnect-minutes': 50,
-    //       },
-    //     }),
-    //   }));
-    //   await getClientInactivityTimeout(input);
-    //   expect(mockGet.mock.calls).toMatchSnapshot();
-    // });
+  //   it('calls docClient.get() correctly', async () => {
+  //     mockGet.mockImplementationOnce(() => ({
+  //       promise: () => ({
+  //         Item: {
+  //           InteractionId: '1',
+  //           'contact-point': 'contactPoint',
+  //           'client-disconnect-minutes': 50,
+  //         },
+  //       }),
+  //     }));
+  //     await getClientInactivityTimeout(input);
+  //     expect(mockGet.mock.calls).toMatchSnapshot();
+  //   });
 
-    it('throws an error when there is a problem retrieving smooch integration from DynamoDB', async () => {
-      mockGet.mockRejectedValueOnce(new Error());
-      try {
-        await getClientInactivityTimeout(input);
-      } catch (error) {
-        expect(
-          Promise.reject(new Error('Failed to retrieve Smooch integration from DynamoDB')),
-        ).rejects.toThrowErrorMatchingSnapshot();
-      }
-    });
-  });
+  //   it('throws an error when there is a problem retrieving smooch integration from DynamoDB', async () => {
+  //     mockGet.mockRejectedValueOnce(new Error());
+  //     try {
+  //       await getClientInactivityTimeout(input);
+  //     } catch (error) {
+  //       expect(
+  //         Promise.reject(new Error('Failed to retrieve Smooch integration from DynamoDB')),
+  //       ).rejects.toThrowErrorMatchingSnapshot();
+  //     }
+  //   });
+  // });
 
   describe('sendConversationEvent', () => {
     const input = {
@@ -1036,7 +1055,7 @@ describe('smooch-webhook', () => {
     };
     const { handleCustomerMessage } = index;
     const sendSmoochInteractionHeartbeat = jest.spyOn(index, 'sendSmoochInteractionHeartbeat');
-    // const sendCustomerMessageToParticipants = jest.spyOn(index, 'sendCustomerMessageToParticipants');
+    const sendCustomerMessageToParticipants = jest.spyOn(index, 'sendCustomerMessageToParticipants');
     const createInteraction = jest.spyOn(index, 'createInteraction');
     const updateInteractionMetadata = jest.spyOn(index, 'updateInteractionMetadata');
 
@@ -1047,26 +1066,26 @@ describe('smooch-webhook', () => {
         expect(sendSmoochInteractionHeartbeat.mock.calls).toMatchSnapshot();
       });
 
-      // it('calls sendCustomerMessageToParticipants correctly', async () => {
-      //   sendCustomerMessageToParticipants.mockImplementationOnce(() => { });
-      //   sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
-      //   axios.mockRejectedValueOnce(inActiveInteractionError);
-      //   await handleCustomerMessage(mockEvent);
-      //   expect(sendCustomerMessageToParticipants.mock.calls).toMatchSnapshot();
-      // });
+      it('calls sendCustomerMessageToParticipants correctly', async () => {
+        sendCustomerMessageToParticipants.mockImplementationOnce(() => { });
+        sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
+        axios.mockRejectedValueOnce(inActiveInteractionError);
+        await handleCustomerMessage(mockEvent);
+        expect(sendCustomerMessageToParticipants.mock.calls).toMatchSnapshot();
+      });
 
-      // it('calls createInteraction correctly', async () => {
-      //   sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
-      //   createInteraction.mockImplementationOnce(() => { });
-      //   await handleCustomerMessage(mockEvent);
-      //   expect(createInteraction.mock.calls).toMatchSnapshot();
-      // });
+      it('calls createInteraction correctly', async () => {
+        sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
+        createInteraction.mockImplementationOnce(() => { });
+        await handleCustomerMessage(mockEvent);
+        expect(createInteraction.mock.calls).toMatchSnapshot();
+      });
 
-      // it('returns when interaction Id is invalid', async () => {
-      //   sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
-      //   const result = await handleCustomerMessage(mockEvent);
-      //   expect(result).toEqual('handleCustomerMessage Successful');
-      // });
+      it('returns when interaction Id is invalid', async () => {
+        sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
+        const result = await handleCustomerMessage(mockEvent);
+        expect(result).toEqual('handleCustomerMessage Successful');
+      });
 
       it('returns when interaction Id is valid', async () => {
         const error = new Error();
@@ -1078,23 +1097,23 @@ describe('smooch-webhook', () => {
         expect(result).toEqual('handleCustomerMessage Successful');
       });
 
-      // it('returns when the interaction is not dead', async () => {
-      //   const error = new Error();
-      //   error.response = {
-      //     status: 500,
-      //   };
-      //   sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
-      //   axios.mockRejectedValueOnce(error);
-      //   const result = await handleCustomerMessage(mockEvent);
-      //   expect(result).toEqual('handleCustomerMessage Successful');
-      // });
+      it('returns when the interaction is not dead', async () => {
+        const error = new Error();
+        error.response = {
+          status: 500,
+        };
+        sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
+        axios.mockRejectedValueOnce(error);
+        const result = await handleCustomerMessage(mockEvent);
+        expect(result).toEqual('handleCustomerMessage Successful');
+      });
 
-      // it('returns when the interaction is dead', async () => {
-      //   sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
-      //   axios.mockRejectedValueOnce(inActiveInteractionError);
-      //   const result = await handleCustomerMessage(mockEvent);
-      //   expect(result).toEqual('handleCustomerMessage Successful');
-      // });
+      it('returns when the interaction is dead', async () => {
+        sendSmoochInteractionHeartbeat.mockRejectedValueOnce(inActiveInteractionError);
+        axios.mockRejectedValueOnce(inActiveInteractionError);
+        const result = await handleCustomerMessage(mockEvent);
+        expect(result).toEqual('handleCustomerMessage Successful');
+      });
 
       it('returns when latestMessageSentBy is not equal to customer', async () => {
         axios.mockImplementationOnce(() => ({}));
@@ -1165,30 +1184,30 @@ describe('smooch-webhook', () => {
 
       const uploadArtifactFile = jest.spyOn(index, 'uploadArtifactFile');
 
-      // it('calls createInteraction correctly', async () => {
-      //   createInteraction.mockImplementationOnce(() => { });
-      //   await handleCustomerMessage(newEvent);
-      //   expect(createInteraction.mock.calls).toMatchSnapshot();
-      // });
+      it('calls createInteraction correctly', async () => {
+        createInteraction.mockImplementationOnce(() => { });
+        await handleCustomerMessage(newEvent);
+        expect(createInteraction.mock.calls).toMatchSnapshot();
+      });
 
-      // it('calls uploadArtifactFile correctly', async () => {
-      //   uploadArtifactFile.mockImplementationOnce(() => { });
-      //   await handleCustomerMessage({
-      //     ...mockEvent,
-      //     hasInteractionItem: false,
-      //     type: 'image',
-      //   });
-      //   expect(uploadArtifactFile.mock.calls).toMatchSnapshot();
-      // });
+      it('calls uploadArtifactFile correctly', async () => {
+        uploadArtifactFile.mockImplementationOnce(() => { });
+        await handleCustomerMessage({
+          ...mockEvent,
+          hasInteractionItem: false,
+          type: 'image',
+        });
+        expect(uploadArtifactFile.mock.calls).toMatchSnapshot();
+      });
 
-      // it("returns when type!='file' && type!='image'", async () => {
-      //   const result = await handleCustomerMessage({
-      //     ...mockEvent,
-      //     hasInteractionItem: false,
-      //     type: 'text',
-      //   });
-      //   expect(result).toEqual('handleCustomerMessage Successful');
-      // });
+      it("returns when type!='file' && type!='image'", async () => {
+        const result = await handleCustomerMessage({
+          ...mockEvent,
+          hasInteractionItem: false,
+          type: 'text',
+        });
+        expect(result).toEqual('handleCustomerMessage Successful');
+      });
 
       it('throws an error when there is a problem creating interaction', async () => {
         createInteraction.mockImplementationOnce(() => {
@@ -1278,18 +1297,18 @@ describe('smooch-webhook', () => {
         }
       });
 
-      // it('customerIdentifier !== "Customer"', async () => {
-      //   const newEvent2 = {
-      //     ...mockEvent,
-      //     hasInteractionItem: false,
-      //     type: 'file',
-      //     customerIdentifier: 'Test',
-      //   };
+      it('customerIdentifier !== "Customer"', async () => {
+        const newEvent2 = {
+          ...mockEvent,
+          hasInteractionItem: false,
+          type: 'file',
+          customerIdentifier: 'Test',
+        };
 
-      //   mockSmoochUpdate.mockImplementationOnce(() => { });
-      //   const result = await handleCustomerMessage(newEvent2);
-      //   expect(result).toMatchSnapshot();
-      // });
+        mockSmoochUpdate.mockImplementationOnce(() => { });
+        const result = await handleCustomerMessage(newEvent2);
+        expect(result).toMatchSnapshot();
+      });
 
       it('updated smoochUser successfully', async () => {
         const result = await handleCustomerMessage(input);

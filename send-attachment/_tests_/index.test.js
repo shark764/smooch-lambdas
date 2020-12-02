@@ -1,7 +1,20 @@
 /* eslint-disable max-len */
 const axios = require('axios');
 
+const {
+  checkIfClientIsDisconnected,
+  shouldCheckIfClientIsDisconnected,
+  getClientInactivityTimeout,
+} = require('../resources/commonFunctions');
+
 jest.mock('axios');
+
+jest.mock('../resources/commonFunctions');
+checkIfClientIsDisconnected.mockImplementation(() => ({
+  promise: () => ({}),
+}));
+shouldCheckIfClientIsDisconnected.mockImplementation(() => false);
+getClientInactivityTimeout.mockImplementation(() => 5);
 
 global.process.env = {
   AWS_REGION: 'us-east-1',
@@ -10,7 +23,8 @@ global.process.env = {
   smooch_api_url: 'mock-amooch-api-url',
 };
 
-const mockGetSecretValue = jest.fn()
+const mockGetSecretValue = jest
+  .fn()
   .mockImplementation(() => ({
     promise: () => ({
       SecretString: JSON.stringify({
@@ -34,7 +48,8 @@ const mockGetHeaders = jest.fn();
 axios.mockImplementation(() => ({
   data: {
     method: 'get',
-    url: 'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
+    url:
+      'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
     smoochIntegrationId: '66d83870-30df-4a3b-8801-59edff162050',
     appId: '5e31c81640a22c000f5d7f28',
     userId: '5e31c81640a22c000f5d7f30',
@@ -43,40 +58,35 @@ axios.mockImplementation(() => ({
   },
 }));
 
-const mockGetObject = jest.fn()
-  .mockImplementation(() => ({
-    promise: () => ({
-      Body: '',
-    }),
-  }));
+const mockGetObject = jest.fn().mockImplementation(() => ({
+  promise: () => ({
+    Body: '',
+  }),
+}));
 
-const mockCreate = jest.fn()
-  .mockImplementation(() => ({
-    mediaUrl: 'media-url',
-    mediaType: 'image/smooch.jpg',
-  }));
+const mockCreate = jest.fn().mockImplementation(() => ({
+  mediaUrl: 'media-url',
+  mediaType: 'image/smooch.jpg',
+}));
 
-const mockSendMessage = jest.fn()
-  .mockImplementation(() => ({
-    message: {
-      _id: '5e31c81640a22c000f5d7f20',
-      text: 'messages',
-      type: 'type',
-      received: 50,
-    },
-  }));
+const mockSendMessage = jest.fn().mockImplementation(() => ({
+  message: {
+    _id: '5e31c81640a22c000f5d7f20',
+    text: 'messages',
+    type: 'type',
+    received: 50,
+  },
+}));
 
-const mockGetQueueUrl = jest.fn()
-  .mockImplementation(() => ({
-    promise: () => ({
-      QueueUrl: 'queue-url',
-    }),
-  }));
+const mockGetQueueUrl = jest.fn().mockImplementation(() => ({
+  promise: () => ({
+    QueueUrl: 'queue-url',
+  }),
+}));
 
-const mockSqsSendMessage = jest.fn()
-  .mockImplementation(() => ({
-    promise: () => ({}),
-  }));
+const mockSqsSendMessage = jest.fn().mockImplementation(() => ({
+  promise: () => ({}),
+}));
 
 // const mockGet = jest.fn()
 //   .mockImplementation(() => ({
@@ -96,12 +106,11 @@ const mockFormData = jest.fn(() => ({
 
 global.FormData = mockFormData;
 
-const mockHeadObject = jest.fn()
-  .mockImplementation(() => ({
-    promise: () => ({
-      ContentLength: 50,
-    }),
-  }));
+const mockHeadObject = jest.fn().mockImplementation(() => ({
+  promise: () => ({
+    ContentLength: 50,
+  }),
+}));
 
 const mockSmoochCore = jest.fn(() => ({
   attachments: {
@@ -158,10 +167,10 @@ const { handler } = require('../index');
 
 describe('send-attachment', () => {
   describe('Everything is successful', () => {
-    // it('sends back status 200 when the code runs without any error', async () => {
-    //   const result = await handler(event);
-    //   expect(result).toMatchSnapshot();
-    // });
+    it('sends back status 200 when the code runs without any error', async () => {
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
 
     // it('when customer message timestamp is less than agent message timestamp', async () => {
     //   mockGet.mockImplementation(() => ({
@@ -218,69 +227,71 @@ describe('send-attachment', () => {
     //   expect(result).toMatchSnapshot();
     // });
 
-    // it('when there is a faliure sending reporting event', async () => {
-    //   mockSqsSendMessage.mockImplementationOnce(() => ({
-    //     promise: () => ({}),
-    //   }));
-    //   mockSqsSendMessage.mockImplementationOnce(() => ({
-    //     promise: () => ({}),
-    //   }));
-    //   mockSqsSendMessage.mockRejectedValueOnce(new Error());
-    //   const result = await handler(event);
-    //   expect(result).toMatchSnapshot();
-    // });
+    it('when there is a faliure sending reporting event', async () => {
+      mockSqsSendMessage.mockImplementationOnce(() => ({
+        promise: () => ({}),
+      }));
+      mockSqsSendMessage.mockImplementationOnce(() => ({
+        promise: () => ({}),
+      }));
+      mockSqsSendMessage.mockRejectedValueOnce(new Error());
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
 
-    // it('when there is an error uploading file to artifact', async () => {
-    //   axios.mockImplementationOnce(() => ({
-    //     data: {
-    //       method: 'get',
-    //       url: 'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
-    //       smoochIntegrationId: '66d83870-30df-4a3b-8801-59edff162050',
-    //       appId: '5e31c81640a22c000f5d7f28',
-    //       userId: '5e31c81640a22c000f5d7f30',
-    //       artifactId: '5e31c81640a22c000f5d7f35',
-    //       latestMessageSentBy: 'customer',
-    //     },
-    //   }));
-    //   const result = await handler(event);
-    //   expect(result).toMatchSnapshot();
-    // });
+    it('when there is an error uploading file to artifact', async () => {
+      axios.mockImplementationOnce(() => ({
+        data: {
+          method: 'get',
+          url:
+            'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
+          smoochIntegrationId: '66d83870-30df-4a3b-8801-59edff162050',
+          appId: '5e31c81640a22c000f5d7f28',
+          userId: '5e31c81640a22c000f5d7f30',
+          artifactId: '5e31c81640a22c000f5d7f35',
+          latestMessageSentBy: 'customer',
+        },
+      }));
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
 
-    // it('when the media Type is a file', async () => {
-    //   mockCreate.mockImplementationOnce(() => ({
-    //     mediaUrl: 'media-url',
-    //     mediaType: 'smooch.jpg',
-    //   }));
-    //   const result = await handler(event);
-    //   expect(result).toMatchSnapshot();
-    // });
+    it('when the media Type is a file', async () => {
+      mockCreate.mockImplementationOnce(() => ({
+        mediaUrl: 'media-url',
+        mediaType: 'smooch.jpg',
+      }));
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
 
-    // it('when there is a error uploading file to artifact', async () => {
-    //   mockGetQueueUrl.mockRejectedValueOnce(new Error());
-    //   const result = await handler(event);
-    //   expect(result).toMatchSnapshot();
-    // });
+    it('when there is a error uploading file to artifact', async () => {
+      mockGetQueueUrl.mockRejectedValueOnce(new Error());
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
 
-    // it('when there is a error checking for dead interaction', async () => {
-    //   const error = new Error();
-    //   error.response = {
-    //     status: 0,
-    //   };
-    //   axios.mockImplementationOnce(() => ({
-    //     data: {
-    //       method: 'get',
-    //       url: 'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
-    //       smoochIntegrationId: '66d83870-30df-4a3b-8801-59edff162050',
-    //       appId: '5e31c81640a22c000f5d7f28',
-    //       userId: '5e31c81640a22c000f5d7f30',
-    //       artifactId: '5e31c81640a22c000f5d7f35',
-    //       latestMessageSentBy: 'customer',
-    //     },
-    //   }));
-    //   axios.mockRejectedValueOnce(error);
-    //   const result = await handler(event);
-    //   expect(result).toMatchSnapshot();
-    // });
+    it('when there is a error checking for dead interaction', async () => {
+      const error = new Error();
+      error.response = {
+        status: 0,
+      };
+      axios.mockImplementationOnce(() => ({
+        data: {
+          method: 'get',
+          url:
+            'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
+          smoochIntegrationId: '66d83870-30df-4a3b-8801-59edff162050',
+          appId: '5e31c81640a22c000f5d7f28',
+          userId: '5e31c81640a22c000f5d7f30',
+          artifactId: '5e31c81640a22c000f5d7f35',
+          latestMessageSentBy: 'customer',
+        },
+      }));
+      axios.mockRejectedValueOnce(error);
+      const result = await handler(event);
+      expect(result).toMatchSnapshot();
+    });
 
     // it('When no register in table is found for client disconnect minutes checker', async () => {
     //   mockGet.mockImplementationOnce(() => ({
@@ -298,7 +309,8 @@ describe('send-attachment', () => {
         axios.mockImplementation(() => ({
           data: {
             method: 'get',
-            url: 'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
+            url:
+              'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
             smoochIntegrationId: '66d83870-30df-4a3b-8801-59edff162050',
             appId: '5e31c81640a22c000f5d7f28',
             userId: '5e31c81640a22c000f5d7f30',
@@ -324,51 +336,63 @@ describe('send-attachment', () => {
         }));
         await handler(event);
       });
-      // it('passes in the correct arguments to secretClient.getSecretValue() to get digital channels credentials', async () => {
-      //   expect(mockGetSecretValue.mock.calls[0]).toEqual(expect.arrayContaining([{
-      //     SecretId: 'us-east-1-dev-smooch-app',
-      //   }]));
-      // });
+      it('passes in the correct arguments to secretClient.getSecretValue() to get digital channels credentials', async () => {
+        expect(mockGetSecretValue.mock.calls[0]).toEqual(
+          expect.arrayContaining([
+            {
+              SecretId: 'us-east-1-dev-smooch-app',
+            },
+          ]),
+        );
+      });
 
-      // it('passes in the correct arguments to secretClient.getSecretValue() to get cx credentials', async () => {
-      //   expect(mockGetSecretValue.mock.calls[1]).toEqual(expect.arrayContaining([{
-      //     SecretId: 'us-east-1-dev-smooch-cx',
-      //   }]));
-      // });
+      it('passes in the correct arguments to secretClient.getSecretValue() to get cx credentials', async () => {
+        expect(mockGetSecretValue.mock.calls[1]).toEqual(
+          expect.arrayContaining([
+            {
+              SecretId: 'us-east-1-dev-smooch-cx',
+            },
+          ]),
+        );
+      });
 
-      // it('passes in the correct arguments to axios to get interaction metadta', async () => {
-      //   expect(axios.mock.calls[0]).toMatchSnapshot();
-      // });
+      it('passes in the correct arguments to axios to get interaction metadta', async () => {
+        expect(axios.mock.calls[0]).toMatchSnapshot();
+      });
 
-      // it('passes in the correct arguments to SmoochCore', async () => {
-      //   expect(mockSmoochCore.mock.calls).toMatchSnapshot();
-      // });
+      it('passes in the correct arguments to SmoochCore', async () => {
+        expect(mockSmoochCore.mock.calls).toMatchSnapshot();
+      });
 
-      // it('passes in the correct arguments to s3.headObject()', async () => {
-      //   expect(mockHeadObject.mock.calls).toMatchSnapshot();
-      // });
+      it('passes in the correct arguments to s3.headObject()', async () => {
+        expect(mockHeadObject.mock.calls).toMatchSnapshot();
+      });
 
-      // it('passes in the correct arguments to s3.getObject() in retrieveObject()', async () => {
-      //   expect(mockGetObject.mock.calls).toMatchSnapshot();
-      // });
+      it('passes in the correct arguments to s3.getObject() in retrieveObject()', async () => {
+        expect(mockGetObject.mock.calls).toMatchSnapshot();
+      });
 
-      // it('passes in the correct arguments to smooch.attachments.create()', async () => {
-      //   expect(mockCreate.mock.calls).toMatchSnapshot();
-      // });
+      it('passes in the correct arguments to smooch.attachments.create()', async () => {
+        expect(mockCreate.mock.calls).toMatchSnapshot();
+      });
 
-      // it('passes in the correct arguments to smooch.appUsers.sendMessage()', async () => {
-      //   expect(mockSendMessage.mock.calls).toMatchSnapshot();
-      // });
+      it('passes in the correct arguments to smooch.appUsers.sendMessage()', async () => {
+        expect(mockSendMessage.mock.calls).toMatchSnapshot();
+      });
 
-      // it('passes in the correct arguments to sqs.getQueueUrl() in uploadArtifactFile()', async () => {
-      //   expect(mockGetQueueUrl.mock.calls[0]).toEqual(expect.arrayContaining([{
-      //     QueueName: 'us-east-1-dev-upload-artifact-file',
-      //   }]));
-      // });
+      it('passes in the correct arguments to sqs.getQueueUrl() in uploadArtifactFile()', async () => {
+        expect(mockGetQueueUrl.mock.calls[0]).toEqual(
+          expect.arrayContaining([
+            {
+              QueueName: 'us-east-1-dev-upload-artifact-file',
+            },
+          ]),
+        );
+      });
 
-      // it('passes in the correct arguments to sqs.sendMessage() in uploadArtifactFile()', async () => {
-      //   expect(mockSqsSendMessage.mock.calls[0]).toMatchSnapshot();
-      // });
+      it('passes in the correct arguments to sqs.sendMessage() in uploadArtifactFile()', async () => {
+        expect(mockSqsSendMessage.mock.calls[0]).toMatchSnapshot();
+      });
 
       // it('passes in the correct arguments to docClient.get() in getClientInactivityTimeout()', async () => {
       //   expect(mockGet.mock.calls[0]).toMatchSnapshot();
@@ -388,21 +412,29 @@ describe('send-attachment', () => {
       //   expect(mockSqsSendMessage.mock.calls[1]).toMatchSnapshot();
       // });
 
-      // it('passes in the correct arguments to sqs.getQueueUrl() in updateInteractionMetadata()', async () => {
-      //   expect(mockGetQueueUrl.mock.calls[2]).toEqual(expect.arrayContaining([{
-      //     QueueName: 'us-east-1-dev-update-interaction-metadata',
-      //   }]));
-      // });
+      it('passes in the correct arguments to sqs.getQueueUrl() in updateInteractionMetadata()', async () => {
+        expect(mockGetQueueUrl.mock.calls[1]).toEqual(
+          expect.arrayContaining([
+            {
+              QueueName: 'us-east-1-dev-update-interaction-metadata',
+            },
+          ]),
+        );
+      });
 
-      // it('passes in the correct arguments to sqs.getQueueUrl() in sendReportingEvent()', async () => {
-      //   expect(mockGetQueueUrl.mock.calls[3]).toEqual(expect.arrayContaining([{
-      //     QueueName: 'us-east-1-dev-send-reporting-event',
-      //   }]));
-      // });
+      it('passes in the correct arguments to sqs.getQueueUrl() in sendReportingEvent()', async () => {
+        expect(mockGetQueueUrl.mock.calls[2]).toEqual(
+          expect.arrayContaining([
+            {
+              QueueName: 'us-east-1-dev-send-reporting-event',
+            },
+          ]),
+        );
+      });
 
-      // it('passes in the correct arguments to sqs.sendMessage() in sendReportingEvent()', async () => {
-      //   expect(mockSqsSendMessage.mock.calls[2]).toMatchSnapshot();
-      // });
+      it('passes in the correct arguments to sqs.sendMessage() in sendReportingEvent()', async () => {
+        expect(mockSqsSendMessage.mock.calls[2]).toMatchSnapshot();
+      });
     });
   });
 
@@ -517,7 +549,8 @@ describe('send-attachment', () => {
     axios.mockImplementationOnce(() => ({
       data: {
         method: 'get',
-        url: 'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
+        url:
+          'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
         smoochIntegrationId: '66d83870-30df-4a3b-8801-59edff162050',
         appId: '5e31c81640a22c000f5d7f28',
         userId: '5e31c81640a22c000f5d7f30',
@@ -557,33 +590,38 @@ describe('send-attachment', () => {
   //   }
   // });
 
-  // it('throws an error when there is an error updating latestMessageSentBy flag from metadata', async () => {
-  //   try {
-  //     axios.mockImplementationOnce(() => ({
-  //       data: {
-  //         method: 'get',
-  //         url: 'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
-  //         smoochIntegrationId: '66d83870-30df-4a3b-8801-59edff162050',
-  //         appId: '5e31c81640a22c000f5d7f28',
-  //         userId: '5e31c81640a22c000f5d7f30',
-  //         artifactId: '5e31c81640a22c000f5d7f35',
-  //         latestMessageSentBy: 'customer',
-  //       },
-  //     }));
-  //     mockGetQueueUrl.mockImplementationOnce(() => ({
-  //       promise: () => ({
-  //         QueueUrl: 'queue-url',
-  //       }),
-  //     }));
-  //     mockGetQueueUrl.mockImplementationOnce(() => ({
-  //       promise: () => ({
-  //         QueueUrl: 'queue-url',
-  //       }),
-  //     }));
-  //     mockGetQueueUrl.mockRejectedValueOnce(new Error());
-  //     await handler(event);
-  //   } catch (error) {
-  //     expect(Promise.reject(new Error('Error updating latestMessageSentBy flag from metadata'))).rejects.toThrowErrorMatchingSnapshot();
-  //   }
-  // });
+  it('throws an error when there is an error updating latestMessageSentBy flag from metadata', async () => {
+    try {
+      axios.mockImplementationOnce(() => ({
+        data: {
+          method: 'get',
+          url:
+            'https://us-east-1-dev-edge.domain/v1/tenants/66d83870-30df-4a3b-8801-59edff162034/interactions/66d83870-30df-4a3b-8801-59edff162040/metadata',
+          smoochIntegrationId: '66d83870-30df-4a3b-8801-59edff162050',
+          appId: '5e31c81640a22c000f5d7f28',
+          userId: '5e31c81640a22c000f5d7f30',
+          artifactId: '5e31c81640a22c000f5d7f35',
+          latestMessageSentBy: 'customer',
+        },
+      }));
+      mockGetQueueUrl.mockImplementationOnce(() => ({
+        promise: () => ({
+          QueueUrl: 'queue-url',
+        }),
+      }));
+      mockGetQueueUrl.mockImplementationOnce(() => ({
+        promise: () => ({
+          QueueUrl: 'queue-url',
+        }),
+      }));
+      mockGetQueueUrl.mockRejectedValueOnce(new Error());
+      await handler(event);
+    } catch (error) {
+      expect(
+        Promise.reject(
+          new Error('Error updating latestMessageSentBy flag from metadata'),
+        ),
+      ).rejects.toThrowErrorMatchingSnapshot();
+    }
+  });
 });

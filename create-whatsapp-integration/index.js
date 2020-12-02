@@ -21,7 +21,7 @@ const paramsSchema = Joi.object({
 });
 
 const bodySchema = Joi.object({
-  appId: Joi.string().required(),
+  whatsappId: Joi.string().required(),
   name: Joi.string().required(),
   description: Joi.string().allow(''),
   clientDisconnectMinutes: Joi.number().min(1).max(1440).allow(null),
@@ -75,18 +75,19 @@ exports.handler = async (event) => {
    * Validating parameters
    */
   try {
-    await paramsSchema.validateAsync(params);
+    await paramsSchema.validateAsync(params, { abortEarly: false });
   } catch (error) {
-    log.warn(
-      'Error: invalid params value',
-      { ...logContext, validationMessage: error.details[0].message },
-      error,
-    );
+    const errMsg = 'Error: invalid params value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
+
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
 
     return {
       status: 400,
       body: {
-        message: `Error: invalid params value ${error.details[0].message}`,
+        message: `${errMsg} ${validationMessage}`,
         error,
       },
     };
@@ -96,27 +97,26 @@ exports.handler = async (event) => {
    * Validating body
    */
   try {
-    await bodySchema.validateAsync(body);
+    await bodySchema.validateAsync(body, { abortEarly: false });
   } catch (error) {
-    const errMsg = 'Error: invalid body value';
+    const errMsg = 'Error: invalid body value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
 
-    log.warn(
-      errMsg,
-      { ...logContext, validationMessage: error.details[0].message },
-      error,
-    );
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
 
     return {
       status: 400,
-      body: { message: `${errMsg} ${error.details[0].message}` },
+      body: { message: `${errMsg} ${validationMessage}` },
     };
   }
 
   /**
    * There should be no record in dynamo table with passed app-id as key
-   * appId will become new record id
+   * whatsappId will become new record id
    */
-  const { appId: integrationId } = body;
+  const { whatsappId: integrationId } = body;
   const getParams = {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
     Key: {
@@ -130,17 +130,21 @@ exports.handler = async (event) => {
      * There can't be two records with the same id
      */
     if (Item) {
-      const errMsg = 'A record already exists for this appId in this tenant';
+      let errMsg = 'A record already exists for this whatsappId in this tenant';
+
+      if (Item.type !== 'whatsapp') {
+        errMsg = 'Invalid body value, whatsappId provided is invalid for this request';
+      }
 
       log.error(errMsg, logContext);
 
       return {
         status: 400,
-        body: { message: errMsg, appId: integrationId },
+        body: { message: errMsg, whatsappId: integrationId },
       };
     }
   } catch (error) {
-    const errMsg = 'An Error has occurred trying to fetch an app with passed appId in DynamoDB';
+    const errMsg = 'An Error has occurred trying to fetch an app with passed whatsappId in DynamoDB';
 
     log.error(errMsg, logContext, error, getParams);
 
@@ -252,7 +256,7 @@ exports.handler = async (event) => {
   );
 
   const {
-    appId,
+    whatsappId,
     name,
     description,
     clientDisconnectMinutes,
@@ -260,13 +264,13 @@ exports.handler = async (event) => {
   } = body;
 
   /**
-   * Getting smooch integration that corresponds to appId passed
+   * Getting smooch integration that corresponds to whatsappId passed
    */
   const whatsappIntegration = integrations.find(
-    (integration) => integration.id === appId,
+    (integration) => integration.id === whatsappId,
   );
   if (!whatsappIntegration) {
-    const errMsg = 'The appId provided in the request body does not exist for this tenant';
+    const errMsg = 'The whatsappId provided in the request body does not exist in smooch for this tenant';
     return {
       status: 400,
       body: { message: errMsg },
@@ -312,7 +316,7 @@ exports.handler = async (event) => {
     TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
     Key: {
       'tenant-id': tenantId,
-      id: appId,
+      id: whatsappId,
     },
     UpdateExpression: updateExpression,
     ExpressionAttributeNames: expressionAttributeNames,
@@ -344,7 +348,7 @@ exports.handler = async (event) => {
   log.info('User created a new whatsapp integration', {
     userId: identity['user-id'],
     tenantId,
-    whatsappId: appId,
+    whatsappId,
     auditData: Object.keys(body),
     audit: true,
   });
