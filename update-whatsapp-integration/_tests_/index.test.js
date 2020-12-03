@@ -429,6 +429,26 @@ describe('update-whatsapp-integration', () => {
     });
   });
 
+  it('sends back status 400 when there is more than one invalid values in body', async () => {
+    const mockEvent = {
+      ...event,
+      body: {
+        name: ' ',
+        description: 'something',
+        clientDisconnectMinutes: 1441,
+        active: null,
+      },
+    };
+    const result = await handler(mockEvent);
+    expect(result).toEqual({
+      body: {
+        message:
+          'Error: invalid body value(s). "name" is not allowed to be empty / "clientDisconnectMinutes" must be less than or equal to 1440 / "active" must be one of [true, false] / "active" must be a boolean',
+      },
+      status: 400,
+    });
+  });
+
   it('sends back status 403 when there are not enough permissions', async () => {
     validateTenantPermissions.mockReturnValueOnce(false);
     const result = await handler(event);

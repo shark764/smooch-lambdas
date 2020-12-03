@@ -22,7 +22,7 @@ const paramsSchema = Joi.object({
 
 const bodySchema = Joi.object({
   whatsappId: Joi.string().required(),
-  name: Joi.string().required(),
+  name: Joi.string().trim().min(1).required(),
   description: Joi.string().allow(''),
   clientDisconnectMinutes: Joi.number().min(1).max(1440).allow(null),
   active: Joi.boolean().strict().valid(true, false),

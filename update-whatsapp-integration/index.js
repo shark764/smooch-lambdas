@@ -18,7 +18,7 @@ const paramsSchema = Joi.object({
 
 const bodySchema = Joi.object({
   appId: Joi.string(),
-  name: Joi.string(),
+  name: Joi.string().trim().min(1),
   description: Joi.string().allow(''),
   clientDisconnectMinutes: Joi.number().min(1).max(1440).allow(null),
   active: Joi.boolean().strict().valid(true, false),

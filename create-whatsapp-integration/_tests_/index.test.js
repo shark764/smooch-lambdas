@@ -491,7 +491,7 @@ describe('create-whatsapp-integration', () => {
       ...event,
       body: {
         whatsappId: '',
-        name: 'something',
+        name: ' ',
         description: 'something',
         clientDisconnectMinutes: 1441,
         active: null,
@@ -501,7 +501,7 @@ describe('create-whatsapp-integration', () => {
     expect(result).toEqual({
       body: {
         message:
-          'Error: invalid body value(s). "whatsappId" is not allowed to be empty / "clientDisconnectMinutes" must be less than or equal to 1440 / "active" must be one of [true, false] / "active" must be a boolean',
+          'Error: invalid body value(s). "whatsappId" is not allowed to be empty / "name" is not allowed to be empty / "clientDisconnectMinutes" must be less than or equal to 1440 / "active" must be one of [true, false] / "active" must be a boolean',
       },
       status: 400,
     });

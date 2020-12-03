@@ -1,3 +1,6 @@
+# 1.30.5
+* CXV1-21854 - Name attribute for create/update whatsapp integration lambdas doesn't allow blanck space as value.
+
 # 1.30.4
 * CXV1-21854 - Fixing create/update lambda shouldn't allow other than true|false as valid value. ClientDisconnectMinutes now allows null as value.
 
