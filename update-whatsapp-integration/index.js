@@ -21,7 +21,7 @@ const bodySchema = Joi.object({
   name: Joi.string(),
   description: Joi.string().allow(''),
   clientDisconnectMinutes: Joi.number().min(1).max(1440).allow(null),
-  active: Joi.boolean(),
+  active: Joi.boolean().strict().valid(true, false),
 });
 
 AWS.config.update({ region: process.env.AWS_REGION });
@@ -173,36 +173,37 @@ exports.handler = async (event) => {
     ':updated': new Date().toISOString(),
   };
 
+  let hasExpectedProperty = false;
   if (name) {
     updateExpression += ', #name = :name';
     expressionAttributeNames['#name'] = 'name';
     expressionAttributeValues[':name'] = name;
+    hasExpectedProperty = true;
   }
-  if (description) {
+  if (description !== undefined) {
     updateExpression += ', description = :description';
     expressionAttributeValues[':description'] = description;
+    hasExpectedProperty = true;
   }
-  if (clientDisconnectMinutes) {
+  /**
+   * We need to allow null for "clientDisconnectMinutes"
+   */
+  if (clientDisconnectMinutes !== undefined) {
     updateExpression += ', #cdm = :cdm';
     expressionAttributeNames['#cdm'] = 'client-disconnect-minutes';
     expressionAttributeValues[':cdm'] = clientDisconnectMinutes;
+    hasExpectedProperty = true;
   }
 
-  if (typeof active === 'boolean') {
+  if (active !== undefined) {
     updateExpression += ', #active = :active';
     expressionAttributeNames['#active'] = 'active';
     expressionAttributeValues[':active'] = active;
+    hasExpectedProperty = true;
   }
 
-  if (
-    !(
-      name
-      || description
-      || clientDisconnectMinutes
-      || typeof active === 'boolean'
-    )
-  ) {
-    const errMsg = 'Request body is empty or provided data does not match schema';
+  if (!hasExpectedProperty) {
+    const errMsg = 'At least one of attributes "name"|"description"|"clientDisconnectMinutes"|"active" was expected but non of them was specified';
 
     log.error(errMsg, logContext);
 

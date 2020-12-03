@@ -377,6 +377,52 @@ describe('create-whatsapp-integration', () => {
           },
         ]);
       });
+      it('passes in the correct arguments to docClient.update() when clientDisconnectMinutes is set to null', async () => {
+        const mockEvent = {
+          ...event,
+          body: {
+            whatsappId: '5e31c81640a22c000f5d7f28',
+            name: 'smooch',
+            description: '',
+            clientDisconnectMinutes: null,
+          },
+        };
+        await handler(mockEvent);
+        expect(mockUpdate.mock.calls[5]).toEqual([
+          {
+            ExpressionAttributeNames: {
+              '#active': 'active',
+              '#appId': 'app-id',
+              '#cdm': 'client-disconnect-minutes',
+              '#createdBy': 'created-by',
+              '#name': 'name',
+              '#type': 'type',
+              '#updatedBy': 'updated-by',
+            },
+            ExpressionAttributeValues: {
+              ':active': true,
+              ':appId': '5e31c81640a22c000f5d7f27',
+              ':cdm': null,
+              ':created': 'January 1 1970',
+              ':createdBy': '667802d8-2260-436c-958a-2ee0f71f73f0',
+              ':description': '',
+              ':name': 'smooch',
+              ':t': 'whatsapp',
+              ':updated': 'January 1 1970',
+              ':updatedBy': '667802d8-2260-436c-958a-2ee0f71f73f0',
+            },
+            Key: {
+              id: '5e31c81640a22c000f5d7f28',
+              'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+            },
+            ReturnValues: 'ALL_NEW',
+            TableName: 'us-east-1-dev-smooch',
+            UpdateExpression: `set #type = :t, #appId = :appId, #name = :name,
+  #active = :active, #createdBy = :createdBy, #updatedBy = :updatedBy,
+  created = :created, updated = :updated, description = :description, #cdm = :cdm`,
+          },
+        ]);
+      });
     });
   });
 
@@ -433,7 +479,8 @@ describe('create-whatsapp-integration', () => {
     const result = await handler(mockEvent);
     expect(result).toEqual({
       body: {
-        message: 'Error: invalid body value(s). "active" must be a boolean',
+        message:
+          'Error: invalid body value(s). "active" must be one of [true, false] / "active" must be a boolean',
       },
       status: 400,
     });
@@ -454,7 +501,7 @@ describe('create-whatsapp-integration', () => {
     expect(result).toEqual({
       body: {
         message:
-          'Error: invalid body value(s). "whatsappId" is not allowed to be empty / "clientDisconnectMinutes" must be less than or equal to 1440 / "active" must be a boolean',
+          'Error: invalid body value(s). "whatsappId" is not allowed to be empty / "clientDisconnectMinutes" must be less than or equal to 1440 / "active" must be one of [true, false] / "active" must be a boolean',
       },
       status: 400,
     });

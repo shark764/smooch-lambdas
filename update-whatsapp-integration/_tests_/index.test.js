@@ -333,6 +333,39 @@ describe('update-whatsapp-integration', () => {
           },
         ]);
       });
+      it('passes in the correct arguments to docClient.update() when clientDisconnectMinutes is set to null', async () => {
+        const mockEvent = {
+          ...event,
+          body: {
+            clientDisconnectMinutes: null,
+            description: '',
+          },
+        };
+        await handler(mockEvent);
+        expect(mockUpdate.mock.calls[7]).toEqual([
+          {
+            ExpressionAttributeNames: {
+              '#cdm': 'client-disconnect-minutes',
+              '#updatedBy': 'updated-by',
+            },
+            ExpressionAttributeValues: {
+              ':cdm': null,
+              ':description': '',
+              ':updated': 'January 1 1970',
+              ':updatedBy': '667802d8-2260-436c-958a-2ee0f71f73f0',
+            },
+            Key: {
+              id: '5e31c81640a22c000f5d7f28',
+              'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+            },
+            ReturnValues: 'ALL_NEW',
+            TableName: 'us-east-1-dev-smooch',
+            UpdateExpression: `set
+    #updatedBy = :updatedBy,
+    updated = :updated, description = :description, #cdm = :cdm`,
+          },
+        ]);
+      });
     });
   });
 
@@ -389,7 +422,8 @@ describe('update-whatsapp-integration', () => {
     const result = await handler(mockEvent);
     expect(result).toEqual({
       body: {
-        message: 'Error: invalid body value(s). "active" must be a boolean',
+        message:
+          'Error: invalid body value(s). "active" must be one of [true, false] / "active" must be a boolean',
       },
       status: 400,
     });
@@ -466,7 +500,7 @@ describe('update-whatsapp-integration', () => {
     });
   });
 
-  it('sends back status 400 when body does not contain proper data', async () => {
+  it('sends back status 400 when body does not contain at least one expected attribute', async () => {
     const mockEvent = {
       ...event,
       body: {
@@ -476,7 +510,26 @@ describe('update-whatsapp-integration', () => {
     const result = await handler(mockEvent);
     expect(result).toEqual({
       body: {
-        message: 'Request body is empty or provided data does not match schema',
+        message:
+          'At least one of attributes "name"|"description"|"clientDisconnectMinutes"|"active" was expected but non of them was specified',
+      },
+      status: 400,
+    });
+  });
+
+  it('sends back status 400 when body does not contain proper data', async () => {
+    const mockEvent = {
+      ...event,
+      body: {
+        active: 'true',
+        clientDisconnectMinutes: null,
+      },
+    };
+    const result = await handler(mockEvent);
+    expect(result).toEqual({
+      body: {
+        message:
+          'Error: invalid body value(s). "active" must be one of [true, false] / "active" must be a boolean',
       },
       status: 400,
     });

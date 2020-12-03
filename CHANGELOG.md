@@ -1,3 +1,6 @@
+# 1.30.4
+* CXV1-21854 - Fixing create/update lambda shouldn't allow other than true|false as valid value. ClientDisconnectMinutes now allows null as value.
+
 # 1.30.3
 * CXV1-21854 - Fixing parameter and body validation for whatsappId value. Adding back unit tests for send-message / send-attachment / smooch-webhook.
 

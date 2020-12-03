@@ -172,15 +172,18 @@ exports.handler = async (event) => {
 
   /**
    * Getting integrations from every smooch app
+   * We remove "sandboxConfirmationCode" if app is inactive
    */
   const integrations = smoochApps.reduce(
     (appIntegrations, smoochApp, index) => [
       ...appIntegrations,
-      ...smoochApp.integrations.map(({ _id, ...integration }) => ({
-        ...integration,
-        id: _id,
-        appId: smoochAppDynamoRecords[index].id,
-      })),
+      ...smoochApp.integrations.map(
+        ({ _id, sandboxConfirmationCode, ...integration }) => ({
+          ...integration,
+          id: _id,
+          appId: smoochAppDynamoRecords[index].id,
+        }),
+      ),
     ],
     [],
   );

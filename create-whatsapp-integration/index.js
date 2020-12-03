@@ -25,7 +25,7 @@ const bodySchema = Joi.object({
   name: Joi.string().required(),
   description: Joi.string().allow(''),
   clientDisconnectMinutes: Joi.number().min(1).max(1440).allow(null),
-  active: Joi.boolean(),
+  active: Joi.boolean().strict().valid(true, false),
 });
 
 AWS.config.update({ region: process.env.AWS_REGION });
@@ -302,11 +302,11 @@ exports.handler = async (event) => {
     ':updated': new Date().toISOString(),
   };
 
-  if (description) {
+  if (description !== undefined) {
     updateExpression += ', description = :description';
     expressionAttributeValues[':description'] = description;
   }
-  if (clientDisconnectMinutes) {
+  if (clientDisconnectMinutes !== undefined) {
     updateExpression += ', #cdm = :cdm';
     expressionAttributeNames['#cdm'] = 'client-disconnect-minutes';
     expressionAttributeValues[':cdm'] = clientDisconnectMinutes;
