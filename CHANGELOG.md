@@ -1,3 +1,6 @@
+# 1.31.0
+* CXV1-23699 - Sending a message to customer when the interaction is created. Filtering out that message from conversation and transcription. | Web Messaging.
+
 # 1.30.5
 * CXV1-21854 - Name attribute for create/update whatsapp integration lambdas doesn't allow blanck space as value.
 

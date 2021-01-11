@@ -120,7 +120,12 @@ exports.handler = async (event) => {
     // Keep formResponses that have metadata (collect-message responses)
     // Keep messages from customer that are not form response (normal customer messages)
     // Keep messages with metadata (agent or system messages)
-    .filter((message) => ((message.type === 'formResponse' && message.quotedMessage.content.metadata) || (message.role === 'appUser' && message.type !== 'formResponse') || message.metadata))
+    .filter(
+      (message) => (message.type === 'formResponse'
+          && message.quotedMessage.content.metadata)
+        || (message.role === 'appUser' && message.type !== 'formResponse')
+        || (message.metadata && message.metadata.from !== 'CxEngageHiddenMessage'),
+    )
     .map((message) => ({
       id: message._id,
       text: getMessageText(message),
