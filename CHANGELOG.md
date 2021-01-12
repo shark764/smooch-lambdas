@@ -1,3 +1,6 @@
+# 1.31.1
+* <no-jira> - Filtering out hidden messages while agent is on interaction. | Web Messaging.
+
 # 1.31.0
 * CXV1-23699 - Sending a message to customer when the interaction is created. Filtering out that message from conversation and transcription. | Web Messaging.
 

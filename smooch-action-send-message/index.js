@@ -137,40 +137,53 @@ exports.handler = async (event) => {
     text,
   };
 
-  try {
-    participants.forEach(async (participant) => {
-      await sendSqsMessage({
-        tenantId,
-        interactionId,
-        resourceId: participant['resource-id'],
-        sessionId: participant['session-id'],
-        messageType: 'received-message',
-        message: smoochMessage,
-        logContext,
-      });
-    });
-  } catch (error) {
-    const errMsg = 'An Error has occurred trying to send message to SQS queue';
-    log.error(errMsg, logContext, error);
+  if (from !== 'CxEngageHiddenMessage') {
     try {
-      await axios({
-        method: 'post',
-        url: errResponseUrl,
-        data: { // send error response
-          source: 'smooch',
-          subId,
-          errorMessage: errMsg,
-          errorCode: 500,
-          metadata: {},
-          update: {},
-        },
-        auth: cxAuth,
+      participants.forEach(async (participant) => {
+        await sendSqsMessage({
+          tenantId,
+          interactionId,
+          resourceId: participant['resource-id'],
+          sessionId: participant['session-id'],
+          messageType: 'received-message',
+          message: smoochMessage,
+          logContext,
+        });
       });
-    } catch (error2) {
-      log.warn('An Error ocurred trying to send an error response', logContext, error2);
+    } catch (error) {
+      const errMsg = 'An Error has occurred trying to send message to SQS queue';
+      log.error(errMsg, logContext, error);
+      try {
+        await axios({
+          method: 'post',
+          url: errResponseUrl,
+          data: {
+            // send error response
+            source: 'smooch',
+            subId,
+            errorMessage: errMsg,
+            errorCode: 500,
+            metadata: {},
+            update: {},
+          },
+          auth: cxAuth,
+        });
+      } catch (error2) {
+        log.warn(
+          'An Error ocurred trying to send an error response',
+          logContext,
+          error2,
+        );
+      }
+      throw error;
     }
-
-    throw error;
+  } else {
+    log.info(
+      'Skipping hidden message sent to participants',
+      logContext,
+      smoochMessage,
+      participants,
+    );
   }
 
   await sendFlowActionResponse({ logContext, actionId: id, subId });
