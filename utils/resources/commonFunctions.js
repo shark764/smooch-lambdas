@@ -3,11 +3,20 @@ const {
   lambda: { log },
 } = require('alonzo');
 const AWS = require('aws-sdk');
+const axios = require('axios');
 
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const docClient = new AWS.DynamoDB.DocumentClient();
 
-const { AWS_REGION, ENVIRONMENT } = process.env;
+const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
+
+async function getMetadata({ tenantId, interactionId, auth }) {
+  return axios({
+    method: 'get',
+    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
+    auth,
+  });
+}
 
 async function checkIfClientIsDisconnected({
   latestAgentMessageTimestamp,
@@ -111,4 +120,5 @@ module.exports = {
   checkIfClientIsDisconnected,
   shouldCheckIfClientIsDisconnected,
   getClientInactivityTimeout,
+  getMetadata,
 };

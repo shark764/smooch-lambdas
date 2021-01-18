@@ -229,14 +229,20 @@ function getMessageText(message) {
   return message.text; // normal messages
 }
 
-function formatMessages({ messages }, tenantId, { customer, firstCustomerMessageTimestamp }) {
+function formatMessages(
+  { messages },
+  tenantId,
+  { customer, firstCustomerMessageTimestamp, source },
+) {
   return messages
     .filter(
       (message) => ((message.type === 'formResponse'
           && message.quotedMessage.content.metadata)
           || (message.role === 'appUser' && message.type !== 'formResponse')
           || (message.metadata
-            && message.metadata.from !== 'CxEngageHiddenMessage'))
+            && (source !== 'web'
+              || (source === 'web'
+                && message.metadata.from !== 'CxEngageHiddenMessage'))))
         // We double check we filter previous messages in case
         // they were included in last iteration
         && message.received >= firstCustomerMessageTimestamp,

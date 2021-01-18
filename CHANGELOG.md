@@ -1,3 +1,6 @@
+# 1.31.2
+* <no-jira> - Showing hidden messages for whatsapp interactions on conversation, transcript and messages sent from flow.
+
 # 1.31.1
 * <no-jira> - Filtering out hidden messages while agent is on interaction. | Web Messaging.
 

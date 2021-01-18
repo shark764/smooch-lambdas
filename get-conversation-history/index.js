@@ -76,7 +76,9 @@ exports.handler = async (event) => {
     };
   }
 
-  const { appId, userId, customer } = interactionMetadata;
+  const {
+    appId, userId, customer, source,
+  } = interactionMetadata;
   logContext.smoochAppId = appId;
   logContext.smoochUserId = userId;
 
@@ -124,7 +126,10 @@ exports.handler = async (event) => {
       (message) => (message.type === 'formResponse'
           && message.quotedMessage.content.metadata)
         || (message.role === 'appUser' && message.type !== 'formResponse')
-        || (message.metadata && message.metadata.from !== 'CxEngageHiddenMessage'),
+        || (message.metadata
+          && (source !== 'web'
+            || (source === 'web'
+              && message.metadata.from !== 'CxEngageHiddenMessage'))),
     )
     .map((message) => ({
       id: message._id,

@@ -7,6 +7,7 @@ const { lambda: { log } } = require('alonzo');
 const axios = require('axios');
 const AWS = require('aws-sdk');
 const uuidv1 = require('uuid/v1');
+const { getMetadata } = require('./resources/commonFunctions');
 
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 
@@ -129,6 +130,24 @@ exports.handler = async (event) => {
     throw error;
   }
 
+  let interactionMetadata;
+  try {
+    ({ data: interactionMetadata } = await getMetadata({
+      tenantId,
+      interactionId,
+      auth: cxAuth,
+    }));
+
+    log.debug('Got interaction metadata', {
+      ...logContext,
+      interaction: interactionMetadata,
+    });
+  } catch (error) {
+    log.error('An error occurred retrieving the interaction metadata', logContext, error);
+
+    throw error;
+  }
+
   smoochMessage = {
     id: smoochMessage._id,
     from,
@@ -137,7 +156,10 @@ exports.handler = async (event) => {
     text,
   };
 
-  if (from !== 'CxEngageHiddenMessage') {
+  if (
+    interactionMetadata.source !== 'web'
+    || (interactionMetadata.source === 'web' && from !== 'CxEngageHiddenMessage')
+  ) {
     try {
       participants.forEach(async (participant) => {
         await sendSqsMessage({

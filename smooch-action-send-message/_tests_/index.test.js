@@ -1,8 +1,20 @@
 const axios = require('axios');
 const uuidv1 = require('uuid/v1');
 
+const { getMetadata } = require('../resources/commonFunctions');
+
 jest.mock('axios');
 jest.mock('uuid/v1');
+
+jest.mock('../resources/commonFunctions');
+getMetadata.mockImplementation(() => ({
+  data: {
+    appId: '5e31c81640a22c000f5d7f28',
+    userId: '667802d8-2260-436c-958a-2ee0f71f73f2',
+    customer: '+50371675753',
+    firstCustomerMessageTimestamp: 50,
+  },
+}));
 
 uuidv1.mockReturnValue('7534c040-534d-11ea-8aa0-c32d6a748e46');
 
