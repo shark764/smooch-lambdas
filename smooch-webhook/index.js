@@ -46,7 +46,6 @@ exports.handler = async (event) => {
   } = body;
   const { _id: appId } = app;
   const { properties, _id: userId } = appUser;
-  const { customer } = properties;
 
   // TODO remove this case after API Gateway is deployed in prod
   if (!tenantId) {
@@ -151,7 +150,7 @@ exports.handler = async (event) => {
                 form: message,
                 auth,
                 logContext,
-                customer,
+                properties,
                 channelType,
                 metadataSource: platform,
               });
@@ -171,7 +170,7 @@ exports.handler = async (event) => {
                 userId,
                 message,
                 integrationId,
-                customer,
+                properties,
                 type,
                 channelType,
                 metadataSource: platform,
@@ -206,7 +205,7 @@ exports.handler = async (event) => {
                 userId,
                 message,
                 integrationId,
-                customer,
+                properties,
                 type,
                 channelType: 'sms',
                 metadataSource: platform,
@@ -276,7 +275,7 @@ exports.handler = async (event) => {
   return 'success';
 };
 
-exports.handleFormResponse = async function handleFormResponse({
+exports.handleFormResponse = async ({
   appId,
   userId,
   integrationId,
@@ -285,11 +284,11 @@ exports.handleFormResponse = async function handleFormResponse({
   form,
   auth,
   logContext,
-  customer,
+  properties,
   channelType,
   metadataSource,
-}) {
-  let customerIdentifier = customer;
+}) => {
+  let customerIdentifier = properties.customer;
   if (form.name.includes('Web User ')) {
     customerIdentifier = form
       && form.fields
@@ -313,6 +312,7 @@ exports.handleFormResponse = async function handleFormResponse({
         appUser: {
           givenName: customerIdentifier,
           properties: {
+            ...properties,
             customer: customerIdentifier,
           },
         },
@@ -332,6 +332,7 @@ exports.handleFormResponse = async function handleFormResponse({
         metadataSource,
         integrationId,
         customer: customerIdentifier,
+        properties,
         smoochMessageId: form._id,
         auth,
         logContext,
@@ -431,7 +432,7 @@ exports.handleCollectMessageResponse = async function handleCollectMessageRespon
 
   // Send response to resources
   try {
-    exports.sendCustomerMessageToParticipants({
+    await exports.sendCustomerMessageToParticipants({
       tenantId,
       interactionId,
       message: response,
@@ -452,7 +453,7 @@ exports.handleCollectMessageResponse = async function handleCollectMessageRespon
   return 'handleFormResponse Successful';
 };
 
-exports.createInteraction = async function createInteraction({
+exports.createInteraction = async ({
   appId,
   userId,
   tenantId,
@@ -460,13 +461,14 @@ exports.createInteraction = async function createInteraction({
   channelType,
   integrationId,
   customer,
+  properties,
   logContext,
   auth,
   smoochMessageId,
   isInteractionDead,
   timestamp,
   latestMessageSentBy = 'customer',
-}) {
+}) => {
   let creatingInteractionParams;
   if (isInteractionDead) {
     creatingInteractionParams = {
@@ -577,6 +579,7 @@ exports.createInteraction = async function createInteraction({
     interaction: {
       customerMetadata: {
         id: customer,
+        webClientProperties: properties,
       },
       artifactId,
     },
@@ -986,11 +989,11 @@ exports.updateSmoochClientLastActivity = async function updateSmoochClientLastAc
   }
 };
 
-exports.sendSmoochInteractionHeartbeat = async function sendSmoochInteractionHeartbeat({
+exports.sendSmoochInteractionHeartbeat = async ({
   tenantId,
   interactionId,
   auth,
-}) {
+}) => {
   const { data } = await axios({
     method: 'post',
     url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts`,
@@ -1007,7 +1010,6 @@ exports.sendSmoochInteractionHeartbeat = async function sendSmoochInteractionHea
     tenantId,
     request: data,
   });
-  return data;
 };
 
 exports.handleCustomerMessage = async ({
@@ -1020,7 +1022,7 @@ exports.handleCustomerMessage = async ({
   userId,
   message,
   integrationId,
-  customer,
+  properties,
   type,
   metadataSource,
   channelType,
@@ -1089,7 +1091,8 @@ exports.handleCustomerMessage = async ({
             metadataSource,
             channelType,
             integrationId,
-            customer,
+            customer: properties.customer,
+            properties,
             smoochMessageId: message._id,
             auth,
             logContext,
@@ -1155,7 +1158,7 @@ exports.handleCustomerMessage = async ({
       }
     }
   } else if (!hasInteractionItem) {
-    let customerIdentifier = customer;
+    let customerIdentifier = properties.customer;
 
     if (!customerIdentifier) {
       if (metadataSource === 'whatsapp') {
@@ -1185,6 +1188,7 @@ exports.handleCustomerMessage = async ({
           appUser: {
             givenName: customerIdentifier,
             properties: {
+              ...properties,
               customer: customerIdentifier,
             },
           },
@@ -1206,6 +1210,7 @@ exports.handleCustomerMessage = async ({
         channelType,
         integrationId,
         customer: customerIdentifier,
+        properties,
         smoochMessageId: message._id,
         auth,
         logContext,

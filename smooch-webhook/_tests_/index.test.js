@@ -400,6 +400,7 @@ describe('smooch-webhook', () => {
       },
       auth: 'auth',
       logContext: '',
+      properties: { customer: 'customer' },
     };
 
     describe('prechat capture', () => {
@@ -623,6 +624,7 @@ describe('smooch-webhook', () => {
       source: '',
       integrationId: 'mock-integration-id',
       customer: 'firstName lastName',
+      properties: { customer: 'firstName lastName' },
       logContext: 'logContext',
       auth: 'auth',
       smoochMessageId: 'mock-smoochMessage-id',
@@ -1044,7 +1046,7 @@ describe('smooch-webhook', () => {
         mediaUrl: 'http://mockurl',
       },
       integrationId: 'mock-integrationId-id',
-      customer: 'customer',
+      properties: { customer: 'customer' },
       type: 'type',
       metadataSource: 'web',
     };
@@ -1264,7 +1266,7 @@ describe('smooch-webhook', () => {
         auth: 'auth',
         logContext: 'logContext',
         customerIdentifier: 'Test',
-        cusomter: 'Test',
+        properties: {},
         message: 'Test',
       };
 

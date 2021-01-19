@@ -1,3 +1,6 @@
+# 1.32.0
+* CXV1-23698 - Allow interaction properties to be set on create interaction from web client.
+
 # 1.31.2
 * <no-jira> - Showing hidden messages for whatsapp interactions on conversation, transcript and messages sent from flow.
 

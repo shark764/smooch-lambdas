@@ -25,6 +25,9 @@ Array [
           "artifactId": "mock-artifact-id",
           "customerMetadata": Object {
             "id": "firstName lastName",
+            "webClientProperties": Object {
+              "customer": "firstName lastName",
+            },
           },
         },
         "metadata": Object {
@@ -187,6 +190,9 @@ Array [
       "integrationId": "mock-integrationId-id",
       "logContext": "logContext",
       "metadataSource": "web",
+      "properties": Object {
+        "customer": "customer",
+      },
       "smoochMessageId": "mock_id",
       "tenantId": "mock-tenant-id",
       "timestamp": "10",
@@ -242,6 +248,9 @@ Array [
       "isInteractionDead": true,
       "logContext": "logContext",
       "metadataSource": "web",
+      "properties": Object {
+        "customer": "customer",
+      },
       "smoochMessageId": "mock_id",
       "tenantId": "mock-tenant-id",
       "timestamp": "10",
@@ -348,6 +357,9 @@ Array [
       "integrationId": "mock-integration-id",
       "logContext": "",
       "metadataSource": undefined,
+      "properties": Object {
+        "customer": "customer",
+      },
       "smoochMessageId": "_id",
       "tenantId": "mock-tenant-id",
       "timestamp": "10",
@@ -402,7 +414,6 @@ Array [
         "secret": "mock-secret",
       },
       "channelType": "messaging",
-      "customer": "mock-customer",
       "hasInteractionItem": true,
       "integrationId": "mock-integration-id",
       "interactionId": "1",
@@ -426,6 +437,10 @@ Array [
         "type": "file",
       },
       "metadataSource": "web",
+      "properties": Object {
+        "customer": "mock-customer",
+        "tenantId": "mock-tenant-id",
+      },
       "tenantId": "mock-tenant-id",
       "type": "file",
       "userId": "mock-app-user-id",
@@ -444,7 +459,6 @@ Array [
         "secret": "mock-secret",
       },
       "channelType": "messaging",
-      "customer": "mock-customer",
       "form": Object {
         "fields": Array [
           Object {},
@@ -468,6 +482,10 @@ Array [
         "tenantId": "mock-tenant-id",
       },
       "metadataSource": "web",
+      "properties": Object {
+        "customer": "mock-customer",
+        "tenantId": "mock-tenant-id",
+      },
       "tenantId": "mock-tenant-id",
       "userId": "mock-app-user-id",
     },
@@ -485,7 +503,6 @@ Array [
         "secret": "mock-secret",
       },
       "channelType": "messaging",
-      "customer": "mock-customer",
       "hasInteractionItem": true,
       "integrationId": "mock-integration-id",
       "interactionId": "1",
@@ -509,6 +526,10 @@ Array [
         "type": "image",
       },
       "metadataSource": "web",
+      "properties": Object {
+        "customer": "mock-customer",
+        "tenantId": "mock-tenant-id",
+      },
       "tenantId": "mock-tenant-id",
       "type": "image",
       "userId": "mock-app-user-id",
@@ -527,7 +548,6 @@ Array [
         "secret": "mock-secret",
       },
       "channelType": "messaging",
-      "customer": "mock-customer",
       "hasInteractionItem": true,
       "integrationId": "mock-integration-id",
       "interactionId": "1",
@@ -551,6 +571,10 @@ Array [
         "type": "text",
       },
       "metadataSource": "web",
+      "properties": Object {
+        "customer": "mock-customer",
+        "tenantId": "mock-tenant-id",
+      },
       "tenantId": "mock-tenant-id",
       "type": "text",
       "userId": "mock-app-user-id",
