@@ -6,7 +6,7 @@ const AWS = require('aws-sdk');
 const {
   lambda: {
     log,
-    api: { validateTenantPermissions },
+    api: { validateTenantPermissions, validatePlatformPermissions },
   },
 } = require('alonzo');
 const SmoochCore = require('smooch-core');
@@ -23,6 +23,7 @@ const paramsSchema = Joi.object({
   auth: Joi.any(),
 });
 const lambdaPermissions = ['WEB_INTEGRATIONS_APP_READ'];
+const lambdaPlatformPermissions = ['PLATFORM_VIEW_ALL'];
 
 AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -63,8 +64,9 @@ exports.handler = async (event) => {
 
   const { 'tenant-id': tenantId, id: integrationId } = params;
   const validPermissions = validateTenantPermissions(tenantId, identity, lambdaPermissions);
+  const validPlatformPermissions = validatePlatformPermissions(identity, lambdaPlatformPermissions);
 
-  if (!validPermissions) {
+  if (!(validPermissions || validPlatformPermissions)) {
     const errMsg = 'Error not enough permissions';
 
     log.warn(errMsg, logContext);

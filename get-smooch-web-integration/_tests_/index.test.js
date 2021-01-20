@@ -1,4 +1,4 @@
-const { lambda: { api: { validateTenantPermissions } } } = require('alonzo');
+const { lambda: { api: { validateTenantPermissions, validatePlatformPermissions } } } = require('alonzo');
 
 jest.mock('smooch-core/lib/api/integrations');
 jest.mock('alonzo');
@@ -22,6 +22,7 @@ const mockGet = jest.fn()
   }));
 
 validateTenantPermissions.mockReturnValue(true);
+validatePlatformPermissions.mockReturnValue(false);
 
 const event = {
   params: {
@@ -133,6 +134,10 @@ describe('get-smooch-web-integration', () => {
 
       it('passes in the correct arguments to validateTenantPermissions', async () => {
         expect(validateTenantPermissions.mock.calls).toMatchSnapshot();
+      });
+
+      it('passes in the correct arguments to validatePlatformPermissions', async () => {
+        expect(validatePlatformPermissions.mock.calls).toMatchSnapshot();
       });
 
       it('passes in the correct arguments to decClient.get()', async () => {

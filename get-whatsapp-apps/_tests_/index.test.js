@@ -1,7 +1,7 @@
 const { ValidationError } = require('@hapi/joi');
 const {
   lambda: {
-    api: { validateTenantPermissions },
+    api: { validateTenantPermissions, validatePlatformPermissions },
   },
 } = require('alonzo');
 
@@ -9,6 +9,7 @@ jest.mock('aws-sdk');
 jest.mock('alonzo');
 
 validateTenantPermissions.mockReturnValue(true);
+validatePlatformPermissions.mockReturnValue(false);
 
 beforeAll(() => {
   global.process.env = {
@@ -126,16 +127,30 @@ describe('get-whatsapp-apps', () => {
         await handler(event);
       });
       it('passes in the correct arguments to validateTenantPermissions', async () => {
-        expect(validateTenantPermissions.mock.calls).toEqual([
+        expect(validateTenantPermissions.mock.calls).toEqual(
+          expect.arrayContaining([
+            [
+              '66d83870-30df-4a3b-8801-59edff162034',
+              { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
+              ['WHATSAPP_INTEGRATIONS_APP_READ'],
+            ],
+            [
+              '66d83870-30df-4a3b-8801-59edff162034',
+              { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
+              ['WHATSAPP_INTEGRATIONS_APP_READ'],
+            ],
+          ]),
+        );
+      });
+      it('passes in the correct arguments to validatePlatformPermissions', async () => {
+        expect(validatePlatformPermissions.mock.calls).toEqual([
           [
-            '66d83870-30df-4a3b-8801-59edff162034',
             { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
-            ['WHATSAPP_INTEGRATIONS_APP_READ'],
+            ['PLATFORM_VIEW_ALL'],
           ],
           [
-            '66d83870-30df-4a3b-8801-59edff162034',
             { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
-            ['WHATSAPP_INTEGRATIONS_APP_READ'],
+            ['PLATFORM_VIEW_ALL'],
           ],
         ]);
       });
@@ -220,6 +235,7 @@ describe('get-whatsapp-apps', () => {
       body: {
         expectedPermissions: {
           tenant: ['WHATSAPP_INTEGRATIONS_APP_READ'],
+          platform: ['PLATFORM_VIEW_ALL'],
         },
         message: 'Error not enough permissions',
       },

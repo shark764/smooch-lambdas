@@ -1,7 +1,7 @@
 const { ValidationError } = require('@hapi/joi');
 const {
   lambda: {
-    api: { validateTenantPermissions },
+    api: { validateTenantPermissions, validatePlatformPermissions },
   },
 } = require('alonzo');
 
@@ -9,6 +9,7 @@ jest.mock('aws-sdk');
 jest.mock('alonzo');
 
 validateTenantPermissions.mockReturnValue(true);
+validatePlatformPermissions.mockReturnValue(false);
 
 beforeAll(() => {
   global.process.env = {
@@ -102,6 +103,18 @@ describe('get-whatsapp-integration', () => {
           ]),
         );
       });
+      it('passes in the correct arguments to validatePlatformPermissions', async () => {
+        expect(validatePlatformPermissions.mock.calls).toEqual([
+          [
+            { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
+            ['PLATFORM_VIEW_ALL'],
+          ],
+          [
+            { 'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0' },
+            ['PLATFORM_VIEW_ALL'],
+          ],
+        ]);
+      });
       it('passes in the correct arguments to docClient.get()', async () => {
         expect(mockGet.mock.calls[0]).toEqual([
           {
@@ -145,6 +158,7 @@ describe('get-whatsapp-integration', () => {
       body: {
         expectedPermissions: {
           tenant: ['WHATSAPP_INTEGRATIONS_APP_READ'],
+          platform: ['PLATFORM_VIEW_ALL'],
         },
         message: 'Error not enough permissions',
       },

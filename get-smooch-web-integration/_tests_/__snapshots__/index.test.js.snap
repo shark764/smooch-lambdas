@@ -46,6 +46,19 @@ Array [
 ]
 `;
 
+exports[`get-smooch-web-integration Everything is successful Walkthrough passes in the correct arguments to validatePlatformPermissions 1`] = `
+Array [
+  Array [
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "PLATFORM_VIEW_ALL",
+    ],
+  ],
+]
+`;
+
 exports[`get-smooch-web-integration Everything is successful Walkthrough passes in the correct arguments to validateTenantPermissions 1`] = `
 Array [
   Array [

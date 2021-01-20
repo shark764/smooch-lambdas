@@ -7,7 +7,7 @@ const Joi = require('@hapi/joi');
 const {
   lambda: {
     log,
-    api: { validateTenantPermissions },
+    api: { validateTenantPermissions, validatePlatformPermissions },
   },
 } = require('alonzo');
 
@@ -20,6 +20,7 @@ const paramsSchema = Joi.object({
 AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const lambdaPermissions = ['WEB_INTEGRATIONS_APP_READ'];
+const lambdaPlatformPermissions = ['PLATFORM_VIEW_ALL'];
 
 exports.handler = async (event) => {
   const { AWS_REGION, ENVIRONMENT } = process.env;
@@ -41,8 +42,9 @@ exports.handler = async (event) => {
   const { 'tenant-id': tenantId } = params;
 
   const validPermissions = validateTenantPermissions(tenantId, identity, lambdaPermissions);
+  const validPlatformPermissions = validatePlatformPermissions(identity, lambdaPlatformPermissions);
 
-  if (!validPermissions) {
+  if (!(validPermissions || validPlatformPermissions)) {
     const errMsg = 'Error not enough permissions';
 
     log.warn(errMsg, logContext);

@@ -1,8 +1,9 @@
-const { lambda: { api: { validateTenantPermissions } } } = require('alonzo');
+const { lambda: { api: { validateTenantPermissions, validatePlatformPermissions } } } = require('alonzo');
 
 jest.mock('alonzo');
 
 validateTenantPermissions.mockReturnValue(true);
+validatePlatformPermissions.mockReturnValue(false);
 
 beforeAll(() => {
   global.process.env = {
@@ -53,6 +54,9 @@ describe('get-smooch-web-integrations', () => {
       });
       it('passes in the correct arguments to validateTenantPermissions', async () => {
         expect(validateTenantPermissions.mock.calls).toMatchSnapshot();
+      });
+      it('passes in the correct arguments to validatePlatformPermissions', async () => {
+        expect(validatePlatformPermissions.mock.calls).toMatchSnapshot();
       });
       it('passes in the correct arguments to docClient.query()', async () => {
         expect(mockQuery.mock.calls).toMatchSnapshot();

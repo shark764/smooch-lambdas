@@ -20,7 +20,7 @@ const paramsSchema = Joi.object({
 AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const lambdaPermissions = ['DIGITAL_CHANNELS_APP_READ'];
-const lambdaPlatformPermissions = ['PLATFORM_DIGITAL_CHANNELS_APP'];
+const lambdaPlatformPermissions = ['PLATFORM_DIGITAL_CHANNELS_APP', 'PLATFORM_VIEW_ALL'];
 
 exports.handler = async (event) => {
   const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;

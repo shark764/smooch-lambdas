@@ -1,3 +1,6 @@
+# 1.32.1
+* <no-jira> - Fixing permission PLATFORM_VIEW_ALL missing for GET request | Whatsapp lambdas.
+
 # 1.32.0
 * CXV1-23698 - Allow interaction properties to be set on create interaction from web client.
 
