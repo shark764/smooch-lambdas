@@ -4,6 +4,7 @@ const {
 } = require('alonzo');
 const AWS = require('aws-sdk');
 const axios = require('axios');
+const uuidv1 = require('uuid/v1');
 
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -116,9 +117,59 @@ async function getClientInactivityTimeout({ logContext }) {
   return clientDisconnectMinutes;
 }
 
+async function sendMessageToParticipants({
+  interactionId,
+  tenantId,
+  message,
+  messageType,
+  auth,
+  logContext,
+}) {
+  try {
+    const { data } = await getMetadata({ tenantId, interactionId, auth });
+    log.debug('Got interaction metadata', { ...logContext, interaction: data });
+    const { participants } = data;
+
+    await Promise.all(
+      participants.map(async (participant) => {
+        const { resourceId, sessionId } = participant;
+
+        const payload = {
+          actionId: uuidv1(),
+          subId: uuidv1(),
+          type: 'send-message',
+          resourceId,
+          sessionId,
+          tenantId,
+          interactionId,
+          messageType,
+          message,
+        };
+
+        const MessageBody = JSON.stringify(payload);
+
+        const QueueName = `${tenantId}_${resourceId}`;
+        const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+
+        const sendSQSParams = {
+          MessageBody,
+          QueueUrl,
+        };
+
+        log.info('Sending message to resource', { ...logContext, payload });
+        await sqs.sendMessage(sendSQSParams).promise();
+      }),
+    );
+  } catch (error) {
+    log.error('Error sending message to participants', logContext, error);
+    throw error;
+  }
+}
+
 module.exports = {
   checkIfClientIsDisconnected,
   shouldCheckIfClientIsDisconnected,
   getClientInactivityTimeout,
   getMetadata,
+  sendMessageToParticipants,
 };

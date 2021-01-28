@@ -13,6 +13,7 @@ const {
   checkIfClientIsDisconnected,
   shouldCheckIfClientIsDisconnected,
   getClientInactivityTimeout,
+  sendMessageToParticipants,
 } = require('./resources/commonFunctions');
 
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 60 * 60;
@@ -380,7 +381,7 @@ exports.handleCollectMessageResponse = async function handleCollectMessageRespon
   const { data: metadata } = await getMetadata({ tenantId, interactionId, auth });
   const { collectActions: pendingActions } = metadata;
   const { actionId, subId } = form.quotedMessage.content.metadata;
-  const response = form.fields[0].text;
+  const { text: response, label } = form.fields[0];
 
   log.debug('DEBUG - Interaction metadata', { ...logContext, metadata, form });
   if (!pendingActions) {
@@ -430,18 +431,65 @@ exports.handleCollectMessageResponse = async function handleCollectMessageRespon
     logContext, actionId, subId, response,
   });
 
+  /**
+   * Sending label from collect message to participants
+   */
+  let message = {
+    id: uuidv1(),
+    from: 'System',
+    timestamp: Date.now(),
+    type: 'system',
+    text: label,
+  };
+
+  // Send label to resources
+  try {
+    await sendMessageToParticipants({
+      interactionId,
+      tenantId,
+      message,
+      messageType: 'received-message',
+      auth,
+      logContext,
+    });
+    log.debug('Sent collect-message label to participants', {
+      ...logContext,
+      message,
+    });
+  } catch (error) {
+    log.error(
+      'Error sending collect-message label to participants',
+      logContext,
+      error,
+    );
+  }
+
+  /**
+   * Sending response from collect message to participants
+   */
+  message = {
+    role: form.role,
+    source: form.source,
+    authorId: form.authorId,
+    name: form.name,
+    _id: form._id,
+    type: form.type,
+    received: form.received,
+    text: response,
+  };
+
   // Send response to resources
   try {
     await exports.sendCustomerMessageToParticipants({
       tenantId,
       interactionId,
-      message: response,
+      message,
       auth,
       logContext,
     });
     log.debug('Sent collect-message response to participants', {
       ...logContext,
-      response,
+      message,
     });
   } catch (error) {
     log.error(
