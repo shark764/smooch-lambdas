@@ -1,3 +1,6 @@
+# 1.33.0
+* CXV1-23408 - Render quoted reply from message in Skylight | WhatsApp lambdas.
+
 # 1.32.1
 * <no-jira> - Fixing permission PLATFORM_VIEW_ALL missing for GET request | Whatsapp lambdas.
 

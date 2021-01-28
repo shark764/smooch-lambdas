@@ -736,13 +736,13 @@ exports[`smooch-webhook sendCustomerMessageToParticipants calls sqs.sendMessage 
 Array [
   Array [
     Object {
-      "MessageBody": "{\\"tenantId\\":\\"mock-tenant-id\\",\\"interactionId\\":\\"mock-interaction-id\\",\\"actionId\\":\\"mock-uuid-v1\\",\\"subId\\":\\"mock-uuid-v1\\",\\"type\\":\\"send-message\\",\\"resourceId\\":\\"mock-resource-id\\",\\"sessionId\\":\\"mock-session-id\\",\\"messageType\\":\\"received-message\\",\\"message\\":{\\"id\\":\\"_id\\",\\"from\\":\\"mock-name\\",\\"contentType\\":\\"contentType\\",\\"timestamp\\":10000,\\"type\\":\\"customer\\",\\"text\\":\\"text\\",\\"file\\":{\\"mediaUrl\\":\\"mediaUrl\\",\\"mediaType\\":\\"mediaType\\",\\"mediaSize\\":\\"mediaSize\\"}}}",
+      "MessageBody": "{\\"tenantId\\":\\"mock-tenant-id\\",\\"interactionId\\":\\"mock-interaction-id\\",\\"actionId\\":\\"mock-uuid-v1\\",\\"subId\\":\\"mock-uuid-v1\\",\\"type\\":\\"send-message\\",\\"resourceId\\":\\"mock-resource-id\\",\\"sessionId\\":\\"mock-session-id\\",\\"messageType\\":\\"received-message\\",\\"message\\":{\\"id\\":\\"_id\\",\\"from\\":\\"mock-name\\",\\"contentType\\":\\"contentType\\",\\"timestamp\\":10000,\\"type\\":\\"customer\\",\\"text\\":\\"text\\",\\"file\\":{\\"mediaUrl\\":\\"mediaUrl\\",\\"mediaType\\":\\"mediaType\\",\\"mediaSize\\":\\"mediaSize\\"},\\"quotedMessage\\":{\\"content\\":{\\"type\\":\\"mock-type\\",\\"text\\":\\"mock-text\\",\\"file\\":{}}}}}",
       "QueueUrl": "url://testurl",
     },
   ],
   Array [
     Object {
-      "MessageBody": "{\\"source\\":\\"customer\\",\\"artifactId\\":\\"mock-artifact-id\\",\\"fileData\\":{\\"filename\\":\\"mediaUrl\\",\\"contentType\\":\\"mediaType\\"},\\"message\\":{\\"_id\\":\\"_id\\",\\"name\\":\\"mock-name\\",\\"text\\":\\"text\\",\\"received\\":10,\\"mediaUrl\\":\\"mediaUrl\\",\\"mediaType\\":\\"mediaType\\",\\"mediaSize\\":\\"mediaSize\\",\\"type\\":\\"file\\"}}",
+      "MessageBody": "{\\"source\\":\\"customer\\",\\"artifactId\\":\\"mock-artifact-id\\",\\"fileData\\":{\\"filename\\":\\"mediaUrl\\",\\"contentType\\":\\"mediaType\\"},\\"message\\":{\\"_id\\":\\"_id\\",\\"name\\":\\"mock-name\\",\\"text\\":\\"text\\",\\"received\\":10,\\"mediaUrl\\":\\"mediaUrl\\",\\"mediaType\\":\\"mediaType\\",\\"mediaSize\\":\\"mediaSize\\",\\"type\\":\\"file\\",\\"quotedMessage\\":{\\"type\\":\\"mock-type\\",\\"content\\":{\\"id\\":\\"mock-id\\",\\"type\\":\\"mock-type\\",\\"text\\":\\"mock-text\\"}}}}",
       "QueueUrl": "url://testurl",
     },
   ],

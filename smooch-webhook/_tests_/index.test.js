@@ -708,6 +708,14 @@ describe('smooch-webhook', () => {
         mediaType: 'mediaType',
         mediaSize: 'mediaSize',
         type: 'file',
+        quotedMessage: {
+          type: 'mock-type',
+          content: {
+            id: 'mock-id',
+            type: 'mock-type',
+            text: 'mock-text',
+          },
+        },
       },
       auth: 'auth',
       logContext: 'logContext',
