@@ -1,3 +1,6 @@
+# 1.33.2
+* CXV1-23408 - Render quoted reply in history messages in Skylight | WhatsApp lambdas.
+
 # 1.33.1
 * CXV1-23663 - Response from collect messages are no longer showing empty text and bad timestamp | Web messaging.
 * CXV1-23564 - Form responses are no longer throwing Nan timestamp errors. |Web messaging.

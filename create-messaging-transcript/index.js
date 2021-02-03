@@ -268,6 +268,18 @@ function formatMessages(
             mediaType: message.mediaType,
             mediaSize: message.mediaSize,
           },
+          quotedMessage: message.quotedMessage ? {
+            content: message.quotedMessage.content ? {
+              id: message.quotedMessage.content._id,
+              type: message.quotedMessage.content.type,
+              text: message.quotedMessage.content.text,
+              file: (message.quotedMessage.content.type === 'file') ? {
+                mediaUrl: message.quotedMessage.content.mediaUrl,
+                mediaType: message.quotedMessage.content.mediaType,
+                mediaSize: message.quotedMessage.content.mediaSize,
+              } : {},
+            } : {},
+          } : {},
         },
         from: (message.metadata && message.metadata.resourceId) || message.authorId,
         'tenant-id': tenantId,

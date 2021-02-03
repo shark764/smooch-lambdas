@@ -134,6 +134,18 @@ exports.handler = async (event) => {
     .map((message) => ({
       id: message._id,
       text: getMessageText(message),
+      quotedMessage: message.quotedMessage ? {
+        content: message.quotedMessage.content ? {
+          id: message.quotedMessage.content._id,
+          type: message.quotedMessage.content.type,
+          text: message.quotedMessage.content.text,
+          file: (message.quotedMessage.content.type === 'file') ? {
+            mediaUrl: message.quotedMessage.content.mediaUrl,
+            mediaType: message.quotedMessage.content.mediaType,
+            mediaSize: message.quotedMessage.content.mediaSize,
+          } : {},
+        } : {},
+      } : {},
       type: message.role === 'appMaker' ? message.metadata.type : 'customer',
       from: message.role === 'appMaker' ? message.metadata.from : customer,
       file: {
