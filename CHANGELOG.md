@@ -1,3 +1,6 @@
+# 1.33.3
+* CXV1-23408 - Fix validation to render quoted files/images | WhatsApp lambdas.
+
 # 1.33.2
 * CXV1-23408 - Render quoted reply in history messages in Skylight | WhatsApp lambdas.
 

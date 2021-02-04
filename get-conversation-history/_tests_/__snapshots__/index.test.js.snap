@@ -206,7 +206,11 @@ Object {
         "id": undefined,
         "quotedMessage": Object {
           "content": Object {
-            "file": Object {},
+            "file": Object {
+              "mediaSize": undefined,
+              "mediaType": undefined,
+              "mediaUrl": undefined,
+            },
             "id": undefined,
             "text": undefined,
             "type": undefined,

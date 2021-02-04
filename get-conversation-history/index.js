@@ -139,7 +139,7 @@ exports.handler = async (event) => {
           id: message.quotedMessage.content._id,
           type: message.quotedMessage.content.type,
           text: message.quotedMessage.content.text,
-          file: (message.quotedMessage.content.type === 'file') ? {
+          file: (message.quotedMessage.content.type !== 'text') ? {
             mediaUrl: message.quotedMessage.content.mediaUrl,
             mediaType: message.quotedMessage.content.mediaType,
             mediaSize: message.quotedMessage.content.mediaSize,
