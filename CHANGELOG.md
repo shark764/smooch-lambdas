@@ -1,3 +1,6 @@
+# 1.34.0
+* CXV1-23359 - Send a notification for Skylight to display when automatically ending the interaction after 24 hours.
+
 # 1.33.3
 * CXV1-23408 - Fix validation to render quoted files/images | WhatsApp lambdas.
 

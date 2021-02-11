@@ -233,6 +233,35 @@ async function getMetadata({ tenantId, interactionId, cxAuth: auth }) {
   });
 }
 
+async function sendEndingInteractionNotification({ logContext, cxAuth }) {
+  const { tenantId, interactionId } = logContext;
+  const { data } = await getMetadata({ tenantId, interactionId, cxAuth });
+  const { participants } = data;
+
+  await Promise.all(
+    participants.map(async (participant) => {
+      const { resourceId, sessionId } = participant;
+      const QueueName = `${tenantId}_${resourceId}`;
+      const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+      const payload = JSON.stringify({
+        tenantId,
+        actionId: uuidv1(),
+        interactionId,
+        resourceId,
+        sessionId,
+        type: 'send-message',
+        messageType: 'show-banner',
+        notification: 'whatsapp-customer-disconnect',
+      });
+      const sqsMessageAction = {
+        MessageBody: payload,
+        QueueUrl,
+      };
+      log.info('Sending customer interaction ending after 24 hours notification', { ...logContext, payload });
+      await sqs.sendMessage(sqsMessageAction).promise();
+    }),
+  );
+}
 
 async function disconnectClient({ logContext, cxAuth }) {
   await performCustomerDisconnect({ logContext, cxAuth });
@@ -240,4 +269,6 @@ async function disconnectClient({ logContext, cxAuth }) {
   await deleteCustomerInteraction({ logContext });
   log.info('Creating interaction transcript', logContext);
   await createMessagingTranscript({ logContext, cxAuth });
+  log.info('Sending Notification of interaction expiration');
+  await sendEndingInteractionNotification({ logContext, cxAuth });
 }
