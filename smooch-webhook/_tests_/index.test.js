@@ -497,6 +497,7 @@ describe('smooch-webhook', () => {
               },
             },
           },
+          collectActions: [{ actionId: 'actionId', subId: 'subId' }],
         };
         await handleFormResponse(mockInput);
         expect(spyOnHandleCollectMessageResponse.mock.calls).toMatchSnapshot();
@@ -535,6 +536,7 @@ describe('smooch-webhook', () => {
       },
       auth: 'auth',
       logContext: 'logContext',
+      collectActions: [{ actionId: 'actionId', subId: 'subId' }],
     };
 
     const { handleCollectMessageResponse } = index;
@@ -569,28 +571,51 @@ describe('smooch-webhook', () => {
     });
 
     it('throws an error when there are no pending actions', async () => {
-      axios.mockImplementationOnce(() => ({
-        data: {
-          participants: [],
+      const mockInput = {
+        tenantId: 'mock-tenant-id',
+        interactionId: 'mock-interaction-id',
+        form: {
+          quotedMessage: {
+            content: {
+              metadata: {
+                actionId: 'actionId',
+                subId: 'subId',
+              },
+            },
+          },
+          fields: [{ text: 'response' }],
         },
-      }));
+        auth: 'auth',
+        logContext: 'logContext',
+      };
       try {
-        await handleCollectMessageResponse(input);
+        await handleCollectMessageResponse(mockInput);
       } catch (error) {
         expect(error.message).toMatchSnapshot();
       }
     });
 
     it('throws an error when there are no action found in pending-actions', async () => {
-      axios.mockImplementationOnce(() => ({
-        data: {
-          collectActions: [{
-          }],
-          participants: [],
+      const mockInput = {
+        tenantId: 'mock-tenant-id',
+        interactionId: 'mock-interaction-id',
+        form: {
+          quotedMessage: {
+            content: {
+              metadata: {
+                actionId: 'actionId',
+                subId: 'subId',
+              },
+            },
+          },
+          fields: [{ text: 'response' }],
         },
-      }));
+        auth: 'auth',
+        logContext: 'logContext',
+        collectActions: [{}],
+      };
       try {
-        await handleCollectMessageResponse(input);
+        await handleCollectMessageResponse(mockInput);
       } catch (error) {
         expect(error.message).toMatchSnapshot();
       }

@@ -55,18 +55,6 @@ const mockGetSecretValue = jest.fn(() => {})
     }),
   }));
 
-const mockGetQueueUrl = jest.fn()
-  .mockImplementation(() => ({
-    promise: () => ({
-      QueueUrl: 'queueurl',
-    }),
-  }));
-
-const mockSendMessage = jest.fn()
-  .mockImplementation(() => ({
-    promise: () => ({}),
-  }));
-
 const mockUpdate = jest.fn()
   .mockImplementation(() => ({
     promise: () => ({}),
@@ -92,10 +80,6 @@ jest.mock('aws-sdk', () => ({
   config: {
     update: jest.fn(),
   },
-  SQS: jest.fn().mockImplementation(() => ({
-    getQueueUrl: mockGetQueueUrl,
-    sendMessage: mockSendMessage,
-  })),
   DynamoDB: {
     DocumentClient: jest.fn().mockImplementation(() => ({
       get: mockGet,
@@ -113,31 +97,50 @@ const { handler } = require('../index');
 
 describe('smooch-action-collect-message-response', () => {
   describe('Everthing is successful', () => {
-    it('when action already exists in pending interaction', async () => {
-      const mockEvent = {
-        Records: [{
-          body: JSON.stringify({
-            'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
-            'interaction-id': '66d83870-30df-4a3b-8801-59edff162070',
-            metadata: {
-              'app-id': '5e31c81640a22c000f5d7f28',
-              'user-id': '5e31c81640a22c000f5d7f90',
-              'collect-actions': [{
-                'action-id': '5e31c81640a22c000f5d7f28',
-              }],
-              source: 'web',
-            },
-            parameters: {
-              message: 'message',
-              from: 'from',
-            },
-            id: '5e31c81640a22c000f5d7f28',
-            'sub-id': '5e31c81640a22c000f5d7f55',
-          }),
-        }],
-      };
-      const result = await handler(mockEvent);
-      expect(result).toBeUndefined();
+    it('when action already exists in pending interaction - existing collect action', async () => {
+      jest.clearAllMocks();
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+            InteractionId: '66d83870-30df-4a3b-8801-59edff162070',
+            LatestCustomerMessageTimestamp: 50,
+            CollectActions: [{ actionId: '5e31c81640a22c000f5d7f28', subId: '5e31c81640a22c000f5d7f55' }],
+          },
+        }),
+      }));
+      await handler(event);
+      expect(mockSmoochSendMessage.mock.calls[0]).toBeUndefined();
+    });
+
+    it('when action already exists in pending interaction - multiple collect actions', async () => {
+      jest.clearAllMocks();
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+            InteractionId: '66d83870-30df-4a3b-8801-59edff162070',
+            LatestCustomerMessageTimestamp: 50,
+            CollectActions: [{ actionId: '5e31c81640a22c000f5d7f22', subId: '5e31c81640a22c000f5d7f52' }],
+          },
+        }),
+      }));
+      await handler(event);
+      expect(mockUpdate.mock.calls).toMatchSnapshot();
+      expect(mockSmoochSendMessage.mock.calls[0]).toMatchSnapshot();
+    });
+
+    it('when action already exists in pending interaction - whatsapp', async () => {
+      jest.clearAllMocks();
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+            InteractionId: '66d83870-30df-4a3b-8801-59edff162070',
+            LatestCustomerMessageTimestamp: 50,
+            CollectActions: [{ actionId: '5e31c81640a22c000f5d7f28', subId: '5e31c81640a22c000f5d7f55' }],
+          },
+        }),
+      }));
+      await handler(whatsappEvent);
+      expect(mockSmoochSendMessage.mock.calls[0]).toMatchSnapshot();
     });
 
     it('returns nothing when the code runs without any error', async () => {
@@ -166,6 +169,15 @@ describe('smooch-action-collect-message-response', () => {
           }),
         }],
       };
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+            InteractionId: '66d83870-30df-4a3b-8801-59edff162070',
+            LatestCustomerMessageTimestamp: 50,
+            CollectActions: [],
+          },
+        }),
+      }));
       await handler(mockEvent);
       expect(mockSmoochSendMessage.mock.calls[0][0].message.fields[0].label).toMatchSnapshot();
     });
@@ -225,18 +237,19 @@ describe('smooch-action-collect-message-response', () => {
       const result = await handler(whatsappEvent);
       expect(result).toBeUndefined();
     });
-    describe('Walkthrough', () => {
+    describe('Whatsapp Walkthrough', () => {
       beforeAll(async () => {
         jest.clearAllMocks();
-        await handler(event);
-      });
-
-      it('passes in the correct arguments to sqs.getQueueUrl()', async () => {
-        expect(mockGetQueueUrl.mock.calls).toMatchSnapshot();
-      });
-
-      it('passes in the correct arguments to sqs.sendMessage()', async () => {
-        expect(mockSendMessage.mock.calls).toMatchSnapshot();
+        mockGet.mockImplementationOnce(() => ({
+          promise: () => ({
+            Item: {
+              InteractionId: '66d83870-30df-4a3b-8801-59edff162070',
+              LatestCustomerMessageTimestamp: 50,
+              CollectActions: [{ actionId: '5e31c81640a22c000f5d7f28', subId: '5e31c81640a22c000f5d7f55' }],
+            },
+          }),
+        }));
+        await handler(whatsappEvent);
       });
 
       it('passes in the correct arguments to secretClient.getSecretValue()', async () => {
@@ -251,15 +264,33 @@ describe('smooch-action-collect-message-response', () => {
         expect(mockSmoochSendMessage.mock.calls).toMatchSnapshot();
       });
     });
-  });
+    describe('Web Walkthrough', () => {
+      beforeAll(async () => {
+        jest.clearAllMocks();
+        mockGet.mockImplementationOnce(() => ({
+          promise: () => ({
+            Item: {
+              InteractionId: '66d83870-30df-4a3b-8801-59edff162070',
+              LatestCustomerMessageTimestamp: 50,
+              CollectActions: [{ actionId: '5e31c81640a22c000f5d7f29', subId: '5e31c81640a22c000f5d7f56' }],
+            },
+          }),
+        }));
+        await handler(event);
+      });
 
-  it('throws an error when there is a problem updating interaction metadata', async () => {
-    try {
-      mockGetQueueUrl.mockRejectedValueOnce(new Error());
-      await handler(event);
-    } catch (error) {
-      expect(Promise.reject(new Error('Error updating interaction metadata'))).rejects.toThrowErrorMatchingSnapshot();
-    }
+      it('passes in the correct arguments to secretClient.getSecretValue()', async () => {
+        expect(mockGetSecretValue.mock.calls).toMatchSnapshot();
+      });
+
+      it('passes in the correct arguments to SmoochCore', async () => {
+        expect(mockSmoochCore.mock.calls).toMatchSnapshot();
+      });
+
+      it('passes in the correct arguments to smooch.appUsers.sendMessage()', async () => {
+        expect(mockSmoochSendMessage.mock.calls).toMatchSnapshot();
+      });
+    });
   });
 
   it('throws an error when there is a problem retrieving digital channels credentials', async () => {
@@ -285,6 +316,15 @@ describe('smooch-action-collect-message-response', () => {
   it('throws an error when there is a problem sending collect-message', async () => {
     try {
       mockSmoochSendMessage.mockRejectedValueOnce(new Error());
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+            InteractionId: '66d83870-30df-4a3b-8801-59edff162070',
+            LatestCustomerMessageTimestamp: 50,
+            CollectActions: [],
+          },
+        }),
+      }));
       await handler(event);
     } catch (error) {
       expect(Promise.reject(new Error('Error sending collect-message'))).rejects.toThrowErrorMatchingSnapshot();

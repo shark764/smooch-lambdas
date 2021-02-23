@@ -1,3 +1,6 @@
+# 1.34.1
+* CXV1-23542 - Changes for collect message for web to include collect actions from dynamodb and added check for timestamp during form response (CXV1-23564)
+
 # 1.34.0
 * CXV1-23359 - Send a notification for Skylight to display when automatically ending the interaction after 24 hours.
 

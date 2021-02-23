@@ -169,7 +169,11 @@ Array [
       "logContext": "logContext",
       "metadata": Object {
         "artifactId": "mock-artifact-id",
-        "collectActions": Array [],
+        "collectActions": Array [
+          Object {
+            "actionId": "actionId",
+          },
+        ],
         "latestMessageSentBy": "customer",
         "participants": Array [
           Object {
@@ -327,6 +331,12 @@ Array [
   Array [
     Object {
       "auth": "auth",
+      "collectActions": Array [
+        Object {
+          "actionId": "actionId",
+          "subId": "subId",
+        },
+      ],
       "form": Object {
         "_id": "_id",
         "fields": Array [
@@ -468,6 +478,7 @@ Array [
         "secret": "mock-secret",
       },
       "channelType": "messaging",
+      "collectActions": undefined,
       "form": Object {
         "fields": Array [
           Object {},

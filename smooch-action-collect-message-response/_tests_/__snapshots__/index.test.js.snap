@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`smooch-action-collect-message-response Everthing is successful Walkthrough passes in the correct arguments to SmoochCore 1`] = `
+exports[`smooch-action-collect-message-response Everthing is successful Web Walkthrough passes in the correct arguments to SmoochCore 1`] = `
 Array [
   Array [
     Object {
@@ -13,7 +13,7 @@ Array [
 ]
 `;
 
-exports[`smooch-action-collect-message-response Everthing is successful Walkthrough passes in the correct arguments to secretClient.getSecretValue() 1`] = `
+exports[`smooch-action-collect-message-response Everthing is successful Web Walkthrough passes in the correct arguments to secretClient.getSecretValue() 1`] = `
 Array [
   Array [
     Object {
@@ -23,7 +23,7 @@ Array [
 ]
 `;
 
-exports[`smooch-action-collect-message-response Everthing is successful Walkthrough passes in the correct arguments to smooch.appUsers.sendMessage() 1`] = `
+exports[`smooch-action-collect-message-response Everthing is successful Web Walkthrough passes in the correct arguments to smooch.appUsers.sendMessage() 1`] = `
 Array [
   Array [
     Object {
@@ -53,24 +53,121 @@ Array [
 ]
 `;
 
-exports[`smooch-action-collect-message-response Everthing is successful Walkthrough passes in the correct arguments to sqs.getQueueUrl() 1`] = `
+exports[`smooch-action-collect-message-response Everthing is successful Whatsapp Walkthrough passes in the correct arguments to SmoochCore 1`] = `
 Array [
   Array [
     Object {
-      "QueueName": "us-east-1-dev-update-interaction-metadata",
+      "keyId": "id",
+      "scope": "app",
+      "secret": "secret",
+      "serviceUrl": "mock-amooch-api-url",
     },
   ],
 ]
 `;
 
-exports[`smooch-action-collect-message-response Everthing is successful Walkthrough passes in the correct arguments to sqs.sendMessage() 1`] = `
+exports[`smooch-action-collect-message-response Everthing is successful Whatsapp Walkthrough passes in the correct arguments to secretClient.getSecretValue() 1`] = `
 Array [
   Array [
     Object {
-      "MessageBody": "{\\"tenantId\\":\\"66d83870-30df-4a3b-8801-59edff162034\\",\\"interactionId\\":\\"66d83870-30df-4a3b-8801-59edff162070\\",\\"source\\":\\"smooch\\",\\"metadata\\":{\\"app-id\\":\\"5e31c81640a22c000f5d7f28\\",\\"user-id\\":\\"5e31c81640a22c000f5d7f90\\",\\"source\\":\\"web\\",\\"collect-actions\\":[{\\"actionId\\":\\"5e31c81640a22c000f5d7f28\\",\\"subId\\":\\"5e31c81640a22c000f5d7f55\\"}]}}",
-      "QueueUrl": "queueurl",
+      "SecretId": "us-east-1-dev-smooch-app",
     },
   ],
+]
+`;
+
+exports[`smooch-action-collect-message-response Everthing is successful Whatsapp Walkthrough passes in the correct arguments to smooch.appUsers.sendMessage() 1`] = `
+Array [
+  Array [
+    Object {
+      "appId": "5e31c81640a22c000f5d7f28",
+      "message": Object {
+        "metadata": Object {
+          "from": "from",
+          "interactionId": "66d83870-30df-4a3b-8801-59edff162070",
+          "type": "system",
+        },
+        "role": "appMaker",
+        "text": "message",
+        "type": "text",
+      },
+      "userId": "5e31c81640a22c000f5d7f90",
+    },
+  ],
+]
+`;
+
+exports[`smooch-action-collect-message-response Everthing is successful when action already exists in pending interaction - multiple collect actions 1`] = `
+Array [
+  Array [
+    Object {
+      "ExpressionAttributeValues": Object {
+        ":c": Array [
+          Object {
+            "actionId": "5e31c81640a22c000f5d7f22",
+            "subId": "5e31c81640a22c000f5d7f52",
+          },
+          Object {
+            "actionId": "5e31c81640a22c000f5d7f28",
+            "subId": "5e31c81640a22c000f5d7f55",
+          },
+        ],
+      },
+      "Key": Object {
+        "SmoochUserId": "5e31c81640a22c000f5d7f90",
+      },
+      "ReturnValues": "UPDATED_NEW",
+      "TableName": "us-east-1-dev-smooch-interactions",
+      "UpdateExpression": "set CollectActions = :c",
+    },
+  ],
+]
+`;
+
+exports[`smooch-action-collect-message-response Everthing is successful when action already exists in pending interaction - multiple collect actions 2`] = `
+Array [
+  Object {
+    "appId": "5e31c81640a22c000f5d7f28",
+    "message": Object {
+      "blockChatInput": false,
+      "fields": Array [
+        Object {
+          "label": "message",
+          "name": "collect-message",
+          "type": "text",
+        },
+      ],
+      "metadata": Object {
+        "actionId": "5e31c81640a22c000f5d7f28",
+        "from": "from",
+        "interactionId": "66d83870-30df-4a3b-8801-59edff162070",
+        "subId": "5e31c81640a22c000f5d7f55",
+        "type": "system",
+      },
+      "role": "appMaker",
+      "type": "form",
+    },
+    "userId": "5e31c81640a22c000f5d7f90",
+  },
+]
+`;
+
+exports[`smooch-action-collect-message-response Everthing is successful when action already exists in pending interaction - whatsapp 1`] = `
+Array [
+  Object {
+    "appId": "5e31c81640a22c000f5d7f28",
+    "message": Object {
+      "metadata": Object {
+        "from": "from",
+        "interactionId": "66d83870-30df-4a3b-8801-59edff162070",
+        "type": "system",
+      },
+      "role": "appMaker",
+      "text": "message",
+      "type": "text",
+    },
+    "userId": "5e31c81640a22c000f5d7f90",
+  },
 ]
 `;
 
@@ -85,7 +182,5 @@ exports[`smooch-action-collect-message-response throws an error when there is a 
 exports[`smooch-action-collect-message-response throws an error when there is a problem sending whatsapp collect-message 1`] = `"Error sending Whatsapp collect message"`;
 
 exports[`smooch-action-collect-message-response throws an error when there is a problem updating collectActions 1`] = `"An error ocurred updating collectActions"`;
-
-exports[`smooch-action-collect-message-response throws an error when there is a problem updating interaction metadata 1`] = `"Error updating interaction metadata"`;
 
 exports[`throws an error when there is a problem getting collectActions 1`] = `"Failed to get smooch interaction record"`;

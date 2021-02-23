@@ -9,7 +9,6 @@ const {
 } = process.env;
 
 AWS.config.update({ region: process.env.AWS_REGION });
-const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const secretsClient = new AWS.SecretsManager();
 const docClient = new AWS.DynamoDB.DocumentClient();
 
@@ -30,6 +29,8 @@ exports.handler = async (event) => {
     interactionId,
     smoochAppId: appId,
     smoochUserId: userId,
+    actionId,
+    subId,
   };
   let newMessage = message;
 
@@ -59,34 +60,57 @@ exports.handler = async (event) => {
     throw error;
   }
 
+  let smoochInteractionRecord;
+  try {
+    smoochInteractionRecord = await docClient
+      .get({
+        TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+        Key: {
+          SmoochUserId: userId,
+        },
+      })
+      .promise();
+  } catch (error) {
+    log.error('Failed to get smooch interaction record', logContext, error);
+    throw error;
+  }
+  const interactionItem = smoochInteractionRecord && smoochInteractionRecord.Item;
+  const hasInteractionItem = interactionItem && Object.entries(interactionItem).length !== 0;
+  const activeInteractionId = interactionItem && interactionItem.InteractionId;
+  if (!hasInteractionItem || !activeInteractionId) {
+    log.warn('No active interaction exists', logContext);
+    return;
+  }
+  if (interactionId !== activeInteractionId) {
+    log.warn('Got action request from old interaction', logContext);
+    return;
+  }
+
+  let collectActions = interactionItem && interactionItem.CollectActions;
+
   if (source === 'web') {
-    if (!metadata['collect-actions']) {
-      metadata['collect-actions'] = [];
-    }
-    const existingAction = metadata['collect-actions'].find(
-      (action) => action['action-id'] === actionId,
+    const existingAction = collectActions.find(
+      (action) => action.actionId === actionId,
     );
     if (existingAction) {
       log.warn('Actions already exists in pending interactions', { ...logContext, actionId });
       return;
     }
-    try {
-      metadata['collect-actions'].push({ actionId, subId });
-      await updateInteractionMetadata({
-        tenantId,
-        interactionId,
-        metadata,
-      });
-      log.debug('Added collect-message action to interaction metadata', logContext);
-    } catch (error) {
-      log.error(
-        'Error updating interaction metadata',
-        logContext,
-        error,
-      );
-      throw error;
+    collectActions.push({ actionId, subId });
+  } else {
+    if (collectActions && (collectActions.length > 0)) {
+      log.warn('Collect Actions already exists, overwriting with new action', logContext);
     }
+    collectActions = [{ actionId, subId }];
+  }
 
+  await exports.setCollectActions({
+    collectAction: collectActions,
+    userId: logContext.smoochUserId,
+    logContext,
+  });
+
+  if (source === 'web') {
     if (message.length > 128) {
       log.warn('Message contains more than 128 characters', logContext);
       newMessage = `${message.substring(0, 124)}...`;
@@ -119,42 +143,6 @@ exports.handler = async (event) => {
       throw error;
     }
   } else {
-    let smoochInteractionRecord;
-    try {
-      smoochInteractionRecord = await docClient
-        .get({
-          TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
-          Key: {
-            SmoochUserId: userId,
-          },
-        })
-        .promise();
-    } catch (error) {
-      log.error('Failed to get smooch interaction record', logContext, error);
-      throw error;
-    }
-    const interactionItem = smoochInteractionRecord && smoochInteractionRecord.Item;
-    const hasInteractionItem = interactionItem && Object.entries(interactionItem).length !== 0;
-    const activeInteractionId = interactionItem && interactionItem.InteractionId;
-    if (!hasInteractionItem || !activeInteractionId) {
-      log.warn('No active interaction exists', logContext);
-      return;
-    }
-    if (interactionId !== activeInteractionId) {
-      log.warn('Got action request from old interaction', logContext);
-      return;
-    }
-
-    const collectActions = interactionItem && interactionItem.CollectActions;
-    if (collectActions && (collectActions.length > 0)) {
-      log.warn('Collect Actions already exists, overwriting with new action');
-    }
-    const collectAction = [{ actionId, subId }];
-    await exports.setCollectActions({
-      collectAction,
-      userId: logContext.smoochUserId,
-      logContext,
-    });
     try {
       await smooch.appUsers.sendMessage({
         appId,
@@ -171,33 +159,13 @@ exports.handler = async (event) => {
         },
       });
     } catch (error) {
-      log.error('Error sending collect message ', logContext, error);
+      log.error('Error sending whatsapp collect message ', logContext, error);
       throw error;
     }
   }
 
   log.info('smooch-action-collect-message-response was successful', logContext);
 };
-
-async function updateInteractionMetadata({
-  tenantId,
-  interactionId,
-  metadata,
-}) {
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-update-interaction-metadata`;
-  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
-  const payload = JSON.stringify({
-    tenantId,
-    interactionId,
-    source: 'smooch',
-    metadata,
-  });
-  const sqsMessageAction = {
-    MessageBody: payload,
-    QueueUrl,
-  };
-  await sqs.sendMessage(sqsMessageAction).promise();
-}
 
 exports.setCollectActions = async function setCollectActions({
   collectAction, userId, logContext,

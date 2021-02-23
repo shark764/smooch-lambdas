@@ -154,6 +154,7 @@ exports.handler = async (event) => {
                 properties,
                 channelType,
                 metadataSource: platform,
+                collectActions,
               });
               break;
             }
@@ -288,6 +289,7 @@ exports.handleFormResponse = async ({
   properties,
   channelType,
   metadataSource,
+  collectActions,
 }) => {
   let customerIdentifier = properties.customer;
   if (form.name.includes('Web User ')) {
@@ -354,6 +356,7 @@ exports.handleFormResponse = async ({
           form,
           auth,
           logContext,
+          collectActions,
         });
         break;
       default:
@@ -373,13 +376,13 @@ exports.handleCollectMessageResponse = async function handleCollectMessageRespon
   form,
   auth,
   logContext,
+  collectActions: pendingActions,
 }) {
   if (!interactionId) {
     log.info('No interaction ID. Ignoring collect message response.', logContext);
     return 'No Interaction ID';
   }
   const { data: metadata } = await getMetadata({ tenantId, interactionId, auth });
-  const { collectActions: pendingActions } = metadata;
   const { actionId, subId } = form.quotedMessage.content.metadata;
   const { text: response, label } = form.fields[0];
 
@@ -392,10 +395,14 @@ exports.handleCollectMessageResponse = async function handleCollectMessageRespon
     throw new Error('There are no pending actions');
   }
   // Create updated-metadata by removing incoming collect-action from the interaction metadata
-  const updatedActions = metadata.collectActions.filter(
+  const updatedActions = pendingActions.filter(
     (action) => action.actionId !== actionId,
   );
-  metadata.collectActions = updatedActions;
+  await exports.setCollectActions({
+    collectAction: updatedActions,
+    userId: logContext.smoochUserId,
+    logContext,
+  });
   metadata.latestMessageSentBy = 'customer';
 
   // If the updated actions length is different from the old one
