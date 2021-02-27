@@ -1,18 +1,15 @@
 const { lambda: { log } } = require('alonzo');
-const axios = require('axios');
 const AWS = require('aws-sdk');
-const uuidv1 = require('uuid/v1');
+const { disconnectClient, checkIfClientIsDisconnected } = require('./resources/commonFunctions');
 
 const {
   AWS_REGION,
   ENVIRONMENT,
-  DOMAIN,
 } = process.env;
 
-AWS.config.update({ region: process.env.AWS_REGION });
+AWS.config.update({ region: AWS_REGION });
 const secretsClient = new AWS.SecretsManager();
 const docClient = new AWS.DynamoDB.DocumentClient();
-const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 
 exports.handler = async (event) => {
   const {
@@ -63,12 +60,12 @@ exports.handler = async (event) => {
 
   if (!hasInteractionItem || !interactionId) {
     log.info('No active interaction for user', logContext);
-    return;
+    return 'no interaction';
   }
 
   if (interactionIdToCheck !== interactionId) {
     log.info('Check Event for an old interaction. Not disconnecting client.', logContext);
-    return;
+    return 'old interaction';
   }
 
   // how much time has passed between latest agent message and now.
@@ -89,155 +86,25 @@ exports.handler = async (event) => {
       userId,
       logContext,
     });
-  } else if (!LatestCustomerMessageTimestamp) {
+    return 'checking if client disconnected';
+  }
+  if (!LatestCustomerMessageTimestamp) {
     log.info('Customer is inactive', logContext);
     await disconnectClient({ logContext, cxAuth });
-  } else if (LatestCustomerMessageTimestamp < latestAgentMessageTimestamp) {
+    return 'disconnected client. no latest customer message timestamp.';
+  }
+  if (LatestCustomerMessageTimestamp < latestAgentMessageTimestamp) {
     log.info('Customer is inactive. Last customer message is older than latest agent message', {
       ...logContext,
       LatestCustomerMessageTimestamp,
       latestAgentMessageTimestamp,
     });
     await disconnectClient({ logContext, cxAuth });
-  } else {
-    log.info(
-      'Last customer message is newer. Customer is active.',
-      logContext,
-    );
+    return 'disconnected client. last customer message is older.';
   }
-};
-
-async function performCustomerDisconnect({ logContext, cxAuth }) {
-  const { tenantId, interactionId } = logContext;
   log.info(
-    'Performing Customer Disconnect',
+    'Last customer message is newer. Customer is active.',
     logContext,
   );
-  try {
-    const { data } = await axios({
-      method: 'post',
-      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts?id=${uuidv1()}`,
-      data: {
-        source: 'smooch',
-        interruptType: 'customer-disconnect',
-        interrupt: {},
-      },
-      auth: cxAuth,
-    });
-    log.info('Performed Customer Disconnect', { ...logContext, response: data });
-  } catch (error) {
-    if (error.response.status === 404) {
-      log.debug('Already received a first customer disconnect', { ...logContext, response: error.response });
-    } else {
-      log.error(
-        'An Error has occurred trying to send customer interrupt',
-        logContext,
-        error,
-      );
-      throw error;
-    }
-  }
-}
-
-async function deleteCustomerInteraction({ logContext }) {
-  const { smoochUserId } = logContext;
-  const smoochParams = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
-    Key: {
-      SmoochUserId: smoochUserId,
-    },
-    ConditionExpression: 'attribute_exists(SmoochUserId)',
-  };
-
-  try {
-    await docClient.delete(smoochParams).promise();
-  } catch (error) {
-    log.info('An error occurred removing the interaction id on the state table. Assuming a previous disconnect has already done this.', logContext, error);
-  }
-
-  log.debug('Removed interaction from state table', logContext);
-}
-
-async function checkIfClientIsDisconnected({
-  latestAgentMessageTimestamp, disconnectTimeoutInMinutes, userId, logContext,
-}) {
-  const { tenantId, interactionId } = logContext;
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-smooch-client-disconnect-checker`;
-  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
-  const DelaySeconds = Math.min(disconnectTimeoutInMinutes, 15) * 60;
-  const MessageBody = JSON.stringify({
-    interactionId,
-    tenantId,
-    userId,
-    latestAgentMessageTimestamp,
-    disconnectTimeoutInMinutes,
-  });
-  const sqsMessageAction = {
-    MessageBody,
-    QueueUrl,
-    DelaySeconds,
-  };
-  await sqs.sendMessage(sqsMessageAction).promise();
-}
-
-async function createMessagingTranscript({ logContext, cxAuth }) {
-  const {
-    tenantId,
-    interactionId,
-    smoochUserId: userId,
-  } = logContext;
-  const { data: { appId, artifactId } } = await getMetadata({ tenantId, interactionId, cxAuth });
-  let transcriptFile;
-  const newLogContext = { ...logContext, artifactId };
-  try {
-    const { data } = await axios({
-      method: 'get',
-      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
-      auth: cxAuth,
-    });
-    log.info('artifact found for interaction', { ...newLogContext, artifact: data });
-    transcriptFile = data.files.find((f) => f.metadata && f.metadata.transcript === true);
-  } catch (error) {
-    log.error('Error retrieving artifact', newLogContext);
-  }
-
-  if (!transcriptFile) {
-    const QueueName = `${AWS_REGION}-${ENVIRONMENT}-create-messaging-transcript`;
-    const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
-    const payload = JSON.stringify({
-      tenantId,
-      interactionId,
-      appId,
-      userId,
-      artifactId,
-    });
-
-    const sqsMessageAction = {
-      MessageBody: payload,
-      QueueUrl,
-    };
-
-    log.info('Sending message to create-messaging-transcript Queue', newLogContext);
-
-    await sqs.sendMessage(sqsMessageAction).promise();
-  } else {
-    log.info('Transcript file not created, file already exists', newLogContext);
-  }
-}
-
-async function getMetadata({ tenantId, interactionId, cxAuth: auth }) {
-  return axios({
-    method: 'get',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
-    auth,
-  });
-}
-
-
-async function disconnectClient({ logContext, cxAuth }) {
-  await performCustomerDisconnect({ logContext, cxAuth });
-  log.info('Deleting customer interaction');
-  await deleteCustomerInteraction({ logContext });
-  log.info('Creating interaction transcript', logContext);
-  await createMessagingTranscript({ logContext, cxAuth });
-}
+  return 'customer is active';
+};

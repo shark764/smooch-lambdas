@@ -1,0 +1,11 @@
+{
+  "name": "utils",
+  "version": "1.0.0",
+  "description": "utils",
+  "repository": {},
+  "license": "UNLICENSED",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "uuid": "^3.4.0"
+  }
+}

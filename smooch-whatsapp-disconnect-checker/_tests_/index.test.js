@@ -1,24 +1,32 @@
+global.DISCONNECT_TIMEOUT_MINUTES = 1440;
+global.DELAY_MINUTES = 15;
+
 global.process.env = {
   AWS_REGION: 'us-east-1',
   ENVIRONMENT: 'dev',
   DOMAIN: 'domain',
   smooch_api_url: 'mock-smooch-api-url',
 };
-global.Math.abs = jest.fn(() => 123456789);
-
 const {
-  checkIfClientIsDisconnected,
+  checkIfClientPastInactiveTimeout,
   disconnectClient,
 } = require('../resources/commonFunctions');
 
 jest.mock('../resources/commonFunctions');
+checkIfClientPastInactiveTimeout.mockImplementation(() => true);
 
-checkIfClientIsDisconnected.mockImplementation(() => ({
-  promise: () => ({}),
-}));
 disconnectClient.mockImplementation(() => ({
   promise: () => ({}),
 }));
+const event = {
+  Records: [{
+    body: JSON.stringify({
+      tenantId: '250faddb-9723-403a-9bd5-3ca710cb26e5',
+      interactionId: '667802d8-2260-436c-958a-2ee0f71f73f0',
+      userId: '667802d8-2260-436c-958a-2ee0f71f73f2',
+    }),
+  }],
+};
 
 const mockGetSecretValue = jest.fn(() => {})
   .mockImplementation(() => ({
@@ -35,7 +43,7 @@ const mockGet = jest.fn()
     promise: () => ({
       Item: {
         InteractionId: '667802d8-2260-436c-958a-2ee0f71f73f0',
-        LatestCustomerMessageTimestamp: 50,
+        LatestWhatsappCustomerMessageTimestamp: 4,
       },
     }),
   }));
@@ -56,19 +64,7 @@ jest.mock('aws-sdk', () => ({
 
 const { handler } = require('../index');
 
-const event = {
-  Records: [{
-    body: JSON.stringify({
-      tenantId: '250faddb-9723-403a-9bd5-3ca710cb26e5',
-      interactionId: '667802d8-2260-436c-958a-2ee0f71f73f0',
-      userId: '667802d8-2260-436c-958a-2ee0f71f73f2',
-      latestAgentMessageTimestamp: 40,
-      disconnectTimeoutInMinutes: 50,
-    }),
-  }],
-};
-
-describe('smooch-client-disconnect-checker', () => {
+describe('smooch-whatsapp-disconnect-checker', () => {
   describe('Walkthrough', () => {
     beforeAll(async () => {
       jest.clearAllMocks();
@@ -91,11 +87,12 @@ describe('smooch-client-disconnect-checker', () => {
 
   describe('Everything is successful', () => {
     it('returns when there is no active interaction for users', async () => {
+      jest.clearAllMocks();
       mockGet.mockImplementationOnce(() => ({
         promise: () => ({
           Item: {
             InteractionId: '',
-            LatestCustomerMessageTimestamp: 50,
+            LatestWhatsappCustomerMessageTimestamp: 10,
           },
         }),
       }));
@@ -104,11 +101,12 @@ describe('smooch-client-disconnect-checker', () => {
     });
 
     it('returns when not disconnecting client', async () => {
+      jest.clearAllMocks();
       mockGet.mockImplementationOnce(() => ({
         promise: () => ({
           Item: {
             InteractionId: '667802d8-2260-436c-958a-2ee0f71f73f1',
-            LatestCustomerMessageTimestamp: 50,
+            LatestWhatsappCustomerMessageTimestamp: 10,
           },
         }),
       }));
@@ -116,7 +114,7 @@ describe('smooch-client-disconnect-checker', () => {
       expect(result).toEqual('old interaction');
     });
 
-    it('checking if the client is disconnected', async () => {
+    it('delay disconnect using checkIfClientPastInactiveTimeout()', async () => {
       jest.clearAllMocks();
       const mockEvent = {
         Records: [{
@@ -124,51 +122,50 @@ describe('smooch-client-disconnect-checker', () => {
             tenantId: '250faddb-9723-403a-9bd5-3ca710cb26e5',
             interactionId: '667802d8-2260-436c-958a-2ee0f71f73f0',
             userId: '667802d8-2260-436c-958a-2ee0f71f73f2',
-            latestAgentMessageTimestamp: 40,
-            disconnectTimeoutInMinutes: 3000,
           }),
         }],
       };
+      mockGet.mockImplementationOnce(() => ({
+        promise: () => ({
+          Item: {
+            InteractionId: '667802d8-2260-436c-958a-2ee0f71f73f0',
+            LatestWhatsappCustomerMessageTimestamp: (new Date() - (1000 * 60)),
+          },
+        }),
+      }));
       const result = await handler(mockEvent);
-      expect(checkIfClientIsDisconnected.mock.calls).toMatchSnapshot();
-      expect(result).toEqual('checking if client disconnected');
+      expect(checkIfClientPastInactiveTimeout.mock.calls).toMatchSnapshot();
+      expect(result).toEqual('delaying disconnect');
     });
 
-    it('when customer is active', async () => {
+    it('disconnect with 1 minute left', async () => {
       jest.clearAllMocks();
       mockGet.mockImplementationOnce(() => ({
         promise: () => ({
           Item: {
             InteractionId: '667802d8-2260-436c-958a-2ee0f71f73f0',
+            LatestWhatsappCustomerMessageTimestamp: (new Date() - (1000 * 60 * 1439)),
           },
         }),
       }));
       const result = await handler(event);
       expect(disconnectClient.mock.calls).toMatchSnapshot();
-      expect(result).toEqual('disconnected client. no latest customer message timestamp.');
+      expect(result).toEqual('customer disconnected');
     });
 
-    it('when customer is inactive and the last customer message is older that latest agent message', async () => {
+    it('disconnect after customer past timeout', async () => {
       jest.clearAllMocks();
       mockGet.mockImplementationOnce(() => ({
         promise: () => ({
           Item: {
             InteractionId: '667802d8-2260-436c-958a-2ee0f71f73f0',
-            LatestCustomerMessageTimestamp: 10,
+            LatestWhatsappCustomerMessageTimestamp: 4,
           },
         }),
       }));
       const result = await handler(event);
       expect(disconnectClient.mock.calls).toMatchSnapshot();
-      expect(result).toEqual('disconnected client. last customer message is older.');
-    });
-
-    it('when the customer is active', async () => {
-      jest.clearAllMocks();
-      const result = await handler(event);
-      expect(checkIfClientIsDisconnected).not.toHaveBeenCalled();
-      expect(disconnectClient).not.toHaveBeenCalled();
-      expect(result).toEqual('customer is active');
+      expect(result).toEqual('customer disconnected past timeout');
     });
   });
 
@@ -189,6 +186,22 @@ describe('smooch-client-disconnect-checker', () => {
       await handler(event);
     } catch (error) {
       expect(Promise.reject(new Error('Falied to get smooch interaction record'))).rejects.toThrowErrorMatchingSnapshot();
+    }
+  });
+
+  it('throws an error when No customer timestamp is found', async () => {
+    jest.clearAllMocks();
+    mockGet.mockImplementationOnce(() => ({
+      promise: () => ({
+        Item: {
+          InteractionId: '667802d8-2260-436c-958a-2ee0f71f73f0',
+        },
+      }),
+    }));
+    try {
+      await handler(event);
+    } catch (error) {
+      expect(Promise.reject(new Error('Customer Message Timestamp does not exists'))).rejects.toThrowErrorMatchingSnapshot();
     }
   });
 });

@@ -1,16 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`smooch-client-disconnect-checker Everything is successful checking if the client is disconnected 1`] = `
+exports[`smooch-whatsapp-disconnect-checker Everything is successful delay disconnect using checkIfClientPastInactiveTimeout() 1`] = `
 Array [
   Array [
     Object {
-      "disconnectTimeoutInMinutes": 943,
-      "latestAgentMessageTimestamp": 40,
+      "delayMinutes": 15,
       "logContext": Object {
         "hasInteractionItem": true,
         "interactionId": "667802d8-2260-436c-958a-2ee0f71f73f0",
         "interactionIdToCheck": "667802d8-2260-436c-958a-2ee0f71f73f0",
         "smoochUserId": "667802d8-2260-436c-958a-2ee0f71f73f2",
+        "source": "whatsapp",
         "tenantId": "250faddb-9723-403a-9bd5-3ca710cb26e5",
       },
       "userId": "667802d8-2260-436c-958a-2ee0f71f73f2",
@@ -19,7 +19,7 @@ Array [
 ]
 `;
 
-exports[`smooch-client-disconnect-checker Everything is successful when customer is active 1`] = `
+exports[`smooch-whatsapp-disconnect-checker Everything is successful disconnect after customer past timeout 1`] = `
 Array [
   Array [
     Object {
@@ -32,6 +32,7 @@ Array [
         "interactionId": "667802d8-2260-436c-958a-2ee0f71f73f0",
         "interactionIdToCheck": "667802d8-2260-436c-958a-2ee0f71f73f0",
         "smoochUserId": "667802d8-2260-436c-958a-2ee0f71f73f2",
+        "source": "whatsapp",
         "tenantId": "250faddb-9723-403a-9bd5-3ca710cb26e5",
       },
     },
@@ -39,7 +40,7 @@ Array [
 ]
 `;
 
-exports[`smooch-client-disconnect-checker Everything is successful when customer is inactive and the last customer message is older that latest agent message 1`] = `
+exports[`smooch-whatsapp-disconnect-checker Everything is successful disconnect with 1 minute left 1`] = `
 Array [
   Array [
     Object {
@@ -52,6 +53,7 @@ Array [
         "interactionId": "667802d8-2260-436c-958a-2ee0f71f73f0",
         "interactionIdToCheck": "667802d8-2260-436c-958a-2ee0f71f73f0",
         "smoochUserId": "667802d8-2260-436c-958a-2ee0f71f73f2",
+        "source": "whatsapp",
         "tenantId": "250faddb-9723-403a-9bd5-3ca710cb26e5",
       },
     },
@@ -59,7 +61,7 @@ Array [
 ]
 `;
 
-exports[`smooch-client-disconnect-checker Walkthrough passes in the correct arguments to secretClient.getSecretValue() to get cx credentials 1`] = `
+exports[`smooch-whatsapp-disconnect-checker Walkthrough passes in the correct arguments to secretClient.getSecretValue() to get cx credentials 1`] = `
 Array [
   Array [
     Object {
@@ -69,6 +71,8 @@ Array [
 ]
 `;
 
-exports[`smooch-client-disconnect-checker throws an error when there is a problem geting smooch interaction record 1`] = `"Falied to get smooch interaction record"`;
+exports[`smooch-whatsapp-disconnect-checker throws an error when No customer timestamp is found 1`] = `"Customer Message Timestamp does not exists"`;
 
-exports[`smooch-client-disconnect-checker throws an error when there is a problem retrieving cx credentials 1`] = `"Error retrieving cx credentials"`;
+exports[`smooch-whatsapp-disconnect-checker throws an error when there is a problem geting smooch interaction record 1`] = `"Falied to get smooch interaction record"`;
+
+exports[`smooch-whatsapp-disconnect-checker throws an error when there is a problem retrieving cx credentials 1`] = `"Error retrieving cx credentials"`;

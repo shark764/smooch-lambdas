@@ -2,14 +2,15 @@
 const {
   lambda: { log },
 } = require('alonzo');
+const uuidv1 = require('uuid/v1');
 const AWS = require('aws-sdk');
 const axios = require('axios');
-const uuidv1 = require('uuid/v1');
 
+const { AWS_REGION, DOMAIN, ENVIRONMENT } = process.env;
+
+AWS.config.update({ region: AWS_REGION });
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const docClient = new AWS.DynamoDB.DocumentClient();
-
-const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
 
 async function getMetadata({ tenantId, interactionId, auth }) {
   return axios({
@@ -18,7 +19,6 @@ async function getMetadata({ tenantId, interactionId, auth }) {
     auth,
   });
 }
-
 async function checkIfClientIsDisconnected({
   latestAgentMessageTimestamp,
   disconnectTimeoutInMinutes,
@@ -103,6 +103,7 @@ async function getClientInactivityTimeout({ logContext }) {
     } = smoochIntegration);
   } else {
     log.debug('No integration found', logContext);
+    return 'No integration found';
   }
   /**
    * Check if whatsapp integration exists and is active
@@ -112,7 +113,7 @@ async function getClientInactivityTimeout({ logContext }) {
       return clientDisconnectMinutes;
     }
     log.debug('Integration found but is inactive', logContext);
-    return null;
+    return 'Integration found but is inactive';
   }
   return clientDisconnectMinutes;
 }
@@ -166,10 +167,183 @@ async function sendMessageToParticipants({
   }
 }
 
+async function deleteCustomerInteraction({ logContext }) {
+  const { smoochUserId } = logContext;
+  const smoochParams = {
+    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+    Key: {
+      SmoochUserId: smoochUserId,
+    },
+    ConditionExpression: 'attribute_exists(SmoochUserId)',
+  };
+
+  try {
+    await docClient.delete(smoochParams).promise();
+  } catch (error) {
+    log.info('An error occurred removing the interaction id on the state table. Assuming a previous disconnect has already done this.', logContext, error);
+    return 'An error occurred removing the interaction id on the state table';
+  }
+  log.debug('Removed interaction from state table', logContext);
+  return 'deleteCustomerInteraction';
+}
+
+async function createMessagingTranscript({ logContext, cxAuth }) {
+  const {
+    tenantId,
+    interactionId,
+    smoochUserId: userId,
+  } = logContext;
+  const { data: { appId, artifactId } } = await getMetadata({ tenantId, interactionId, cxAuth });
+  let transcriptFile;
+  const newLogContext = { ...logContext, artifactId };
+  try {
+    const { data } = await axios({
+      method: 'get',
+      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
+      auth: cxAuth,
+    });
+    log.info('artifact found for interaction', { ...newLogContext, artifact: data });
+    transcriptFile = data.files.find((f) => f.metadata && f.metadata.transcript === true);
+  } catch (error) {
+    log.error('Error retrieving artifact', newLogContext);
+    throw error;
+  }
+
+  if (!transcriptFile) {
+    const QueueName = `${AWS_REGION}-${ENVIRONMENT}-create-messaging-transcript`;
+    const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+    const payload = JSON.stringify({
+      tenantId,
+      interactionId,
+      appId,
+      userId,
+      artifactId,
+    });
+
+    const sqsMessageAction = {
+      MessageBody: payload,
+      QueueUrl,
+    };
+
+    log.info('Sending message to create-messaging-transcript Queue', newLogContext);
+
+    await sqs.sendMessage(sqsMessageAction).promise();
+  } else {
+    log.info('Transcript file not created, file already exists', newLogContext);
+    return 'Transcript file not created, file already exists';
+  }
+  return 'createMessagingTranscript';
+}
+
+async function checkIfClientPastInactiveTimeout({
+  delayMinutes, userId, logContext,
+}) {
+  const { tenantId, interactionId } = logContext;
+  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-smooch-whatsapp-disconnect-checker`;
+  const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+  const DelaySeconds = Math.min(delayMinutes, 15) * 60;
+  const MessageBody = JSON.stringify({
+    interactionId,
+    tenantId,
+    userId,
+  });
+  const sqsMessageAction = {
+    MessageBody,
+    QueueUrl,
+    DelaySeconds,
+  };
+  await sqs.sendMessage(sqsMessageAction).promise();
+}
+
+async function performCustomerDisconnect({ logContext, cxAuth }) {
+  const { tenantId, interactionId } = logContext;
+  log.info(
+    'Performing Customer Disconnect',
+    logContext,
+  );
+  try {
+    const { data } = await axios({
+      method: 'post',
+      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts?id=${uuidv1()}`,
+      data: {
+        source: 'smooch',
+        interruptType: 'customer-disconnect',
+        interrupt: {},
+      },
+      auth: cxAuth,
+    });
+    log.info('Performed Customer Disconnect', { ...logContext, response: data });
+  } catch (error) {
+    if (error.response.status !== 404) {
+      log.error(
+        'An Error has occurred trying to send customer interrupt',
+        logContext,
+        error,
+      );
+      throw error;
+    } else {
+      log.debug('Already received a first customer disconnect', { ...logContext, response: error.response });
+      return 'Already received a first customer disconnect';
+    }
+  }
+  return 'performCustomerDisconnect';
+}
+
+async function sendEndingInteractionNotification({ logContext, cxAuth }) {
+  const { tenantId, interactionId } = logContext;
+  const { data } = await getMetadata({ tenantId, interactionId, cxAuth });
+  const { participants } = data;
+
+  await Promise.all(
+    participants.map(async (participant) => {
+      const { resourceId, sessionId } = participant;
+      const QueueName = `${tenantId}_${resourceId}`;
+      const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+      const payload = JSON.stringify({
+        tenantId,
+        actionId: uuidv1(),
+        interactionId,
+        resourceId,
+        sessionId,
+        type: 'send-message',
+        messageType: 'show-banner',
+        notification: 'whatsapp-customer-disconnect',
+      });
+      const sqsMessageAction = {
+        MessageBody: payload,
+        QueueUrl,
+      };
+      log.info('Sending customer interaction ending after 24 hours notification', { ...logContext, payload });
+      await sqs.sendMessage(sqsMessageAction).promise();
+    }),
+  );
+  return 'sendEndingInteractionNotification';
+}
+
+async function disconnectClient({ logContext, cxAuth }) {
+  await performCustomerDisconnect({ logContext, cxAuth });
+  log.info('Deleting customer interaction', logContext);
+  await deleteCustomerInteraction({ logContext });
+  log.info('Creating interaction transcript', logContext);
+  await createMessagingTranscript({ logContext, cxAuth });
+  if (logContext.source === 'whatsapp') {
+    log.info('Sending Notification of interaction expiration', logContext);
+    await sendEndingInteractionNotification({ logContext, cxAuth });
+    return 'whatspp disconnectClient';
+  }
+  return 'non-whatspp disconnectClient';
+}
+
 module.exports = {
   checkIfClientIsDisconnected,
   shouldCheckIfClientIsDisconnected,
   getClientInactivityTimeout,
   getMetadata,
   sendMessageToParticipants,
+  checkIfClientPastInactiveTimeout,
+  disconnectClient,
+  performCustomerDisconnect,
+  deleteCustomerInteraction,
+  createMessagingTranscript,
+  sendEndingInteractionNotification,
 };

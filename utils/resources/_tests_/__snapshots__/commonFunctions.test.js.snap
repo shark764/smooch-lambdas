@@ -1,0 +1,148 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`checkIfClientIsDisconnected gets disconnect checker queue url correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "QueueName": "us-east-1-dev-smooch-client-disconnect-checker",
+    },
+  ],
+]
+`;
+
+exports[`checkIfClientIsDisconnected sent to disconnect queue 1`] = `
+Array [
+  Array [
+    Object {
+      "DelaySeconds": 600,
+      "MessageBody": "{\\"interactionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"tenantId\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"userId\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e46\\",\\"latestAgentMessageTimestamp\\":50,\\"disconnectTimeoutInMinutes\\":10}",
+      "QueueUrl": "queueurl",
+    },
+  ],
+]
+`;
+
+exports[`checkIfClientPastInactiveTimeout finsih successfully 1`] = `
+Array [
+  Array [
+    Object {
+      "QueueName": "us-east-1-dev-smooch-whatsapp-disconnect-checker",
+    },
+  ],
+]
+`;
+
+exports[`createMessagingTranscript Everything is successful finish successfully 1`] = `"createMessagingTranscript"`;
+
+exports[`createMessagingTranscript Transcript exists transcript object as true 1`] = `"Transcript file not created, file already exists"`;
+
+exports[`createMessagingTranscript gets error during transcript retrival 1`] = `"Error retrieving artifact"`;
+
+exports[`deleteCustomerInteraction when error occurs gets error on mock delete 1`] = `"An error occurred removing the interaction id on the state table"`;
+
+exports[`deleteCustomerInteraction when everything is successful delete called succesfully 1`] = `
+Array [
+  Object {
+    "ConditionExpression": "attribute_exists(SmoochUserId)",
+    "Key": Object {
+      "SmoochUserId": "7534c040-534d-11ea-8aa0-c32d6a748e46",
+    },
+    "TableName": "us-east-1-dev-smooch-interactions",
+  },
+]
+`;
+
+exports[`deleteCustomerInteraction when everything is successful finish successfully 1`] = `"deleteCustomerInteraction"`;
+
+exports[`disconnectClient disconnectClient - non-whatsapp finish successfully 1`] = `"non-whatspp disconnectClient"`;
+
+exports[`disconnectClient disconnectClient - whatsapp finish successfully 1`] = `"whatspp disconnectClient"`;
+
+exports[`getClientInactivityTimeout Everything is successful - Whatsapp Active whatsapp integration 1`] = `50`;
+
+exports[`getClientInactivityTimeout Everything is successful - web calls successfully 1`] = `
+Array [
+  Array [
+    Object {
+      "Key": Object {
+        "id": "5e31c81640a22c000f5d7f28",
+        "tenant-id": "250faddb-9723-403a-9bd5-3ca710cb26e5",
+      },
+      "TableName": "us-east-1-dev-smooch",
+    },
+  ],
+]
+`;
+
+exports[`getClientInactivityTimeout Inactive whatsapp integration integration is inactive 1`] = `"Integration found but is inactive"`;
+
+exports[`getClientInactivityTimeout No integration found record not found 1`] = `"No integration found"`;
+
+exports[`getClientInactivityTimeout No smooch interaction record Error on getting record 1`] = `"Failed to get smooch interaction record"`;
+
+exports[`getMetadata calls successfully 1`] = `
+Array [
+  Object {
+    "auth": "auth",
+    "method": "get",
+    "url": "https://us-east-1-dev-edge.domain/v1/tenants/250faddb-9723-403a-9bd5-3ca710cb26e5/interactions/667802d8-2260-436c-958a-2ee0f71f73f0/metadata",
+  },
+]
+`;
+
+exports[`performCustomerDisconnect when everything is successful calls customer-disconnect 1`] = `
+Array [
+  Array [
+    Object {
+      "auth": "auth",
+      "data": Object {
+        "interrupt": Object {},
+        "interruptType": "customer-disconnect",
+        "source": "smooch",
+      },
+      "method": "post",
+      "url": "https://us-east-1-dev-edge.domain/v1/tenants/250faddb-9723-403a-9bd5-3ca710cb26e5/interactions/667802d8-2260-436c-958a-2ee0f71f73f0/interrupts?id=7534c040-534d-11ea-8aa0-c32d6a748e97",
+    },
+  ],
+]
+`;
+
+exports[`performCustomerDisconnect when everything is successful finish successfully 1`] = `"performCustomerDisconnect"`;
+
+exports[`sendEndingInteractionNotification successfully sent notification 1`] = `
+Array [
+  Array [
+    Object {
+      "MessageBody": "{\\"tenantId\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"actionId\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e97\\",\\"interactionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"resourceId\\":\\"mock-resource-id-1\\",\\"sessionId\\":\\"mock-session-id-1\\",\\"type\\":\\"send-message\\",\\"messageType\\":\\"show-banner\\",\\"notification\\":\\"whatsapp-customer-disconnect\\"}",
+      "QueueUrl": "queueurl",
+    },
+  ],
+  Array [
+    Object {
+      "MessageBody": "{\\"tenantId\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"actionId\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e97\\",\\"interactionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"resourceId\\":\\"mock-resource-id-2\\",\\"sessionId\\":\\"mock-session-id-2\\",\\"type\\":\\"send-message\\",\\"messageType\\":\\"show-banner\\",\\"notification\\":\\"whatsapp-customer-disconnect\\"}",
+      "QueueUrl": "queueurl",
+    },
+  ],
+]
+`;
+
+exports[`sendMessageToParticipants Error during call fail to send message to participants 1`] = `"Failed to send messages to participants"`;
+
+exports[`sendMessageToParticipants Everything is successful calls correctly 1`] = `
+Array [
+  Array [
+    Object {
+      "MessageBody": "{\\"actionId\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e97\\",\\"subId\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e97\\",\\"type\\":\\"send-message\\",\\"resourceId\\":\\"mock-resource-id-1\\",\\"sessionId\\":\\"mock-session-id-1\\"}",
+      "QueueUrl": "queueurl",
+    },
+  ],
+  Array [
+    Object {
+      "MessageBody": "{\\"actionId\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e97\\",\\"subId\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e97\\",\\"type\\":\\"send-message\\",\\"resourceId\\":\\"mock-resource-id-2\\",\\"sessionId\\":\\"mock-session-id-2\\"}",
+      "QueueUrl": "queueurl",
+    },
+  ],
+]
+`;
+
+exports[`shouldCheckIfClientIsDisconnected Error getting interaction record Fail to get interation record 1`] = `"Failed to get smooch interaction record"`;
