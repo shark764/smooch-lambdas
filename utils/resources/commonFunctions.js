@@ -103,7 +103,6 @@ async function getClientInactivityTimeout({ logContext }) {
     } = smoochIntegration);
   } else {
     log.debug('No integration found', logContext);
-    return 'No integration found';
   }
   /**
    * Check if whatsapp integration exists and is active
@@ -113,7 +112,6 @@ async function getClientInactivityTimeout({ logContext }) {
       return clientDisconnectMinutes;
     }
     log.debug('Integration found but is inactive', logContext);
-    return 'Integration found but is inactive';
   }
   return clientDisconnectMinutes;
 }

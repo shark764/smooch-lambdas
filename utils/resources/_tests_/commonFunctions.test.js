@@ -459,7 +459,7 @@ describe('getClientInactivityTimeout', () => {
     });
 
     it('record not found', async () => {
-      expect(result).toMatchSnapshot();
+      expect(result).toBeUndefined();
     });
   });
 
@@ -508,7 +508,7 @@ describe('getClientInactivityTimeout', () => {
     });
 
     it('integration is inactive', async () => {
-      expect(result).toMatchSnapshot();
+      expect(result).toBeUndefined();
     });
   });
 });

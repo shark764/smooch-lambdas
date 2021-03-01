@@ -1,3 +1,6 @@
+# 1.34.3
+* CXV1-23540 - Fix send-message failure due to returns in inactivity timeout
+
 # 1.34.2
 * CXV1-23540 - Code refactoring for client/whatsapp disconnect checkers. Added test cases for whatsapp disconnect checker.
 

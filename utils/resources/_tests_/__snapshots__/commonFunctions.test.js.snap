@@ -74,10 +74,6 @@ Array [
 ]
 `;
 
-exports[`getClientInactivityTimeout Inactive whatsapp integration integration is inactive 1`] = `"Integration found but is inactive"`;
-
-exports[`getClientInactivityTimeout No integration found record not found 1`] = `"No integration found"`;
-
 exports[`getClientInactivityTimeout No smooch interaction record Error on getting record 1`] = `"Failed to get smooch interaction record"`;
 
 exports[`getMetadata calls successfully 1`] = `
