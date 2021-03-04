@@ -1,3 +1,6 @@
+# 1.34.4
+* CXV1-23540 - Whatsapp Notification issue as auth params wasn't passed correctly
+
 # 1.34.3
 * CXV1-23540 - Fix send-message failure due to returns in inactivity timeout
 

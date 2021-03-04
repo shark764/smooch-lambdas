@@ -191,7 +191,11 @@ async function createMessagingTranscript({ logContext, cxAuth }) {
     interactionId,
     smoochUserId: userId,
   } = logContext;
-  const { data: { appId, artifactId } } = await getMetadata({ tenantId, interactionId, cxAuth });
+  const { data: { appId, artifactId } } = await getMetadata({
+    tenantId,
+    interactionId,
+    auth: cxAuth,
+  });
   let transcriptFile;
   const newLogContext = { ...logContext, artifactId };
   try {
@@ -289,7 +293,11 @@ async function performCustomerDisconnect({ logContext, cxAuth }) {
 
 async function sendEndingInteractionNotification({ logContext, cxAuth }) {
   const { tenantId, interactionId } = logContext;
-  const { data } = await getMetadata({ tenantId, interactionId, cxAuth });
+  const { data } = await getMetadata({
+    tenantId,
+    interactionId,
+    auth: cxAuth,
+  });
   const { participants } = data;
 
   await Promise.all(
