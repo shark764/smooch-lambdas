@@ -1,3 +1,6 @@
+# 1.34.5
+* CXV1-23838 - Label from collect messages are sent to Agent at the same time they are sent to Customer. | Whatsapp messaging.
+
 # 1.34.4
 * CXV1-23540 - Whatsapp Notification issue as auth params wasn't passed correctly
 

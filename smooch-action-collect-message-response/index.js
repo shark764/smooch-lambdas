@@ -1,6 +1,8 @@
 const { lambda: { log } } = require('alonzo');
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
+const uuidv1 = require('uuid/v1');
+const { sendMessageToParticipants } = require('./resources/commonFunctions');
 
 const {
   AWS_REGION,
@@ -59,6 +61,19 @@ exports.handler = async (event) => {
     log.error('An Error has occurred trying to retrieve digital channels credentials', logContext, error);
     throw error;
   }
+
+  let cxAuthSecret;
+  try {
+    cxAuthSecret = await secretsClient
+      .getSecretValue({
+        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+      })
+      .promise();
+  } catch (error) {
+    log.error('An Error has occurred trying to retrieve cx credentials', logContext, error);
+    throw error;
+  }
+  const auth = JSON.parse(cxAuthSecret.SecretString);
 
   let smoochInteractionRecord;
   try {
@@ -161,6 +176,37 @@ exports.handler = async (event) => {
     } catch (error) {
       log.error('Error sending whatsapp collect message ', logContext, error);
       throw error;
+    }
+
+    /**
+     * NON-WEB CHAT
+     * Send label to resources
+     * We send system message to participants as soon as collect message
+     * is sent to customer, since We cannot send form type messages,
+     * then there is no way to get question from collect message on customer response.
+     */
+    const messageToParticipants = {
+      id: uuidv1(),
+      from: 'System',
+      timestamp: Date.now(),
+      type: 'system',
+      text: newMessage,
+    };
+    try {
+      await sendMessageToParticipants({
+        interactionId,
+        tenantId,
+        message: messageToParticipants,
+        messageType: 'received-message',
+        auth,
+        logContext,
+      });
+      log.debug('Sent collect-message label to participants for non-web conversations', {
+        ...logContext,
+        message: messageToParticipants,
+      });
+    } catch (error) {
+      log.error('Error sending collect-message label to participants', logContext, error);
     }
   }
 

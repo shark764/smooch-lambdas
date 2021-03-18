@@ -20,6 +20,11 @@ Array [
       "SecretId": "us-east-1-dev-smooch-app",
     },
   ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-cx",
+    },
+  ],
 ]
 `;
 
@@ -71,6 +76,11 @@ Array [
   Array [
     Object {
       "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-cx",
     },
   ],
 ]

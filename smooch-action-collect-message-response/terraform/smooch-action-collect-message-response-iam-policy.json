@@ -30,6 +30,7 @@
         "Action": "secretsmanager:GetSecretValue",
         "Effect": "Allow",
         "Resource": [
+            "arn:aws:secretsmanager:*:*:secret:*-smooch-cx-??????",
             "arn:aws:secretsmanager:*:*:secret:*-smooch-app-??????"
         ]
     }]
