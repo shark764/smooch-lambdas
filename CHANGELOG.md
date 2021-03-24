@@ -1,3 +1,6 @@
+# 1.34.6
+* CXV1-23386 - Clean up old API Gateway code paths after deploy.
+
 # 1.34.5
 * CXV1-23838 - Label from collect messages are sent to Agent at the same time they are sent to Customer. | Whatsapp messaging.
 

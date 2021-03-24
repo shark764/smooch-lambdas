@@ -129,7 +129,7 @@ const index = require('../index');
 
 const { handler, handleFormResponse } = index;
 
-const body = {
+const eventBody = {
   app: {
     _id: 'mock-smooch-app-id',
   },
@@ -147,9 +147,12 @@ const body = {
   timestamp: 'mock-timestamp',
 };
 
-const event = (bodyParam = body) => ({
+const event = (bodyParam = eventBody) => ({
   Records: [{
-    body: JSON.stringify(bodyParam),
+    body: JSON.stringify({
+      tenantId: 'mock-tenant-id',
+      body: bodyParam,
+    }),
   }],
 });
 
@@ -164,7 +167,7 @@ describe('smooch-webhook', () => {
       await handler(eventWithMultipleRecords);
     });
     it('returns when there is no client', async () => {
-      const bodyWithoutClient = { ...body };
+      const bodyWithoutClient = { ...eventBody };
       delete bodyWithoutClient.client;
       const result = await handler(event(bodyWithoutClient));
       expect(result).toEqual('no client');
@@ -199,7 +202,7 @@ describe('smooch-webhook', () => {
     describe('message:appUser', () => {
       it('handles the first message received from smooch', async () => {
         const result = await handler(event({
-          ...body,
+          ...eventBody,
           trigger: 'message:appUser',
           messages: [
             { type: 'file' },
@@ -215,7 +218,7 @@ describe('smooch-webhook', () => {
             const spyOnHandleFormResponse = jest.spyOn(index, 'handleFormResponse')
               .mockImplementationOnce(() => { });
             await handler(event({
-              ...body,
+              ...eventBody,
               trigger: 'message:appUser',
               messages: [{
                 type: 'formResponse',
@@ -232,7 +235,7 @@ describe('smooch-webhook', () => {
             const handleCustomerMessage = jest.spyOn(index, 'handleCustomerMessage')
               .mockImplementationOnce(() => {});
             await handler(event({
-              ...body,
+              ...eventBody,
               trigger: 'message:appUser',
               messages: [{
                 type: 'text',
@@ -248,7 +251,7 @@ describe('smooch-webhook', () => {
             const handleCustomerMessage = jest.spyOn(index, 'handleCustomerMessage')
               .mockImplementationOnce(() => {});
             await handler(event({
-              ...body,
+              ...eventBody,
               trigger: 'message:appUser',
               messages: [{
                 type: 'image',
@@ -264,7 +267,7 @@ describe('smooch-webhook', () => {
             const handleCustomerMessage = jest.spyOn(index, 'handleCustomerMessage')
               .mockImplementationOnce(() => {});
             await handler(event({
-              ...body,
+              ...eventBody,
               trigger: 'message:appUser',
               messages: [{
                 type: 'file',
@@ -278,7 +281,7 @@ describe('smooch-webhook', () => {
         describe('when unsupported type is received', () => {
           it('does nothing when unsupported type is received', async () => {
             const result = await handler(event({
-              ...body,
+              ...eventBody,
               trigger: 'message:appUser',
               messages: [{ type: 'mock-type', mediaUrl: 'url://mock-mediaUrl' }],
             }));
@@ -290,7 +293,7 @@ describe('smooch-webhook', () => {
       describe('when Unsupported platform is received', () => {
         it('does nothing when Unsupported platform is received', async () => {
           const result = await handler(event({
-            ...body,
+            ...eventBody,
             trigger: 'message:appUser',
             client: {
               integrationId: 'mock-integration-id',
@@ -315,7 +318,7 @@ describe('smooch-webhook', () => {
           }),
         }));
         const result = await handler(event({
-          ...body,
+          ...eventBody,
           trigger: 'conversation:read',
         }));
         expect(result).toEqual('conversation:read no interaction');
@@ -324,7 +327,7 @@ describe('smooch-webhook', () => {
         const sendConversationEvent = jest.spyOn(index, 'sendConversationEvent')
           .mockImplementationOnce(() => { });
         await handler(event({
-          ...body,
+          ...eventBody,
           trigger: 'conversation:read',
         }));
         expect(sendConversationEvent.mock.calls).toMatchSnapshot();
@@ -340,7 +343,7 @@ describe('smooch-webhook', () => {
           }),
         }));
         const result = await handler(event({
-          ...body,
+          ...eventBody,
           trigger: 'typing:appUser',
         }));
         expect(result).toEqual('typing:appUser no interaction');
@@ -349,7 +352,7 @@ describe('smooch-webhook', () => {
         const sendConversationEvent = jest.spyOn(index, 'sendConversationEvent')
           .mockImplementationOnce(() => { });
         await handler(event({
-          ...body,
+          ...eventBody,
           trigger: 'typing:appUser',
           activity: {
             type: 'typing:start',
@@ -361,7 +364,7 @@ describe('smooch-webhook', () => {
         const sendConversationEvent = jest.spyOn(index, 'sendConversationEvent')
           .mockImplementationOnce(() => { });
         await handler(event({
-          ...body,
+          ...eventBody,
           trigger: 'typing:appUser',
           activity: {
             type: 'typing:stop',
@@ -372,7 +375,7 @@ describe('smooch-webhook', () => {
     });
     it('returns for unsupported triggers', async () => {
       const result = await handler(event({
-        ...body,
+        ...eventBody,
         trigger: 'bogus trigger',
       }));
       expect(result).toEqual('unsupported trigger');

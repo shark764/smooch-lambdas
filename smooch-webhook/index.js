@@ -32,27 +32,12 @@ const secretsClient = new AWS.SecretsManager();
 
 exports.handler = async (event) => {
   const eventBody = JSON.parse(event.Records[0].body);
-  let body;
-  let tenantId;
-  if (eventBody.body) {
-    ({ body } = eventBody);
-    ({ tenantId } = eventBody);
-  } else {
-    // TODO remove this case after API Gateway is deployed in prod
-    body = eventBody;
-    log.warn('Using original body', { body });
-  }
+  const { body, tenantId } = eventBody;
   const {
     appUser, messages, app, client, trigger, timestamp, activity,
   } = body;
   const { _id: appId } = app;
   const { properties, _id: userId } = appUser;
-
-  // TODO remove this case after API Gateway is deployed in prod
-  if (!tenantId) {
-    ({ tenantId } = properties);
-    log.warn('Getting tenant id from properties', { tenantId });
-  }
 
   const logContext = {
     tenantId,
