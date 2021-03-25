@@ -11,9 +11,10 @@ const {
 } = require('alonzo');
 const SmoochCore = require('smooch-core');
 const string = require('serenova-js-utils/strings');
+const Joi = require('@hapi/joi');
 
 const secretsClient = new AWS.SecretsManager();
-const Joi = require('@hapi/joi');
+const docClient = new AWS.DynamoDB.DocumentClient();
 
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid().required(),
@@ -22,18 +23,16 @@ const paramsSchema = Joi.object({
   'remote-addr': Joi.any(),
   auth: Joi.any(),
 });
+
+const { REGION_PREFIX, ENVIRONMENT, SMOOCH_API_URL } = process.env;
 const lambdaPermissions = ['WEB_INTEGRATIONS_APP_READ'];
 const lambdaPlatformPermissions = ['PLATFORM_VIEW_ALL'];
 
-AWS.config.update({ region: process.env.AWS_REGION });
-const docClient = new AWS.DynamoDB.DocumentClient();
-
 exports.handler = async (event) => {
-  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
   const { params, identity } = event;
   const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'], smoochIntegrationId: params.id };
 
-  log.info('get-smooch-web-integration was called', { ...logContext, params, smoochApiUrl });
+  log.info('get-smooch-web-integration was called', { ...logContext, params, SMOOCH_API_URL });
 
   try {
     await paramsSchema.validateAsync(params);
@@ -49,7 +48,7 @@ exports.handler = async (event) => {
   let appSecrets;
   try {
     appSecrets = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+      SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-app`,
     }).promise();
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
@@ -82,7 +81,7 @@ exports.handler = async (event) => {
       'tenant-id': tenantId,
       id: integrationId,
     },
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
   };
 
   let dynamoValue;
@@ -121,7 +120,7 @@ exports.handler = async (event) => {
       keyId: appKeys[`${appId}-id`],
       secret: appKeys[`${appId}-secret`],
       scope: 'app',
-      serviceUrl: smoochApiUrl,
+      serviceUrl: SMOOCH_API_URL,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to validate digital channels credentials';

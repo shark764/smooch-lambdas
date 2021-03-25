@@ -4,8 +4,3 @@ memory_size = 128
 zip_path="create-messaging-transcript/create-messaging-transcript.zip"
 handler = "index.handler"
 runtime = "nodejs12.x"
-environmentVars = {
-  "ENVIRONMENT" = "${ENVIRONMENT}",
-  "DOMAIN" = "${DOMAIN}"
-  "ACCOUNT_ID" = "${ACCOUNT_ID}"
-}

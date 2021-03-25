@@ -12,14 +12,6 @@ global.Date.prototype.toISOString = jest.fn(() => 'January 1 1970');
 
 validateTenantPermissions.mockReturnValue(true);
 
-beforeAll(() => {
-  global.process.env = {
-    AWS_REGION: 'us-east-1',
-    ENVIRONMENT: 'dev',
-    smooch_api_url: 'mock-smooch-api-url',
-  };
-});
-
 const mockBody = {
   whatsappId: '5e31c81640a22c000f5d7f28',
   name: 'smooch',

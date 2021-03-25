@@ -3,7 +3,3 @@ memory_size = 128
 zip_path="create-smooch-web-integration/create-smooch-web-integration.zip"
 handler = "index.handler"
 runtime = "nodejs12.x"
-environmentVars = {
-  "ENVIRONMENT" = "${ENVIRONMENT}"
-  "DOMAIN" = "${DOMAIN}"
-}

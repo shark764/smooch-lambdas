@@ -13,9 +13,7 @@ const {
   },
 } = require('alonzo');
 
-AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
-const DEFAULT_CONVERSATION_RETENTION_SECONDS = 3600 * 48;
 const secretsClient = new AWS.SecretsManager();
 
 const bodySchema = Joi.object({
@@ -30,19 +28,20 @@ const paramsSchema = Joi.object({
   auth: Joi.any(),
 });
 
+const {
+  REGION_PREFIX,
+  ENVIRONMENT,
+  DOMAIN,
+  SMOOCH_API_URL,
+} = process.env;
 const lambdaPermissions = ['PLATFORM_DIGITAL_CHANNELS_APP'];
+const DEFAULT_CONVERSATION_RETENTION_SECONDS = 3600 * 48;
 
 exports.handler = async (event) => {
-  const {
-    AWS_REGION,
-    ENVIRONMENT,
-    DOMAIN,
-    smooch_api_url: smoochApiUrl,
-  } = process.env;
   const { params, body, identity } = event;
   const logContext = { tenantId: params['tenant-id'], userId: identity['user-id'] };
 
-  log.info('create-smooch-app was called', { ...logContext, params, smoochApiUrl });
+  log.info('create-smooch-app was called', { ...logContext, params, SMOOCH_API_URL });
 
   try {
     await paramsSchema.validateAsync(params);
@@ -82,7 +81,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const apiUrl = `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}`;
+  const apiUrl = `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}`;
   try {
     const response = await axios({
       method: 'get',
@@ -119,7 +118,7 @@ exports.handler = async (event) => {
   let accountSecrets;
   try {
     accountSecrets = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-account`,
+      SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-account`,
     }).promise();
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
@@ -140,7 +139,7 @@ exports.handler = async (event) => {
       keyId: accountKeys.id,
       secret: accountKeys.secret,
       scope: 'account',
-      serviceUrl: smoochApiUrl,
+      serviceUrl: SMOOCH_API_URL,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
@@ -194,7 +193,7 @@ exports.handler = async (event) => {
   let appSecrets;
   try {
     appSecrets = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+      SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-app`,
     }).promise();
   } catch (error) {
     const errMsg = 'An Error has occurred (1) trying to save App credentials';
@@ -213,7 +212,7 @@ exports.handler = async (event) => {
 
   try {
     await secretsClient.putSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+      SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-app`,
       SecretString: JSON.stringify(appKeys),
     }).promise();
   } catch (error) {
@@ -227,7 +226,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const webhookUrl = `https://${AWS_REGION}-${ENVIRONMENT}-smooch-gateway.${DOMAIN}/webhook?tenantId=${tenantId}`;
+  const webhookUrl = `https://${REGION_PREFIX}-${ENVIRONMENT}-smooch-gateway.${DOMAIN}/webhook?tenantId=${tenantId}`;
   let webhook;
   try {
     webhook = await smooch.webhooks.create(newAppId, { target: webhookUrl, triggers: ['message:appUser', 'conversation:read', 'typing:appUser'], includeClient: true });
@@ -243,7 +242,7 @@ exports.handler = async (event) => {
   }
 
   const smoochParams = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
     Item: {
       'tenant-id': tenantId,
       id: newAppId,

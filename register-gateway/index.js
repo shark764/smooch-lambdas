@@ -5,7 +5,11 @@ const { lambda: { log } } = require('alonzo');
 const secretsClient = new AWS.SecretsManager();
 
 const {
-  AWS_REGION, ENVIRONMENT, DOMAIN, ACCOUNT_ID,
+  REGION_PREFIX,
+  REGION,
+  ENVIRONMENT,
+  DOMAIN,
+  ACCOUNT_ID,
 } = process.env;
 
 exports.handler = async () => {
@@ -17,7 +21,7 @@ exports.handler = async () => {
   try {
     cxAuthSecret = await secretsClient
       .getSecretValue({
-        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+        SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-cx`,
       })
       .promise();
   } catch (error) {
@@ -29,26 +33,26 @@ exports.handler = async () => {
   }
 
   const cxAuth = JSON.parse(cxAuthSecret.SecretString);
-  const url = `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/gateways`;
+  const url = `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/gateways`;
   const data = {
     url: '',
     type: 'smooch',
     actions: [
       {
         name: 'add-participant',
-        target: `arn:aws:sqs:${AWS_REGION}:${ACCOUNT_ID}:${AWS_REGION}-${ENVIRONMENT}-smooch-action-add-participant`,
+        target: `arn:aws:sqs:${REGION}:${ACCOUNT_ID}:${REGION_PREFIX}-${ENVIRONMENT}-smooch-action-add-participant`,
       },
       {
         name: 'disconnect',
-        target: `arn:aws:sqs:${AWS_REGION}:${ACCOUNT_ID}:${AWS_REGION}-${ENVIRONMENT}-smooch-action-disconnect`,
+        target: `arn:aws:sqs:${REGION}:${ACCOUNT_ID}:${REGION_PREFIX}-${ENVIRONMENT}-smooch-action-disconnect`,
       },
       {
         name: 'send-message',
-        target: `arn:aws:sqs:${AWS_REGION}:${ACCOUNT_ID}:${AWS_REGION}-${ENVIRONMENT}-smooch-action-send-message`,
+        target: `arn:aws:sqs:${REGION}:${ACCOUNT_ID}:${REGION_PREFIX}-${ENVIRONMENT}-smooch-action-send-message`,
       },
       {
         name: 'collect-message-response',
-        target: `arn:aws:sqs:${AWS_REGION}:${ACCOUNT_ID}:${AWS_REGION}-${ENVIRONMENT}-smooch-action-collect-message-response`,
+        target: `arn:aws:sqs:${REGION}:${ACCOUNT_ID}:${REGION_PREFIX}-${ENVIRONMENT}-smooch-action-collect-message-response`,
       },
     ],
     subscriptions: [],

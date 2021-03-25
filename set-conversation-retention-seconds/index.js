@@ -2,31 +2,30 @@ const { lambda: { log } } = require('alonzo');
 const AWS = require('aws-sdk');
 const SmoochCore = require('smooch-core');
 
-AWS.config.update({ region: process.env.AWS_REGION });
 const secretsClient = new AWS.SecretsManager();
-const DEFAULT_CONVERSATION_RETENTION_SECONDS = 3600 * 48;
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 const {
-  AWS_REGION,
+  REGION_PREFIX,
   ENVIRONMENT,
-  smooch_api_url: smoochApiUrl,
+  SMOOCH_API_URL,
 } = process.env;
+const DEFAULT_CONVERSATION_RETENTION_SECONDS = 3600 * 48;
 
 exports.handler = async () => {
   const accountSecrets = await secretsClient.getSecretValue({
-    SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-account`,
+    SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-account`,
   }).promise();
   const accountKeys = JSON.parse(accountSecrets.SecretString);
   const smooch = new SmoochCore({
     keyId: accountKeys.id,
     secret: accountKeys.secret,
     scope: 'account',
-    serviceUrl: smoochApiUrl,
+    serviceUrl: SMOOCH_API_URL,
   });
 
   const getRecordsParams = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
   };
 
   let smoochApps;

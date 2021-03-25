@@ -13,9 +13,9 @@ const {
 } = require('alonzo');
 const string = require('serenova-js-utils/strings');
 
-AWS.config.update({ region: process.env.AWS_REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
+
 const bodySchema = Joi.object({
   name: Joi.string(),
   prechatCapture: Joi.string()
@@ -47,14 +47,15 @@ const paramsSchema = Joi.object({
   'remote-addr': Joi.any(),
   auth: Joi.any(),
 });
+
+const { REGION_PREFIX, ENVIRONMENT, SMOOCH_API_URL } = process.env;
 const lambdaPermissions = ['WEB_INTEGRATIONS_APP_UPDATE'];
 
 exports.handler = async (event) => {
-  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
   const { body, params, identity } = event;
   const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'], smoochIntegrationId: params.id };
 
-  log.info('update-smooch-web-integration was called', { ...logContext, params, smoochApiUrl });
+  log.info('update-smooch-web-integration was called', { ...logContext, params, SMOOCH_API_URL });
 
   try {
     await bodySchema.validateAsync(body);
@@ -81,7 +82,7 @@ exports.handler = async (event) => {
   let appSecrets;
   try {
     appSecrets = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+      SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-app`,
     }).promise();
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
@@ -112,7 +113,7 @@ exports.handler = async (event) => {
       'tenant-id': tenantId,
       id: integrationId,
     },
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
   };
   let appId;
 
@@ -148,7 +149,7 @@ exports.handler = async (event) => {
       keyId: appKeys[`${appId}-id`],
       secret: appKeys[`${appId}-secret`],
       scope: 'app',
-      serviceUrl: smoochApiUrl,
+      serviceUrl: SMOOCH_API_URL,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to validate digital channels credentials';
@@ -261,7 +262,7 @@ exports.handler = async (event) => {
 
   if (body.name || body.description || body.contactPoint) {
     const updateParams = {
-      TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+      TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
       Key: {
         'tenant-id': tenantId,
         id: integrationId,

@@ -4,7 +4,3 @@ memory_size = 128
 zip_path="smooch-action-collect-message-response/smooch-action-collect-message-response.zip"
 handler = "index.handler"
 runtime = "nodejs12.x"
-environmentVars = {
-  "ENVIRONMENT" = "${ENVIRONMENT}",
-  "DOMAIN" = "${DOMAIN}"
-}

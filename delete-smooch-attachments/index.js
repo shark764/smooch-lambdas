@@ -9,9 +9,9 @@ const AWS = require('aws-sdk');
 const secretsClient = new AWS.SecretsManager();
 
 const {
-  AWS_REGION,
+  REGION_PREFIX,
   ENVIRONMENT,
-  smooch_api_url: smoochApiUrl,
+  SMOOCH_API_URL,
 } = process.env;
 
 exports.handler = async (event) => {
@@ -36,7 +36,7 @@ exports.handler = async (event) => {
   let appSecrets;
   try {
     appSecrets = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+      SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-app`,
     }).promise();
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
@@ -52,7 +52,7 @@ exports.handler = async (event) => {
       keyId: appKeys[`${smoochAppId}-id`],
       secret: appKeys[`${smoochAppId}-secret`],
       scope: 'app',
-      serviceUrl: smoochApiUrl,
+      serviceUrl: SMOOCH_API_URL,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';

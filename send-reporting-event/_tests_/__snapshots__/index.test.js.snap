@@ -27,7 +27,7 @@ Array [
           "StringValue": "agent-message",
         },
       },
-      "TopicArn": "arn:aws:sns:us-east-1:667802d8-2260-436c-958a-2ee0f71f73f7:us-east-1-dev-agent-message",
+      "TopicArn": "arn:aws:sns:AWS-REGION-NAME-us-east-1:460140541257:us-east-1-dev-agent-message",
     },
   ],
 ]
@@ -59,7 +59,7 @@ Array [
         "StringValue": "customer-message",
       },
     },
-    "TopicArn": "arn:aws:sns:us-east-1:667802d8-2260-436c-958a-2ee0f71f73f7:us-east-1-dev-customer-message",
+    "TopicArn": "arn:aws:sns:AWS-REGION-NAME-us-east-1:460140541257:us-east-1-dev-customer-message",
   },
 ]
 `;

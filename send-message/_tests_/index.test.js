@@ -16,13 +16,6 @@ checkIfClientIsDisconnected.mockImplementation(() => ({
 shouldCheckIfClientIsDisconnected.mockImplementation(() => false);
 getClientInactivityTimeout.mockImplementation(() => 5);
 
-global.process.env = {
-  AWS_REGION: 'us-east-1',
-  ENVIRONMENT: 'dev',
-  DOMAIN: 'domain',
-  smooch_api_url: 'mock-amooch-api-url',
-};
-
 const event = {
   params: {
     'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',

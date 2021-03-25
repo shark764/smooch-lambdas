@@ -2,6 +2,8 @@ const {
   jest: { config },
 } = require('alonzo/utils');
 
+config.setupFiles = ['<rootDir>/utils/jest/setEnvVars.js'];
+
 config.coverageThreshold = {
   global: {
     branches: 80,

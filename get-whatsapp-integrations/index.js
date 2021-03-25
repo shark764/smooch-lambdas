@@ -8,6 +8,8 @@ const {
   },
 } = require('alonzo');
 
+const docClient = new AWS.DynamoDB.DocumentClient();
+
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid(),
   'user-id': Joi.any(),
@@ -15,14 +17,11 @@ const paramsSchema = Joi.object({
   auth: Joi.any(),
 });
 
-AWS.config.update({ region: process.env.AWS_REGION });
-const docClient = new AWS.DynamoDB.DocumentClient();
-
+const { REGION_PREFIX, ENVIRONMENT } = process.env;
 const lambdaPermissions = ['WHATSAPP_INTEGRATIONS_APP_READ'];
 const lambdaPlatformPermissions = ['PLATFORM_VIEW_ALL'];
 
 exports.handler = async (event) => {
-  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
   const { params, identity } = event;
 
   const { 'tenant-id': tenantId } = params;
@@ -34,7 +33,6 @@ exports.handler = async (event) => {
   log.info('get-whatsapp-integrations was called', {
     ...logContext,
     params,
-    smoochApiUrl,
   });
 
   /**
@@ -90,7 +88,7 @@ exports.handler = async (event) => {
    * Getting apps records from dynamo
    */
   const queryParams = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
     KeyConditionExpression: '#tenantId = :t and #integrationType = :type',
     IndexName: 'tenant-id-type-index',
     ExpressionAttributeNames: {

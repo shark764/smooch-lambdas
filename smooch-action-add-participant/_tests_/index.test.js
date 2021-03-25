@@ -7,13 +7,6 @@ jest.mock('uuid/v1');
 uuidv1.mockImplementation(() => '7534c040-534d-11ea-8aa0-c32d6a748e46');
 global.Date.now = jest.fn(() => 'January 1 1970');
 
-global.process.env = {
-  AWS_REGION: 'us-east-1',
-  ENVIRONMENT: 'dev',
-  DOMAIN: 'domain',
-  smooch_api_url: 'mock-smooch-api-url',
-};
-
 const mockGetSecretValue = jest.fn()
   .mockImplementation(() => ({
     promise: () => ({

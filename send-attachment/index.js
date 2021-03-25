@@ -14,16 +14,15 @@ const {
 
 const secretsClient = new AWS.SecretsManager();
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
-const MAX_FILE_SIZE = 26214400;
-
 const s3 = new AWS.S3();
 
 const {
-  AWS_REGION,
+  REGION_PREFIX,
   ENVIRONMENT,
   DOMAIN,
-  smooch_api_url: smoochApiUrl,
+  SMOOCH_API_URL,
 } = process.env;
+const MAX_FILE_SIZE = 26214400;
 
 exports.handler = async (event) => {
   const { params, 'multipart-params': multipartParams, identity } = event;
@@ -44,7 +43,6 @@ exports.handler = async (event) => {
   log.info('send-attachment was called', {
     ...logContext,
     from,
-    smoochApiUrl,
     multipartParams,
   });
 
@@ -52,7 +50,7 @@ exports.handler = async (event) => {
   try {
     appSecrets = await secretsClient
       .getSecretValue({
-        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+        SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-app`,
       })
       .promise();
   } catch (error) {
@@ -70,7 +68,7 @@ exports.handler = async (event) => {
   try {
     cxAuthSecret = await secretsClient
       .getSecretValue({
-        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+        SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-cx`,
       })
       .promise();
   } catch (error) {
@@ -122,7 +120,7 @@ exports.handler = async (event) => {
       keyId: appKeys[`${appId}-id`],
       secret: appKeys[`${appId}-secret`],
       scope: 'app',
-      serviceUrl: smoochApiUrl,
+      serviceUrl: SMOOCH_API_URL,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
@@ -383,7 +381,7 @@ exports.handler = async (event) => {
 async function getMetadata({ tenantId, interactionId, auth }) {
   return axios({
     method: 'get',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
+    url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
     auth,
   });
 }
@@ -393,7 +391,7 @@ async function updateInteractionMetadata({
   interactionId,
   metadata,
 }) {
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-update-interaction-metadata`;
+  const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-update-interaction-metadata`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const payload = JSON.stringify({
     tenantId,
@@ -410,14 +408,14 @@ async function updateInteractionMetadata({
 
 async function sendReportingEvent({ logContext }) {
   const { tenantId, interactionId, resourceId } = logContext;
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-send-reporting-event`;
+  const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-send-reporting-event`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const payload = JSON.stringify({
     tenantId,
     interactionId,
     resourceId,
     topic: 'agent-message',
-    appName: `${AWS_REGION}-${ENVIRONMENT}-send-attachment`,
+    appName: `${REGION_PREFIX}-${ENVIRONMENT}-send-attachment`,
   });
   const sqsMessageAction = {
     MessageBody: payload,
@@ -456,7 +454,7 @@ async function uploadArtifactFile(
   { filename, contentType },
   message,
 ) {
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-upload-artifact-file`;
+  const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-upload-artifact-file`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const payload = JSON.stringify({
     source: 'agent',
@@ -483,7 +481,7 @@ async function sizeOf(key, bucket) {
 async function sendSmoochInteractionHeartbeat({ tenantId, interactionId, auth }) {
   const { data } = await axios({
     method: 'post',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts`,
+    url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts`,
     data: {
       source: 'smooch',
       interruptType: 'smooch-heartbeat',

@@ -10,15 +10,15 @@ const uuidv1 = require('uuid/v1');
 const { getMetadata } = require('./resources/commonFunctions');
 
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
-
 const secretsClient = new AWS.SecretsManager();
+
 const {
-  AWS_REGION,
+  REGION_PREFIX,
   ENVIRONMENT,
   DOMAIN,
-  smooch_api_url: smoochApiUrl,
+  SMOOCH_API_URL,
 } = process.env;
-const cxApiUrl = `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}`;
+const cxApiUrl = `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}`;
 
 exports.handler = async (event) => {
   let {
@@ -45,12 +45,12 @@ exports.handler = async (event) => {
     smoochUserId: userId,
   };
 
-  log.info('smooch-action-send-message was called', { ...logContext, parameters: event.parameters, smoochApiUrl });
+  log.info('smooch-action-send-message was called', { ...logContext, parameters: event.parameters });
 
   let cxAuthSecret;
   try {
     cxAuthSecret = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+      SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-cx`,
     }).promise();
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve cx credentials';
@@ -64,7 +64,7 @@ exports.handler = async (event) => {
   let appSecrets;
   try {
     appSecrets = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+      SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-app`,
     }).promise();
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
@@ -80,7 +80,7 @@ exports.handler = async (event) => {
       keyId: appKeys[`${appId}-id`],
       secret: appKeys[`${appId}-secret`],
       scope: 'app',
-      serviceUrl: smoochApiUrl,
+      serviceUrl: SMOOCH_API_URL,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to validate digital channels credentials';
@@ -215,7 +215,7 @@ async function sendFlowActionResponse({
   logContext, actionId, subId,
 }) {
   const { tenantId, interactionId } = logContext;
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-send-flow-response`;
+  const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-send-flow-response`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const data = {
     source: 'smooch',

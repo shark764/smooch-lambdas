@@ -7,11 +7,10 @@ const axios = require('axios');
 const AWS = require('aws-sdk');
 const FormData = require('form-data');
 
-AWS.config.update({ region: process.env.AWS_REGION });
 const secretsClient = new AWS.SecretsManager();
 
 const {
-  AWS_REGION,
+  REGION_PREFIX,
   ENVIRONMENT,
   DOMAIN,
 } = process.env;
@@ -39,7 +38,7 @@ exports.handler = async (event) => {
   try {
     cxAuthSecret = await secretsClient
       .getSecretValue({
-        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+        SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-cx`,
       })
       .promise();
   } catch (error) {
@@ -103,7 +102,7 @@ exports.handler = async (event) => {
   try {
     await axios({
       method: 'post',
-      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
+      url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
       data: form,
       auth: cxAuth,
       headers: form.getHeaders(),

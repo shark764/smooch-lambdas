@@ -71,14 +71,6 @@ const mockSmoochCore = jest.fn(() => ({
 
 jest.mock('smooch-core', () => mockSmoochCore);
 
-beforeAll(() => {
-  global.process.env = {
-    AWS_REGION: 'us-east-1',
-    ENVIRONMENT: 'dev',
-    smooch_api_url: 'mock-smooch-api-url',
-  };
-});
-
 const { handler } = require('../index');
 
 describe('get-smooch-web-integration', () => {

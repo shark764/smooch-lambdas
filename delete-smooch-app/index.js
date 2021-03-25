@@ -4,8 +4,6 @@
 
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
-
-const secretsClient = new AWS.SecretsManager();
 const Joi = require('@hapi/joi');
 const {
   lambda: {
@@ -14,8 +12,9 @@ const {
   },
 } = require('alonzo');
 
-AWS.config.update({ region: process.env.AWS_REGION });
+const secretsClient = new AWS.SecretsManager();
 const docClient = new AWS.DynamoDB.DocumentClient();
+
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid().required(),
   id: Joi.string().required(),
@@ -23,14 +22,15 @@ const paramsSchema = Joi.object({
   'remote-addr': Joi.any(),
   auth: Joi.any(),
 });
+
+const { REGION_PREFIX, ENVIRONMENT, SMOOCH_API_URL } = process.env;
 const lambdaPermissions = ['PLATFORM_DIGITAL_CHANNELS_APP'];
 
 exports.handler = async (event) => {
-  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
   const { params, identity } = event;
   const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
 
-  log.info('delete-smooch-app was called', { ...logContext, params, smoochApiUrl });
+  log.info('delete-smooch-app was called', { ...logContext, params, SMOOCH_API_URL });
 
   try {
     await paramsSchema.validateAsync(params);
@@ -61,7 +61,7 @@ exports.handler = async (event) => {
   logContext.smoochAppId = appId;
   try {
     accountSecrets = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-account`,
+      SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-account`,
     }).promise();
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
@@ -82,7 +82,7 @@ exports.handler = async (event) => {
       keyId: accountKeys.id,
       secret: accountKeys.secret,
       scope: 'account',
-      serviceUrl: smoochApiUrl,
+      serviceUrl: SMOOCH_API_URL,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to validate digital channels credentials';
@@ -120,7 +120,7 @@ exports.handler = async (event) => {
   }
 
   const deleteParams = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
     Key: {
       'tenant-id': tenantId,
       id: appId,
@@ -153,7 +153,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const appSecretName = `${AWS_REGION}-${ENVIRONMENT}-smooch-app`;
+  const appSecretName = `${REGION_PREFIX}-${ENVIRONMENT}-smooch-app`;
   try {
     const appSecrets = await secretsClient.getSecretValue({
       SecretId: appSecretName,

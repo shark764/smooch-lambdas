@@ -12,19 +12,19 @@ Array [
         "actions": Array [
           Object {
             "name": "add-participant",
-            "target": "arn:aws:sqs:us-east-1:460140541257:us-east-1-dev-smooch-action-add-participant",
+            "target": "arn:aws:sqs:AWS-REGION-NAME-us-east-1:460140541257:us-east-1-dev-smooch-action-add-participant",
           },
           Object {
             "name": "disconnect",
-            "target": "arn:aws:sqs:us-east-1:460140541257:us-east-1-dev-smooch-action-disconnect",
+            "target": "arn:aws:sqs:AWS-REGION-NAME-us-east-1:460140541257:us-east-1-dev-smooch-action-disconnect",
           },
           Object {
             "name": "send-message",
-            "target": "arn:aws:sqs:us-east-1:460140541257:us-east-1-dev-smooch-action-send-message",
+            "target": "arn:aws:sqs:AWS-REGION-NAME-us-east-1:460140541257:us-east-1-dev-smooch-action-send-message",
           },
           Object {
             "name": "collect-message-response",
-            "target": "arn:aws:sqs:us-east-1:460140541257:us-east-1-dev-smooch-action-collect-message-response",
+            "target": "arn:aws:sqs:AWS-REGION-NAME-us-east-1:460140541257:us-east-1-dev-smooch-action-collect-message-response",
           },
         ],
         "subscriptions": Array [],

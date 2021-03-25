@@ -1,10 +1,3 @@
-global.process.env = {
-  AWS_REGION: 'us-east-1',
-  ENVIRONMENT: 'dev',
-  DOMAIN: 'domain',
-  smooch_api_url: 'mock-amooch-api-url',
-};
-
 const event = {
   Records: [{
     body: JSON.stringify({

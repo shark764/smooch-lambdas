@@ -3,12 +3,6 @@ const axios = require('axios');
 jest.mock('axios');
 jest.mock('form-data');
 
-global.process.env = {
-  AWS_REGION: 'us-east-1',
-  ENVIRONMENT: 'dev',
-  DOMAIN: 'domain',
-};
-
 const mockGetSecretValue = jest.fn(() => { })
   .mockImplementation(() => ({
     promise: () => ({

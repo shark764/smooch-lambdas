@@ -11,23 +11,24 @@ const {
   },
 } = require('alonzo');
 
+const docClient = new AWS.DynamoDB.DocumentClient();
+
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid(),
   'user-id': Joi.any(),
   'remote-addr': Joi.any(),
   auth: Joi.any(),
 });
-AWS.config.update({ region: process.env.AWS_REGION });
-const docClient = new AWS.DynamoDB.DocumentClient();
+
+const { REGION_PREFIX, ENVIRONMENT } = process.env;
 const lambdaPermissions = ['DIGITAL_CHANNELS_APP_READ'];
 const lambdaPlatformPermissions = ['PLATFORM_DIGITAL_CHANNELS_APP', 'PLATFORM_VIEW_ALL'];
 
 exports.handler = async (event) => {
-  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
   const { params, identity } = event;
   const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
 
-  log.info('get-smooch-apps was called', { ...logContext, params, smoochApiUrl });
+  log.info('get-smooch-apps was called', { ...logContext, params });
 
   try {
     await paramsSchema.validateAsync(params);
@@ -56,7 +57,7 @@ exports.handler = async (event) => {
     };
   }
   const queryParams = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
     KeyConditionExpression: '#tenantId = :t and #integrationType = :type',
     IndexName: 'tenant-id-type-index',
     ExpressionAttributeNames: {

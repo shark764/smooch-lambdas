@@ -1,9 +1,3 @@
-global.process.env = {
-  AWS_REGION: 'us-east-1',
-  ENVIRONMENT: 'dev',
-  DOMAIN: 'domain',
-  smooch_api_url: 'mock-smooch-api-url',
-};
 global.Math.abs = jest.fn(() => 123456789);
 
 const {

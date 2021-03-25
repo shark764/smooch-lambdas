@@ -4,7 +4,3 @@ memory_size = 128
 zip_path="upload-artifact-file/upload-artifact-file.zip"
 handler = "index.handler"
 runtime = "nodejs12.x"
-environmentVars = {
-  "ENVIRONMENT" = "${ENVIRONMENT}",
-  "DOMAIN" = "${DOMAIN}"
-}

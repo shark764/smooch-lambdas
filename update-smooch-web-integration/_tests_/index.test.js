@@ -3,12 +3,6 @@ const { lambda: { api: { validateTenantPermissions } } } = require('alonzo');
 
 jest.mock('alonzo');
 
-global.process.env = {
-  AWS_REGION: 'us-east-1',
-  ENVIRONMENT: 'dev',
-  smooch_api_url: 'mock-amooch-api-url',
-};
-
 validateTenantPermissions.mockReturnValue(true);
 
 const mockBody = {

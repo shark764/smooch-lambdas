@@ -8,6 +8,8 @@ const {
   },
 } = require('alonzo');
 
+const docClient = new AWS.DynamoDB.DocumentClient();
+
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid(),
   id: Joi.string(),
@@ -24,13 +26,10 @@ const bodySchema = Joi.object({
   active: Joi.boolean().strict().valid(true, false),
 });
 
-AWS.config.update({ region: process.env.AWS_REGION });
-const docClient = new AWS.DynamoDB.DocumentClient();
-
+const { REGION_PREFIX, ENVIRONMENT } = process.env;
 const lambdaPermissions = ['WHATSAPP_INTEGRATIONS_APP_UPDATE'];
 
 exports.handler = async (event) => {
-  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
   const { body, params, identity } = event;
   const { 'tenant-id': tenantId, id: integrationId } = params;
   const logContext = {
@@ -42,7 +41,6 @@ exports.handler = async (event) => {
   log.info('update-whatsapp-integration was called', {
     ...logContext,
     params,
-    smoochApiUrl,
   });
 
   /**
@@ -112,7 +110,7 @@ exports.handler = async (event) => {
    * Checking if there exists a record with key === param.id
    */
   const getParams = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
     Key: {
       'tenant-id': tenantId,
       id: integrationId,
@@ -214,7 +212,7 @@ exports.handler = async (event) => {
   }
 
   const updateParams = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
     Key: {
       'tenant-id': tenantId,
       id: integrationId,

@@ -2,17 +2,15 @@ const { lambda: { log } } = require('alonzo');
 const AWS = require('aws-sdk');
 const { disconnectClient, checkIfClientPastInactiveTimeout } = require('./resources/commonFunctions');
 
-const DISCONNECT_TIMEOUT_MINUTES = 1440;
-const DELAY_MINUTES = 15;
-
-const {
-  AWS_REGION,
-  ENVIRONMENT,
-} = process.env;
-
-AWS.config.update({ region: process.env.AWS_REGION });
 const secretsClient = new AWS.SecretsManager();
 const docClient = new AWS.DynamoDB.DocumentClient();
+
+const {
+  REGION_PREFIX,
+  ENVIRONMENT,
+} = process.env;
+const DISCONNECT_TIMEOUT_MINUTES = 1440;
+const DELAY_MINUTES = 15;
 
 exports.handler = async (event) => {
   const {
@@ -28,7 +26,7 @@ exports.handler = async (event) => {
   try {
     cxAuthSecret = await secretsClient
       .getSecretValue({
-        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+        SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-cx`,
       })
       .promise();
   } catch (error) {
@@ -41,7 +39,7 @@ exports.handler = async (event) => {
   try {
     smoochInteractionRecord = await docClient
       .get({
-        TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+        TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-interactions`,
         Key: {
           SmoochUserId: userId,
         },

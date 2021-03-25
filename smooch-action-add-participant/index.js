@@ -4,16 +4,15 @@ const AWS = require('aws-sdk');
 const axios = require('axios');
 const uuidv1 = require('uuid/v1');
 
-const {
-  AWS_REGION,
-  ENVIRONMENT,
-  DOMAIN,
-  smooch_api_url: smoochApiUrl,
-} = process.env;
-
-AWS.config.update({ region: process.env.AWS_REGION });
 const secretsClient = new AWS.SecretsManager();
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
+
+const {
+  REGION_PREFIX,
+  ENVIRONMENT,
+  DOMAIN,
+  SMOOCH_API_URL,
+} = process.env;
 
 exports.handler = async (event) => {
   const {
@@ -59,7 +58,7 @@ exports.handler = async (event) => {
   let cxAuthSecret;
   try {
     cxAuthSecret = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+      SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-cx`,
     }).promise();
   } catch (error) {
     log.error('An Error has occurred trying to retrieve cx credentials', logContext, error);
@@ -70,7 +69,7 @@ exports.handler = async (event) => {
   let appSecrets;
   try {
     appSecrets = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+      SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-app`,
     }).promise();
   } catch (error) {
     log.error('An Error has occurred trying to retrieve digital channels credentials', logContext, error);
@@ -84,7 +83,7 @@ exports.handler = async (event) => {
       keyId: appKeys[`${appId}-id`],
       secret: appKeys[`${appId}-secret`],
       scope: 'app',
-      serviceUrl: smoochApiUrl,
+      serviceUrl: SMOOCH_API_URL,
     });
   } catch (error) {
     log.error('An Error has occurred trying to retrieve digital channels credentials', logContext, error);
@@ -180,7 +179,7 @@ async function sendFlowActionResponse({
   logContext, actionId, subId,
 }) {
   const { tenantId, interactionId } = logContext;
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-send-flow-response`;
+  const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-send-flow-response`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const data = {
     source: 'smooch',
@@ -206,7 +205,7 @@ async function updateInteractionMetadata({
   interactionId,
   metadata,
 }) {
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-update-interaction-metadata`;
+  const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-update-interaction-metadata`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const payload = JSON.stringify({
     tenantId,
@@ -222,7 +221,7 @@ async function updateInteractionMetadata({
 }
 
 async function fetchUser({ tenantId, userId, auth }) {
-  const url = `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/users/${userId}`;
+  const url = `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/users/${userId}`;
   return axios({
     method: 'get',
     url,

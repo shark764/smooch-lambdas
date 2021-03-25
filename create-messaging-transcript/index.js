@@ -3,14 +3,13 @@ const axios = require('axios');
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
 
-AWS.config.update({ region: process.env.AWS_REGION });
 const secretsClient = new AWS.SecretsManager();
 
 const {
-  AWS_REGION,
+  REGION_PREFIX,
   ENVIRONMENT,
   DOMAIN,
-  smooch_api_url: smoochApiUrl,
+  SMOOCH_API_URL,
 } = process.env;
 
 exports.handler = async (event) => {
@@ -34,7 +33,7 @@ exports.handler = async (event) => {
   try {
     cxAuthSecret = await secretsClient
       .getSecretValue({
-        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+        SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-cx`,
       })
       .promise();
   } catch (error) {
@@ -49,7 +48,7 @@ exports.handler = async (event) => {
   try {
     appSecrets = await secretsClient
       .getSecretValue({
-        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+        SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-app`,
       })
       .promise();
   } catch (error) {
@@ -68,7 +67,7 @@ exports.handler = async (event) => {
       keyId: appKeys[`${appId}-id`],
       secret: appKeys[`${appId}-secret`],
       scope: 'app',
-      serviceUrl: smoochApiUrl,
+      serviceUrl: SMOOCH_API_URL,
     });
   } catch (error) {
     log.error(
@@ -148,7 +147,7 @@ exports.handler = async (event) => {
 async function getMetadata({ tenantId, interactionId, auth }) {
   return axios({
     method: 'get',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
+    url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
     auth,
   });
 }
@@ -210,7 +209,7 @@ async function uploadArtifactFile(
   });
   return axios({
     method: 'post',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
+    url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
     data: form,
     auth,
     headers: form.getHeaders(),

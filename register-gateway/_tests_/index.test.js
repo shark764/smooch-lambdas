@@ -2,13 +2,6 @@ const axios = require('axios');
 
 jest.mock('axios');
 
-global.process.env = {
-  AWS_REGION: 'us-east-1',
-  ENVIRONMENT: 'dev',
-  DOMAIN: 'domain',
-  ACCOUNT_ID: '460140541257',
-};
-
 const event = {};
 
 const mockGetSecretValue = jest.fn().mockImplementation(() => ({

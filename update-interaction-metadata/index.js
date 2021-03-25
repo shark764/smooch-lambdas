@@ -5,7 +5,7 @@ const AWS = require('aws-sdk');
 
 const secretsClient = new AWS.SecretsManager();
 
-const { AWS_REGION, ENVIRONMENT, DOMAIN } = process.env;
+const { REGION_PREFIX, ENVIRONMENT, DOMAIN } = process.env;
 
 exports.handler = async (event) => {
   const {
@@ -24,7 +24,7 @@ exports.handler = async (event) => {
   let cxAuthSecret;
   try {
     cxAuthSecret = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+      SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-cx`,
     }).promise();
   } catch (error) {
     log.error('An Error has occurred trying to retrieve cx credentials', logContext, error);
@@ -37,7 +37,7 @@ exports.handler = async (event) => {
   try {
     const { data } = await axios({
       method: 'post',
-      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata?id=${uuidv1()}`,
+      url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata?id=${uuidv1()}`,
       data: {
         source,
         metadata,

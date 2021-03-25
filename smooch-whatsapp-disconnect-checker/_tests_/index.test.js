@@ -1,12 +1,6 @@
 global.DISCONNECT_TIMEOUT_MINUTES = 1440;
 global.DELAY_MINUTES = 15;
 
-global.process.env = {
-  AWS_REGION: 'us-east-1',
-  ENVIRONMENT: 'dev',
-  DOMAIN: 'domain',
-  smooch_api_url: 'mock-smooch-api-url',
-};
 const {
   checkIfClientPastInactiveTimeout,
   disconnectClient,

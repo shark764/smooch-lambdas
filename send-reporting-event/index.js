@@ -5,7 +5,8 @@ const AWS = require('aws-sdk');
 const sns = new AWS.SNS({ apiVersion: '2010-03-31' });
 
 const {
-  AWS_REGION,
+  REGION,
+  REGION_PREFIX,
   ENVIRONMENT,
   ACCOUNT_ID,
 } = process.env;
@@ -52,10 +53,10 @@ exports.handler = async (event) => {
   let snsReportingARN;
   switch (topic) {
     case 'agent-message':
-      snsReportingARN = `arn:aws:sns:${AWS_REGION}:${ACCOUNT_ID}:${AWS_REGION}-${ENVIRONMENT}-agent-message`;
+      snsReportingARN = `arn:aws:sns:${REGION}:${ACCOUNT_ID}:${REGION_PREFIX}-${ENVIRONMENT}-agent-message`;
       break;
     case 'customer-message':
-      snsReportingARN = `arn:aws:sns:${AWS_REGION}:${ACCOUNT_ID}:${AWS_REGION}-${ENVIRONMENT}-customer-message`;
+      snsReportingARN = `arn:aws:sns:${REGION}:${ACCOUNT_ID}:${REGION_PREFIX}-${ENVIRONMENT}-customer-message`;
       break;
     default:
       log.error('Topic received not supported', { ...logContext, topic });

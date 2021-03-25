@@ -1,3 +1,7 @@
+# 1.35.0
+* CXV1-24092 - Updates for REGION_PREFIX (needed for APAC AWS resources) and general environment variables cleanup.
+* Fixed bug with disconnect messages ("agent disconnected") on customer disconnect.
+
 # 1.34.6
 * CXV1-23386 - Clean up old API Gateway code paths after deploy.
 

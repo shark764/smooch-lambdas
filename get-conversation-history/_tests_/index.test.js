@@ -60,13 +60,6 @@ jest.mock('aws-sdk', () => ({
 
 jest.mock('smooch-core', () => mockSmoochCore);
 
-global.process.env = {
-  AWS_REGION: 'us-east-1',
-  ENVIRONMENT: 'dev',
-  DOMAIN: 'domain',
-  smooch_api_url: 'mock-smooch-api-url',
-};
-
 const { handler } = require('../index');
 
 describe('get-conversation-history', () => {

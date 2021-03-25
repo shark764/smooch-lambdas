@@ -3,7 +3,3 @@ memory_size = 128
 zip_path="get-conversation-history/get-conversation-history.zip"
 handler = "index.handler"
 runtime = "nodejs12.x"
-environmentVars = {
-  "ENVIRONMENT" = "${ENVIRONMENT}",
-  "DOMAIN" = "${DOMAIN}"
-}

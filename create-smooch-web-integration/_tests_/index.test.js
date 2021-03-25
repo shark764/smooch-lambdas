@@ -44,12 +44,6 @@ const mockUpdate = jest.fn(() => ({}))
     }),
   }));
 
-global.process.env = {
-  AWS_REGION: 'us-east-1',
-  ENVIRONMENT: 'dev',
-  smooch_api_url: 'mock-smooch-api-url',
-};
-
 const mockBody = {
   appId: '5e31c81640a22c000f5d7f28',
   contactPoint: 'contact-point',

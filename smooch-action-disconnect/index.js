@@ -4,16 +4,15 @@ const uuidv1 = require('uuid/v1');
 const AWS = require('aws-sdk');
 const SmoochCore = require('smooch-core');
 
-AWS.config.update({ region: process.env.AWS_REGION });
 const secretsClient = new AWS.SecretsManager();
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 const {
-  AWS_REGION,
+  REGION_PREFIX,
   ENVIRONMENT,
   DOMAIN,
-  smooch_api_url: smoochApiUrl,
+  SMOOCH_API_URL,
 } = process.env;
 
 exports.handler = async (event) => {
@@ -34,13 +33,13 @@ exports.handler = async (event) => {
     smoochUserId: userId,
   };
 
-  log.info('smooch-action-disconnect was called', { ...logContext, artifactId });
+  log.info('smooch-action-disconnect was called', { ...logContext, artifactId, metadata });
 
   let cxAuthSecret;
   try {
     cxAuthSecret = await secretsClient
       .getSecretValue({
-        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+        SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-cx`,
       })
       .promise();
   } catch (error) {
@@ -55,7 +54,7 @@ exports.handler = async (event) => {
   try {
     appSecrets = await secretsClient
       .getSecretValue({
-        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+        SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-app`,
       })
       .promise();
   } catch (error) {
@@ -74,7 +73,7 @@ exports.handler = async (event) => {
       keyId: appKeys[`${appId}-id`],
       secret: appKeys[`${appId}-secret`],
       scope: 'app',
-      serviceUrl: smoochApiUrl,
+      serviceUrl: SMOOCH_API_URL,
     });
   } catch (error) {
     log.error(
@@ -90,7 +89,7 @@ exports.handler = async (event) => {
     log.info('Customer Disconnect', logContext);
 
     const smoochParams = {
-      TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+      TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-interactions`,
       Key: {
         SmoochUserId: userId,
       },
@@ -115,9 +114,10 @@ exports.handler = async (event) => {
       logContext,
       artifactId,
     });
+    log.debug('Sent create transcript SQS event', logContext);
 
     try {
-      metadata.participants.forEach(async (participant) => {
+      await Promise.all(metadata.participants.map(async (participant) => {
         await smooch.appUsers.sendMessage({
           appId,
           userId,
@@ -132,7 +132,8 @@ exports.handler = async (event) => {
             },
           },
         });
-      });
+        log.debug('Sent agent disconnected message', { ...logContext, participant });
+      }));
     } catch (error) {
       log.error('An error occurred sending message to agents', logContext, error);
     }
@@ -144,6 +145,8 @@ exports.handler = async (event) => {
       subId,
       auth: cxAuth,
     });
+
+    log.info('smooch-action-disconnect was successful (Customer disconnect)', logContext);
 
     return;
   }
@@ -216,7 +219,7 @@ exports.handler = async (event) => {
   try {
     await axios({
       method: 'post',
-      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts?id=${uuidv1()}`,
+      url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts?id=${uuidv1()}`,
       data: {
         source: 'smooch',
         interruptType: 'resource-disconnect',
@@ -235,7 +238,7 @@ exports.handler = async (event) => {
     throw error;
   }
 
-  log.info('smooch-action-disconnect was successful', logContext);
+  log.info('smooch-action-disconnect was successful (Agent disconnect)', logContext);
 };
 
 async function updateInteractionMetadata({
@@ -243,7 +246,7 @@ async function updateInteractionMetadata({
   interactionId,
   metadata,
 }) {
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-update-interaction-metadata`;
+  const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-update-interaction-metadata`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const payload = JSON.stringify({
     tenantId,
@@ -260,7 +263,7 @@ async function updateInteractionMetadata({
 
 async function sendFlowActionResponse({ logContext, actionId, subId }) {
   const { tenantId, interactionId } = logContext;
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-send-flow-response`;
+  const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-send-flow-response`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const data = {
     source: 'smooch',
@@ -288,7 +291,7 @@ async function createMessagingTranscript({ logContext, artifactId }) {
     smoochAppId: appId,
     smoochUserId: userId,
   } = logContext;
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-create-messaging-transcript`;
+  const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-create-messaging-transcript`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const payload = JSON.stringify({
     tenantId,
@@ -308,7 +311,7 @@ async function createMessagingTranscript({ logContext, artifactId }) {
 
 async function resetCustomerDisconnectTimer({ userId, logContext }) {
   const params = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-interactions`,
     Key: {
       SmoochUserId: userId,
     },

@@ -1,13 +1,6 @@
 jest.mock('aws-sdk');
 jest.mock('smooch-core/lib/smooch');
 
-global.process.env = {
-  AWS_REGION: 'us-east-1',
-  ENVIRONMENT: 'dev',
-  DOMAIN: 'domain',
-  smooch_api_url: 'mock-amooch-api-url',
-};
-
 const mockGetSecretValue = jest
   .fn(() => {})
   .mockImplementation(() => ({

@@ -3,7 +3,3 @@ memory_size = 256
 zip_path="send-attachment/send-attachment.zip"
 handler = "index.handler"
 runtime = "nodejs12.x"
-environmentVars = {
-  "ENVIRONMENT" = "${ENVIRONMENT}",
-  "DOMAIN" = "${DOMAIN}"
-}

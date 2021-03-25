@@ -8,11 +8,12 @@ const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
 
 const secretsClient = new AWS.SecretsManager();
+
 const {
-  AWS_REGION,
+  REGION_PREFIX,
   ENVIRONMENT,
   DOMAIN,
-  smooch_api_url: smoochApiUrl,
+  SMOOCH_API_URL,
 } = process.env;
 
 exports.handler = async (event) => {
@@ -32,13 +33,12 @@ exports.handler = async (event) => {
     userEvent,
     from,
     params,
-    smoochApiUrl,
   });
 
   let appSecrets;
   try {
     appSecrets = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+      SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-app`,
     }).promise();
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve digital channels credentials';
@@ -54,7 +54,7 @@ exports.handler = async (event) => {
   let cxAuthSecret;
   try {
     cxAuthSecret = await secretsClient.getSecretValue({
-      SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-cx`,
+      SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-cx`,
     }).promise();
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve cx credentials';
@@ -98,7 +98,7 @@ exports.handler = async (event) => {
       keyId: appKeys[`${appId}-id`],
       secret: appKeys[`${appId}-secret`],
       scope: 'app',
-      serviceUrl: smoochApiUrl,
+      serviceUrl: SMOOCH_API_URL,
     });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to validate digital channels credentials';
@@ -167,7 +167,7 @@ exports.handler = async (event) => {
 async function getMetadata({ tenantId, interactionId, auth }) {
   return axios({
     method: 'get',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
+    url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
     auth,
   });
 }

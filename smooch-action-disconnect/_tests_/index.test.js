@@ -2,13 +2,6 @@ const axios = require('axios');
 
 jest.mock('axios');
 
-global.process.env = {
-  AWS_REGION: 'us-east-1',
-  ENVIRONMENT: 'dev',
-  DOMAIN: 'domain',
-  smooch_api_url: 'mock-amooch-api-url',
-};
-
 global.Date.prototype.getTime = jest.fn(() => '00:00:00');
 
 const stringifyBody = {

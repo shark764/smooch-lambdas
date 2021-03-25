@@ -6,12 +6,6 @@ global.Date.prototype.toISOString = jest.fn(() => 'January 1 1970');
 
 uuidv1.mockImplementation(() => '7534c040-534d-11ea-8aa0-c32d6a748e46');
 
-global.process.env = {
-  AWS_REGION: 'us-east-1',
-  ENVIRONMENT: 'dev',
-  ACCOUNT_ID: '667802d8-2260-436c-958a-2ee0f71f73f7',
-};
-
 const mockPublish = jest.fn()
   .mockImplementation(() => ({
     promise: () => ({}),

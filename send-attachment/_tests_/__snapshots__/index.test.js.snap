@@ -7,7 +7,7 @@ Array [
       "keyId": "id",
       "scope": "app",
       "secret": "secret",
-      "serviceUrl": "mock-amooch-api-url",
+      "serviceUrl": "mock-smooch-api-url",
     },
   ],
 ]

@@ -6,16 +6,15 @@ const uuidv1 = require('uuid/v1');
 const AWS = require('aws-sdk');
 const axios = require('axios');
 
-const { AWS_REGION, DOMAIN, ENVIRONMENT } = process.env;
-
-AWS.config.update({ region: AWS_REGION });
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const docClient = new AWS.DynamoDB.DocumentClient();
+
+const { REGION_PREFIX, DOMAIN, ENVIRONMENT } = process.env;
 
 async function getMetadata({ tenantId, interactionId, auth }) {
   return axios({
     method: 'get',
-    url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
+    url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/metadata`,
     auth,
   });
 }
@@ -26,7 +25,7 @@ async function checkIfClientIsDisconnected({
   logContext,
 }) {
   const { tenantId, interactionId } = logContext;
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-smooch-client-disconnect-checker`;
+  const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-smooch-client-disconnect-checker`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const DelaySeconds = Math.min(disconnectTimeoutInMinutes, 15) * 60;
   const MessageBody = JSON.stringify({
@@ -49,7 +48,7 @@ async function shouldCheckIfClientIsDisconnected({ userId, logContext }) {
   try {
     smoochInteractionRecord = await docClient
       .get({
-        TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+        TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-interactions`,
         Key: {
           SmoochUserId: userId,
         },
@@ -86,7 +85,7 @@ async function getClientInactivityTimeout({ logContext }) {
   try {
     smoochIntegration = await docClient
       .get({
-        TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+        TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
         Key: {
           'tenant-id': tenantId,
           id: integrationId,
@@ -168,7 +167,7 @@ async function sendMessageToParticipants({
 async function deleteCustomerInteraction({ logContext }) {
   const { smoochUserId } = logContext;
   const smoochParams = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch-interactions`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-interactions`,
     Key: {
       SmoochUserId: smoochUserId,
     },
@@ -201,7 +200,7 @@ async function createMessagingTranscript({ logContext, cxAuth }) {
   try {
     const { data } = await axios({
       method: 'get',
-      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
+      url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts/${artifactId}`,
       auth: cxAuth,
     });
     log.info('artifact found for interaction', { ...newLogContext, artifact: data });
@@ -212,7 +211,7 @@ async function createMessagingTranscript({ logContext, cxAuth }) {
   }
 
   if (!transcriptFile) {
-    const QueueName = `${AWS_REGION}-${ENVIRONMENT}-create-messaging-transcript`;
+    const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-create-messaging-transcript`;
     const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
     const payload = JSON.stringify({
       tenantId,
@@ -241,7 +240,7 @@ async function checkIfClientPastInactiveTimeout({
   delayMinutes, userId, logContext,
 }) {
   const { tenantId, interactionId } = logContext;
-  const QueueName = `${AWS_REGION}-${ENVIRONMENT}-smooch-whatsapp-disconnect-checker`;
+  const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-smooch-whatsapp-disconnect-checker`;
   const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
   const DelaySeconds = Math.min(delayMinutes, 15) * 60;
   const MessageBody = JSON.stringify({
@@ -266,7 +265,7 @@ async function performCustomerDisconnect({ logContext, cxAuth }) {
   try {
     const { data } = await axios({
       method: 'post',
-      url: `https://${AWS_REGION}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts?id=${uuidv1()}`,
+      url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts?id=${uuidv1()}`,
       data: {
         source: 'smooch',
         interruptType: 'customer-disconnect',

@@ -4,7 +4,3 @@ memory_size = 128
 zip_path="delete-smooch-attachments/delete-smooch-attachments.zip"
 handler = "index.handler"
 runtime = "nodejs12.x"
-environmentVars = {
-  "ENVIRONMENT" = "${ENVIRONMENT}",
-  "DOMAIN" = "${DOMAIN}"
-}

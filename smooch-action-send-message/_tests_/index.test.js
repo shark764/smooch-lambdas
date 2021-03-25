@@ -18,13 +18,6 @@ getMetadata.mockImplementation(() => ({
 
 uuidv1.mockReturnValue('7534c040-534d-11ea-8aa0-c32d6a748e46');
 
-global.process.env = {
-  AWS_REGION: 'us-east-1',
-  ENVIRONMENT: 'dev',
-  DOMAIN: 'domain',
-  smooch_api_url: 'mock-smooch-api-url',
-};
-
 const event = {
   Records: [{
     body: JSON.stringify({

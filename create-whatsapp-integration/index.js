@@ -6,6 +6,10 @@ const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
 const Joi = require('@hapi/joi');
 const string = require('serenova-js-utils/strings');
+
+const docClient = new AWS.DynamoDB.DocumentClient();
+const secretsClient = new AWS.SecretsManager();
+
 const {
   lambda: {
     log,
@@ -28,14 +32,10 @@ const bodySchema = Joi.object({
   active: Joi.boolean().strict().valid(true, false),
 });
 
-AWS.config.update({ region: process.env.AWS_REGION });
-const docClient = new AWS.DynamoDB.DocumentClient();
-const secretsClient = new AWS.SecretsManager();
-
+const { REGION_PREFIX, ENVIRONMENT, SMOOCH_API_URL } = process.env;
 const lambdaPermissions = ['WHATSAPP_INTEGRATIONS_APP_UPDATE'];
 
 exports.handler = async (event) => {
-  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
   const { body, params, identity } = event;
   const { 'tenant-id': tenantId } = params;
   const logContext = {
@@ -46,7 +46,7 @@ exports.handler = async (event) => {
   log.info('create-whatsapp-integration was called', {
     ...logContext,
     params,
-    smoochApiUrl,
+    SMOOCH_API_URL,
   });
 
   /**
@@ -118,7 +118,7 @@ exports.handler = async (event) => {
    */
   const { whatsappId: integrationId } = body;
   const getParams = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
     Key: {
       'tenant-id': tenantId,
       id: integrationId,
@@ -161,7 +161,7 @@ exports.handler = async (event) => {
   try {
     appSecrets = await secretsClient
       .getSecretValue({
-        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+        SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-app`,
       })
       .promise();
   } catch (error) {
@@ -179,7 +179,7 @@ exports.handler = async (event) => {
    * Getting apps records from dynamo
    */
   const queryParams = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
     KeyConditionExpression: '#tenantId = :t and #integrationType = :type',
     IndexName: 'tenant-id-type-index',
     ExpressionAttributeNames: {
@@ -220,7 +220,7 @@ exports.handler = async (event) => {
           keyId: appKeys[`${appId}-id`],
           secret: appKeys[`${appId}-secret`],
           scope: 'app',
-          serviceUrl: smoochApiUrl,
+          serviceUrl: SMOOCH_API_URL,
         });
 
         return smooch.integrations.list({
@@ -313,7 +313,7 @@ exports.handler = async (event) => {
   }
 
   const updateParams = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
     Key: {
       'tenant-id': tenantId,
       id: whatsappId,

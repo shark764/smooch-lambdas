@@ -12,6 +12,9 @@ const {
   },
 } = require('alonzo');
 
+const docClient = new AWS.DynamoDB.DocumentClient();
+const secretsClient = new AWS.SecretsManager();
+
 const paramsSchema = Joi.object({
   'tenant-id': Joi.string().guid(),
   'user-id': Joi.any(),
@@ -19,15 +22,11 @@ const paramsSchema = Joi.object({
   auth: Joi.any(),
 });
 
-AWS.config.update({ region: process.env.AWS_REGION });
-const docClient = new AWS.DynamoDB.DocumentClient();
-const secretsClient = new AWS.SecretsManager();
-
+const { REGION_PREFIX, ENVIRONMENT, SMOOCH_API_URL } = process.env;
 const lambdaPermissions = ['WHATSAPP_INTEGRATIONS_APP_READ'];
 const lambdaPlatformPermissions = ['PLATFORM_VIEW_ALL'];
 
 exports.handler = async (event) => {
-  const { AWS_REGION, ENVIRONMENT, smooch_api_url: smoochApiUrl } = process.env;
   const { params, identity } = event;
   const { 'tenant-id': tenantId } = params;
   const logContext = {
@@ -38,7 +37,7 @@ exports.handler = async (event) => {
   log.info('get-whatsapp-apps was called', {
     ...logContext,
     params,
-    smoochApiUrl,
+    SMOOCH_API_URL,
   });
 
   /**
@@ -97,7 +96,7 @@ exports.handler = async (event) => {
   try {
     appSecrets = await secretsClient
       .getSecretValue({
-        SecretId: `${AWS_REGION}-${ENVIRONMENT}-smooch-app`,
+        SecretId: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-app`,
       })
       .promise();
   } catch (error) {
@@ -115,7 +114,7 @@ exports.handler = async (event) => {
    * Getting apps records from dynamo
    */
   const queryParams = {
-    TableName: `${AWS_REGION}-${ENVIRONMENT}-smooch`,
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
     KeyConditionExpression: '#tenantId = :t and #integrationType = :type',
     IndexName: 'tenant-id-type-index',
     ExpressionAttributeNames: {
@@ -156,7 +155,7 @@ exports.handler = async (event) => {
           keyId: appKeys[`${appId}-id`],
           secret: appKeys[`${appId}-secret`],
           scope: 'app',
-          serviceUrl: smoochApiUrl,
+          serviceUrl: SMOOCH_API_URL,
         });
 
         return smooch.integrations.list({
