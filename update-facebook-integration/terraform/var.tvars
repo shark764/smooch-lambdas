@@ -1,0 +1,5 @@
+runtime = "nodejs12.x"
+timeout = 150
+memory_size = 128
+zip_path = "update-facebook-integration/update-facebook-integration.zip"
+handler = "index.handler"

@@ -1,0 +1,10 @@
+{
+  "name": "delete-facebook-integration",
+  "version": "1.0.0",
+  "description": "API to delete a smooch facebook integration for a tenant",
+  "repository": {},
+  "license": "UNLICENSED",
+  "dependencies": {
+    "alonzo": "^7.1.0"
+  }
+}

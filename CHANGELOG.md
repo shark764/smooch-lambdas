@@ -1,3 +1,6 @@
+# 1.36.0
+* CXV1-24143 - CX CRUD API for Smooch Facebook apps (code base without any logic).
+
 # 1.35.0
 * CXV1-24092 - Updates for REGION_PREFIX (needed for APAC AWS resources) and general environment variables cleanup.
 * Fixed bug with disconnect messages ("agent disconnected") on customer disconnect.
