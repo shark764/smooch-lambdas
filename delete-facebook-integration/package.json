@@ -5,6 +5,6 @@
   "repository": {},
   "license": "UNLICENSED",
   "dependencies": {
-    "alonzo": "^7.1.0"
+    "alonzo": "8.0.3"
   }
 }

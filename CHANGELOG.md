@@ -1,3 +1,6 @@
+# 1.36.1
+* CXV1-24143 - Bump alonzo version in new lambdas (smooch facebook integration).
+
 # 1.36.0
 * CXV1-24143 - CX CRUD API for Smooch Facebook apps (code base without any logic).
 
