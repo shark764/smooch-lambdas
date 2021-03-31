@@ -1297,6 +1297,7 @@ describe('smooch-webhook', () => {
         customerIdentifier: 'Test',
         properties: {},
         message: 'Test',
+        metadataSource: 'web',
       };
 
       it('throws an error when there problem retrieving digital channels credentials', async () => {
@@ -1344,6 +1345,36 @@ describe('smooch-webhook', () => {
       it('updated smoochUser successfully', async () => {
         const result = await handleCustomerMessage(input);
         expect(result).toMatchSnapshot();
+      });
+
+      it('when a non-supported channel is passed', async () => {
+        const mockInput = {
+          appId: 'mock-app-id',
+          userId: 'mock-user-id',
+          integrationId: 'mock-integration-id',
+          tenantId: 'mock-tenant-id',
+          interactionId: 'mock-interaction-id',
+          form: {
+            name: 'Web User ',
+            type: 'formResponse',
+            fields: [{
+              text: 'example',
+            }],
+            _id: '_id',
+            received: '10',
+          },
+          auth: 'auth',
+          logContext: 'logContext',
+          customerIdentifier: 'Test',
+          properties: {},
+          message: 'Test',
+          metadataSource: 'nonweb',
+        };
+        try {
+          await handleCustomerMessage(mockInput);
+        } catch (err) {
+          expect(Promise.reject(new Error('Unable to get Customer Identifier - Unsupported Platform'))).rejects.toThrowErrorMatchingSnapshot();
+        }
       });
     });
 

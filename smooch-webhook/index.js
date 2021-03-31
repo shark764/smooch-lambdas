@@ -118,104 +118,98 @@ exports.handler = async (event) => {
       logContext.smoochMessageType = type;
       logContext.smoochMessageId = smoochMessageId;
 
-      switch (platform) {
-        case 'web': {
-          log.debug('Platform received: web', logContext);
-          const channelType = 'messaging';
-          switch (type) {
-            case 'formResponse': {
-              log.debug('Web type received: formResponse', { ...logContext, form: message });
-              await exports.handleFormResponse({
-                appId,
-                userId,
-                integrationId,
-                tenantId,
-                interactionId,
-                form: message,
-                auth,
-                logContext,
-                properties,
-                channelType,
-                metadataSource: platform,
-                collectActions,
-              });
-              break;
-            }
-            case 'text':
-            case 'image':
-            case 'file': {
-              log.debug(`Web type received: ${type}`, logContext);
-              await exports.handleCustomerMessage({
-                hasInteractionItem,
-                interactionId,
-                tenantId,
-                auth,
-                logContext,
-                appId,
-                userId,
-                message,
-                integrationId,
-                properties,
-                type,
-                channelType,
-                metadataSource: platform,
-              });
-              break;
-            }
-            default: {
-              log.warn('Unsupported web type from Smooch', {
-                ...logContext,
-                type,
-              });
-              return 'Unsupported web type';
-            }
+      if (platform === 'web') {
+        log.debug('Platform received: web', logContext);
+        const channelType = 'messaging';
+        switch (type) {
+          case 'formResponse': {
+            log.debug('Web type received: formResponse', { ...logContext, form: message });
+            await exports.handleFormResponse({
+              appId,
+              userId,
+              integrationId,
+              tenantId,
+              interactionId,
+              form: message,
+              auth,
+              logContext,
+              properties,
+              channelType,
+              metadataSource: platform,
+              collectActions,
+            });
+            break;
           }
-          break;
-        }
-        case 'whatsapp': {
-          log.debug('Platform received: whatsapp', logContext);
-
-          switch (type) {
-            case 'text':
-            case 'image':
-            case 'file': {
-              log.debug(`Whatsapp type received: ${type}`, logContext);
-              await exports.handleCustomerMessage({
-                hasInteractionItem,
-                interactionId,
-                tenantId,
-                auth,
-                logContext,
-                appId,
-                userId,
-                message,
-                integrationId,
-                properties,
-                type,
-                channelType: 'sms',
-                metadataSource: platform,
-                client,
-                collectActions,
-              });
-              break;
-            }
-            default: {
-              log.warn('Unsupported whatsapp type from Smooch', {
-                ...logContext,
-                type,
-              });
-              return 'Unsupported whatsapp type';
-            }
+          case 'text':
+          case 'image':
+          case 'file': {
+            log.debug(`Web type received: ${type}`, logContext);
+            await exports.handleCustomerMessage({
+              hasInteractionItem,
+              interactionId,
+              tenantId,
+              auth,
+              logContext,
+              appId,
+              userId,
+              message,
+              integrationId,
+              properties,
+              type,
+              channelType,
+              metadataSource: platform,
+            });
+            break;
           }
-          break;
+          default: {
+            log.warn('Unsupported web type from Smooch', {
+              ...logContext,
+              type,
+            });
+            return 'Unsupported web type';
+          }
         }
-        default: {
-          log.warn('Unsupported platform from Smooch', {
-            ...logContext,
-            platform,
-          });
-          return 'Unsupported platform';
+      } else if (platform === 'whatsapp' || platform === 'messenger') {
+        log.debug(`Platform received: ${platform}`, logContext);
+        const channel = (platform === 'whatsapp') ? 'sms' : 'messaging';
+        switch (type) {
+          case 'text':
+          case 'image':
+          case 'file': {
+            log.debug(`${platform} type received: ${type}`, logContext);
+            await exports.handleCustomerMessage({
+              hasInteractionItem,
+              interactionId,
+              tenantId,
+              auth,
+              logContext,
+              appId,
+              userId,
+              message,
+              integrationId,
+              properties,
+              type,
+              channelType: channel,
+              metadataSource: platform,
+              client,
+              collectActions,
+            });
+            break;
+          }
+          default: {
+            log.warn(`Unsupported ${platform} type from Smooch`, {
+              ...logContext,
+              type,
+            });
+            return `Unsupported ${platform} type`;
+          }
         }
+      } else {
+        log.warn('Unsupported platform from Smooch', {
+          ...logContext,
+          platform,
+        });
+        return 'Unsupported platform';
       }
       break;
     }
@@ -296,7 +290,6 @@ exports.handleFormResponse = async ({
         appId,
         userId,
         appUser: {
-          givenName: customerIdentifier,
           properties: {
             ...properties,
             customer: customerIdentifier,
@@ -558,6 +551,17 @@ exports.createInteraction = async ({
     });
     contactPoint = parsePhoneNumber(whatsappIntegration.integration.phoneNumber)
       .number;
+  } else if (metadataSource === 'messenger') {
+    const smooch = await exports.smoochCore({ appId, logContext });
+    const messengerIntegration = await smooch.integrations.get({
+      appId,
+      integrationId,
+    });
+    log.debug('Got Messenger integration', {
+      ...logContext,
+      messengerIntegration,
+    });
+    contactPoint = messengerIntegration.integration.pageId;
   } else {
     let webIntegration;
     try {
@@ -1221,12 +1225,16 @@ exports.handleCustomerMessage = async ({
           return 'Unable to parse whatsapp customer phone number';
         }
         customerIdentifier = phoneNumber.number;
-      } else {
+      } else if (metadataSource === 'web') {
         log.info(
           'Customer name was not provided to web message, hard-code setting it to "Customer"',
           logContext,
         );
         customerIdentifier = 'Customer';
+      } else if (metadataSource === 'messenger') {
+        customerIdentifier = client.displayName;
+      } else {
+        throw new Error('Unable to get Customer Identifier - Unsupported Platform');
       }
 
       let smoochUser;
@@ -1236,7 +1244,6 @@ exports.handleCustomerMessage = async ({
           appId,
           userId,
           appUser: {
-            givenName: customerIdentifier,
             properties: {
               ...properties,
               customer: customerIdentifier,

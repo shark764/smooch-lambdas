@@ -249,6 +249,8 @@ exports[`smooch-webhook handleCustomerMessage !hasInteractionItem throws an erro
 
 exports[`smooch-webhook handleCustomerMessage !hasInteractionItem updated smoochUser successfully 1`] = `"handleCustomerMessage Successful"`;
 
+exports[`smooch-webhook handleCustomerMessage !hasInteractionItem when a non-supported channel is passed 1`] = `"Unable to get Customer Identifier - Unsupported Platform"`;
+
 exports[`smooch-webhook handleCustomerMessage hasInteractionId and interactionID calls createInteraction correctly 1`] = `
 Array [
   Array [

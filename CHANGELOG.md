@@ -1,3 +1,6 @@
+# 1.37.0
+* CXV1-24144 - smooch-webhook changes for Facebook migration
+
 # 1.36.2
 * no-jira - Bump alonzo version for all lambdas.
 
