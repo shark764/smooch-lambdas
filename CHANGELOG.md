@@ -1,3 +1,6 @@
+# 1.36.2
+* no-jira - Bump alonzo version for all lambdas.
+
 # 1.36.1
 * CXV1-24143 - Bump alonzo version in new lambdas (smooch facebook integration).
 

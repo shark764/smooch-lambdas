@@ -5,7 +5,7 @@
   "repository": {},
   "license": "UNLICENSED",
   "dependencies": {
-    "alonzo": "^7.1.0",
+    "alonzo": "9.0.0",
     "aws-sdk": "^2.585.0",
     "smooch-core": "^8.7.3"
   }
