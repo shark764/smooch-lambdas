@@ -5,10 +5,10 @@
   "repository": {},
   "license": "UNLICENSED",
   "dependencies": {
-    "@hapi/joi": "^16.1.7",
+    "joi": "^17.4.0",
     "alonzo": "9.0.0",
-    "aws-sdk": "^2.585.0",
-    "serenova-js-utils": "^4.4.0",
-    "smooch-core": "^8.7.4"
+    "aws-sdk": "^2.877.0",
+    "serenova-js-utils": "^4.7.0",
+    "smooch-core": "^8.11.4"
   }
 }

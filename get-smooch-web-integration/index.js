@@ -11,7 +11,7 @@ const {
 } = require('alonzo');
 const SmoochCore = require('smooch-core');
 const string = require('serenova-js-utils/strings');
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 
 const secretsClient = new AWS.SecretsManager();
 const docClient = new AWS.DynamoDB.DocumentClient();

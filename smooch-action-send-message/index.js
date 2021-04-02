@@ -6,7 +6,7 @@ const SmoochCore = require('smooch-core');
 const { lambda: { log } } = require('alonzo');
 const axios = require('axios');
 const AWS = require('aws-sdk');
-const uuidv1 = require('uuid/v1');
+const { v1: uuidv1 } = require('uuid');
 const { getMetadata } = require('./resources/commonFunctions');
 
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });

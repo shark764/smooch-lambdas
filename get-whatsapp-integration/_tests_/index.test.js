@@ -1,4 +1,4 @@
-const { ValidationError } = require('@hapi/joi');
+const { ValidationError } = require('joi');
 const {
   lambda: {
     api: { validateTenantPermissions, validatePlatformPermissions },

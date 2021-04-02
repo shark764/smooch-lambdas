@@ -1,10 +1,10 @@
-const uuidv1 = require('uuid/v4');
+const { v4: uuidv4 } = require('uuid');
 
-jest.mock('uuid/v4');
+jest.mock('uuid');
 
 global.Date.prototype.toISOString = jest.fn(() => 'January 1 1970');
 
-uuidv1.mockImplementation(() => '7534c040-534d-11ea-8aa0-c32d6a748e46');
+uuidv4.mockImplementation(() => '7534c040-534d-11ea-8aa0-c32d6a748e46');
 
 const mockPublish = jest.fn()
   .mockImplementation(() => ({

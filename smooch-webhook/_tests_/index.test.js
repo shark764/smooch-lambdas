@@ -1,7 +1,9 @@
 /* eslint-disable max-len */
 const axios = require('axios');
-const uuidv4 = require('uuid/v4');
-const uuidv1 = require('uuid/v1');
+const {
+  v4: uuidv4,
+  v1: uuidv1,
+} = require('uuid');
 
 const {
   checkIfClientIsDisconnected,
@@ -11,8 +13,7 @@ const {
 
 jest.mock('axios');
 jest.mock('smooch-core');
-jest.mock('uuid/v4');
-jest.mock('uuid/v1');
+jest.mock('uuid');
 
 uuidv4.mockImplementation(() => 'new-interaction-id');
 uuidv1.mockImplementation(() => 'mock-uuid-v1');

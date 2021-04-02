@@ -1,10 +1,10 @@
 /* eslint-disable import/no-extraneous-dependencies */
 
 const axios = require('axios');
-const uuidv1 = require('uuid/v1');
+const { v1: uuidv1 } = require('uuid');
 
 jest.mock('axios');
-jest.mock('uuid/v1');
+jest.mock('uuid');
 uuidv1.mockImplementation(() => '7534c040-534d-11ea-8aa0-c32d6a748e97');
 global.Math.abs = jest.fn(() => 123456789);
 

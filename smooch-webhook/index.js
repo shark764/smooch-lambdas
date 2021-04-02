@@ -4,8 +4,10 @@
 
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
-const uuidv4 = require('uuid/v4');
-const uuidv1 = require('uuid/v1');
+const {
+  v4: uuidv4,
+  v1: uuidv1,
+} = require('uuid');
 const axios = require('axios');
 const parsePhoneNumber = require('libphonenumber-js');
 const { lambda: { log } } = require('alonzo');

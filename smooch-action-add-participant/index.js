@@ -2,7 +2,7 @@ const SmoochCore = require('smooch-core');
 const { lambda: { log } } = require('alonzo');
 const AWS = require('aws-sdk');
 const axios = require('axios');
-const uuidv1 = require('uuid/v1');
+const { v1: uuidv1 } = require('uuid');
 
 const secretsClient = new AWS.SecretsManager();
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });

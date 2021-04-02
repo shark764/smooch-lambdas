@@ -6,9 +6,9 @@
   "license": "UNLICENSED",
   "dependencies": {
     "alonzo": "9.0.0",
-    "aws-sdk": "^2.585.0",
-    "axios": "^0.19.0",
-    "smooch-core": "^8.7.3",
-    "uuid": "^3.3.3"
+    "aws-sdk": "^2.877.0",
+    "axios": "^0.21.1",
+    "smooch-core": "^8.11.4",
+    "uuid": "^8.3.2"
   }
 }

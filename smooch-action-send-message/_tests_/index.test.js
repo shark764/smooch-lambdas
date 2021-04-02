@@ -1,10 +1,10 @@
 const axios = require('axios');
-const uuidv1 = require('uuid/v1');
+const { v1: uuidv1 } = require('uuid');
 
 const { getMetadata } = require('../resources/commonFunctions');
 
 jest.mock('axios');
-jest.mock('uuid/v1');
+jest.mock('uuid');
 
 jest.mock('../resources/commonFunctions');
 getMetadata.mockImplementation(() => ({

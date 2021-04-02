@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "alonzo": "9.0.0",
-    "aws-sdk": "^2.585.0",
-    "uuid": "^3.3.3"
+    "aws-sdk": "^2.877.0",
+    "uuid": "^8.3.2"
   }
 }

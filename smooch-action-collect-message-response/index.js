@@ -1,7 +1,7 @@
 const { lambda: { log } } = require('alonzo');
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
-const uuidv1 = require('uuid/v1');
+const { v1: uuidv1 } = require('uuid');
 const { sendMessageToParticipants } = require('./resources/commonFunctions');
 
 const secretsClient = new AWS.SecretsManager();

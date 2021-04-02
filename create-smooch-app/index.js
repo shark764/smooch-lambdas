@@ -4,7 +4,7 @@
 
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 const axios = require('axios');
 const {
   lambda: {
