@@ -1,3 +1,6 @@
+# 1.38.0
+* CXV1-24143 - Adding terraform permissions for facebook lambdas
+
 # 1.37.1
 * CXV1-24217 - updated dependecies for all lambdas (aws-sdk - v2.877.0, smooch-core - 8.11.4, axios - v0.21.1, libphonenumber-js - 1.9.15, serenova-js-utils - 4.7.0, uuid - 8.3.2)
 

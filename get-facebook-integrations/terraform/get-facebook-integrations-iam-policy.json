@@ -12,6 +12,11 @@
       ],
       "Effect": "Allow",
       "Resource": "*"
-    }
-  ]
+    },
+    {
+        "Sid": "Query",
+        "Action": "dynamodb:Query",
+        "Effect": "Allow",
+        "Resource": "arn:aws:dynamodb:*:*:table/*-smooch/index/tenant-id-type-index"
+    }]
 }
