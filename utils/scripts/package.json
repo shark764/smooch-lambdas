@@ -1,0 +1,13 @@
+{
+  "name": "smooch-scripts",
+  "version": "1.0.0",
+  "description": "A variety of utility scripts for Smooch things",
+  "repository": {},
+  "license": "UNLICENSED",
+  "dependencies": {
+    "aws-sdk": "^2.877.0",
+    "axios": "^0.21.1",
+    "smooch-core": "^8.11.4",
+    "uuid": "^8.3.2"
+  }
+}

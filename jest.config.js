@@ -13,4 +13,6 @@ config.coverageThreshold = {
   },
 };
 
+config.modulePathIgnorePatterns = ['<rootDir>/utils/scripts'];
+
 module.exports = config;
