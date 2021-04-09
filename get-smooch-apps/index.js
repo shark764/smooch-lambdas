@@ -30,16 +30,9 @@ exports.handler = async (event) => {
 
   log.info('get-smooch-apps was called', { ...logContext, params });
 
-  try {
-    await paramsSchema.validateAsync(params);
-  } catch (error) {
-    log.warn('Error: invalid params value', { ...logContext, validationMessage: error.details[0].message }, error);
-
-    return {
-      status: 400,
-      body: { message: `Error: invalid params value ${error.details[0].message}`, error },
-    };
-  }
+  /**
+   * Validating permissions
+   */
 
   const { 'tenant-id': tenantId } = params;
 
@@ -56,6 +49,34 @@ exports.handler = async (event) => {
       body: { message: errMsg },
     };
   }
+
+  /**
+   * Validating parameters
+   */
+
+  try {
+    await paramsSchema.validateAsync(params);
+  } catch (error) {
+    const errMsg = 'Error: invalid params value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
+
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
+
+    return {
+      status: 400,
+      body: {
+        message: `${errMsg} ${validationMessage}`,
+        error,
+      },
+    };
+  }
+
+  /**
+   * Querying apps records from dynamo
+   */
+
   const queryParams = {
     TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
     KeyConditionExpression: '#tenantId = :t and #integrationType = :type',

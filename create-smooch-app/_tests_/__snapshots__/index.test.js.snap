@@ -162,7 +162,8 @@ Object {
 exports[`create-smooch-app sends back status 400 when there are invalid body values 1`] = `
 Object {
   "body": Object {
-    "message": "Error: invalid body value \\"name\\" is required",
+    "error": [ValidationError: "name" is required],
+    "message": "Error: invalid body value(s). \\"name\\" is required",
   },
   "status": 400,
 }
@@ -171,7 +172,8 @@ Object {
 exports[`create-smooch-app sends back status 400 when there are invalid param values 1`] = `
 Object {
   "body": Object {
-    "message": "Error: invalid params value \\"tenant-id\\" is not allowed to be empty",
+    "error": [ValidationError: "tenant-id" is not allowed to be empty],
+    "message": "Error: invalid params value(s). \\"tenant-id\\" is not allowed to be empty",
   },
   "status": 400,
 }

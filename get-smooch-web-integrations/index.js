@@ -26,21 +26,13 @@ const { REGION_PREFIX, ENVIRONMENT } = process.env;
 
 exports.handler = async (event) => {
   const { params, identity } = event;
-  const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
-
-  log.info('get-smooch-web-integrations was called', { ...logContext, params });
-  try {
-    await paramsSchema.validateAsync(params);
-  } catch (error) {
-    log.warn('Error: invalid params value ', logContext, error);
-
-    return {
-      status: 400,
-      body: { message: `Error: invalid params value ${error.details[0].message}` },
-    };
-  }
-
+  const logContext = { tenantId: params['tenant-id'], userId: identity['user-id'] };
   const { 'tenant-id': tenantId } = params;
+  log.info('get-smooch-web-integrations was called', { ...logContext, params });
+
+  /**
+   * Validating permissions
+   */
 
   const validPermissions = validateTenantPermissions(tenantId, identity, lambdaPermissions);
   const validPlatformPermissions = validatePlatformPermissions(identity, lambdaPlatformPermissions);
@@ -55,6 +47,33 @@ exports.handler = async (event) => {
       body: { message: errMsg },
     };
   }
+
+  /**
+   * Validating parameters
+   */
+
+  try {
+    await paramsSchema.validateAsync(params);
+  } catch (error) {
+    const errMsg = 'Error: invalid params value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
+
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
+
+    return {
+      status: 400,
+      body: {
+        message: `${errMsg} ${validationMessage}`,
+        error,
+      },
+    };
+  }
+
+  /**
+   * Getting apps records from dynamo
+   */
 
   const queryParams = {
     TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,

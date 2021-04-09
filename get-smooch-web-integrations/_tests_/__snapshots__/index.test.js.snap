@@ -95,7 +95,8 @@ Object {
 exports[`get-smooch-web-integrations sends back status 400 error when there are invalid params valus 1`] = `
 Object {
   "body": Object {
-    "message": "Error: invalid params value \\"tenant-id\\" is required",
+    "error": [ValidationError: "tenant-id" is required],
+    "message": "Error: invalid params value(s). \\"tenant-id\\" is required",
   },
   "status": 400,
 }

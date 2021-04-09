@@ -134,7 +134,7 @@ exports.handler = async (event) => {
   } catch (error) {
     const errMsg = 'An Error has occurred trying to fetch apps in DynamoDB';
 
-    log.error(errMsg, logContext, error, queryParams);
+    log.error(errMsg, { ...logContext, queryParams }, error);
 
     return {
       status: 500,

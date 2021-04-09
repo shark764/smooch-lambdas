@@ -55,35 +55,13 @@ const lambdaPermissions = ['WEB_INTEGRATIONS_APP_UPDATE'];
 
 exports.handler = async (event) => {
   const { body, params, identity } = event;
-  const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
+  const logContext = { tenantId: params['tenant-id'], userId: identity['user-id'] };
 
   log.info('create-smooch-web-integration was called', { ...logContext, params, SMOOCH_API_URL });
 
-  try {
-    await bodySchema.validateAsync(body);
-  } catch (error) {
-    const errMsg = 'Error: invalid body value';
-
-    log.warn(errMsg, { ...logContext, validationMessage: error.details[0].message }, error);
-
-    return {
-      status: 400,
-      body: { message: `${errMsg} ${error.details[0].message}` },
-    };
-  }
-
-  try {
-    await paramsSchema.validateAsync(params);
-  } catch (error) {
-    const errMsg = 'Error: invalid params';
-
-    log.warn(errMsg, { ...logContext, validationMessage: error.details[0].message }, error);
-
-    return {
-      status: 400,
-      body: { message: `${errMsg} ${error.details[0].message}` },
-    };
-  }
+  /**
+   * Validating permissions
+   */
 
   const { 'tenant-id': tenantId } = params;
   const validPermissions = validateTenantPermissions(tenantId, identity, lambdaPermissions);
@@ -96,6 +74,48 @@ exports.handler = async (event) => {
     return {
       status: 400,
       body: { message: errMsg },
+    };
+  }
+
+  /**
+   * Validating parameters
+   */
+
+  try {
+    await bodySchema.validateAsync(body);
+  } catch (error) {
+    const errMsg = 'Error: invalid body value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
+
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
+
+    return {
+      status: 400,
+      body: {
+        message: `${errMsg} ${validationMessage}`,
+        error,
+      },
+    };
+  }
+
+  try {
+    await paramsSchema.validateAsync(params);
+  } catch (error) {
+    const errMsg = 'Error: invalid params value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
+
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
+
+    return {
+      status: 400,
+      body: {
+        message: `${errMsg} ${validationMessage}`,
+        error,
+      },
     };
   }
 
@@ -119,6 +139,10 @@ exports.handler = async (event) => {
       maxSize: 128,
     }];
   }
+
+  /**
+   * Getting apps keys from secret manager
+   */
 
   let appSecrets;
   try {
@@ -157,6 +181,10 @@ exports.handler = async (event) => {
     };
   }
 
+  /**
+   * Getting smooch integration
+   */
+
   let smoochIntegration;
   try {
     const { integration } = await smooch.integrations.create(appId, {
@@ -193,6 +221,10 @@ exports.handler = async (event) => {
       body: { message: errMsg, error },
     };
   }
+
+  /**
+   * Setting app records in dynamo
+   */
 
   const {
     name,

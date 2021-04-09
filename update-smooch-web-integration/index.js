@@ -53,31 +53,73 @@ const lambdaPermissions = ['WEB_INTEGRATIONS_APP_UPDATE'];
 
 exports.handler = async (event) => {
   const { body, params, identity } = event;
-  const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'], smoochIntegrationId: params.id };
+  const logContext = { tenantId: params['tenant-id'], userId: identity['user-id'], smoochIntegrationId: params.id };
 
   log.info('update-smooch-web-integration was called', { ...logContext, params, SMOOCH_API_URL });
+
+  /**
+   * Validating permissions
+   */
+
+  const { 'tenant-id': tenantId, id: integrationId } = params;
+  const validPermissions = validateTenantPermissions(tenantId, identity, lambdaPermissions);
+
+  if (!validPermissions) {
+    const errMsg = 'Error not enough permissions';
+
+    log.warn(errMsg, logContext);
+
+    return {
+      status: 400,
+      body: { message: errMsg },
+    };
+  }
+
+  /**
+   * Validating parameters
+   */
 
   try {
     await bodySchema.validateAsync(body);
   } catch (error) {
-    log.warn('Error: invalid body value', { ...logContext, validationMessage: error.details[0].message }, error);
+    const errMsg = 'Error: invalid body value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
+
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
 
     return {
       status: 400,
-      body: { message: `Error: invalid body value ${error.details[0].message}` },
+      body: {
+        message: `${errMsg} ${validationMessage}`,
+        error,
+      },
     };
   }
 
   try {
     await paramsSchema.validateAsync(params);
   } catch (error) {
-    log.warn('Error: invalid params value', { ...logContext, validationMessage: error.details[0].message }, error);
+    const errMsg = 'Error: invalid params value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
+
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
 
     return {
       status: 400,
-      body: { message: `Error: invalid params value ${error.details[0].message}` },
+      body: {
+        message: `${errMsg} ${validationMessage}`,
+        error,
+      },
     };
   }
+
+  /**
+   * Getting apps keys from secret manager
+   */
 
   let appSecrets;
   try {
@@ -95,19 +137,9 @@ exports.handler = async (event) => {
     };
   }
 
-  const { 'tenant-id': tenantId, id: integrationId } = params;
-  const validPermissions = validateTenantPermissions(tenantId, identity, lambdaPermissions);
-
-  if (!validPermissions) {
-    const errMsg = 'Error not enough permissions';
-
-    log.warn(errMsg, logContext);
-
-    return {
-      status: 400,
-      body: { message: errMsg },
-    };
-  }
+  /**
+   * Getting apps records from dynamo
+   */
   const queryParams = {
     Key: {
       'tenant-id': tenantId,

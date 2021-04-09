@@ -27,7 +27,7 @@ exports.handler = async (event) => {
   const { 'tenant-id': tenantId } = params;
   const logContext = {
     tenantId,
-    smoochUserId: identity['user-id'],
+    userId: identity['user-id'],
   };
 
   log.info('get-whatsapp-integrations was called', {
@@ -54,7 +54,7 @@ exports.handler = async (event) => {
       platform: lambdaPlatformPermissions,
     };
     const errMsg = 'Error not enough permissions';
-    log.warn(errMsg, logContext, expectedPermissions);
+    log.warn(errMsg, { ...logContext, expectedPermissions });
 
     return {
       status: 403,
@@ -108,7 +108,7 @@ exports.handler = async (event) => {
   } catch (error) {
     const errMsg = 'An Error has occurred trying to fetch integrations in DynamoDB';
 
-    log.error(errMsg, logContext, error, queryParams);
+    log.error(errMsg, { ...logContext, queryParams }, error);
 
     return {
       status: 500,

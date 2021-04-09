@@ -30,18 +30,47 @@ const lambdaPlatformPermissions = ['PLATFORM_VIEW_ALL'];
 
 exports.handler = async (event) => {
   const { params, identity } = event;
-  const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'], smoochIntegrationId: params.id };
+  const logContext = { tenantId: params['tenant-id'], userId: identity['user-id'], smoochIntegrationId: params.id };
 
   log.info('get-smooch-web-integration was called', { ...logContext, params, SMOOCH_API_URL });
 
-  try {
-    await paramsSchema.validateAsync(params);
-  } catch (error) {
-    log.warn('Error: invalid params value', { ...logContext, validationMessage: error.details[0].message });
+  /**
+   * Validating permissions
+   */
+  const { 'tenant-id': tenantId, id: integrationId } = params;
+  const validPermissions = validateTenantPermissions(tenantId, identity, lambdaPermissions);
+  const validPlatformPermissions = validatePlatformPermissions(identity, lambdaPlatformPermissions);
+
+  if (!(validPermissions || validPlatformPermissions)) {
+    const errMsg = 'Error not enough permissions';
+
+    log.warn(errMsg, logContext);
 
     return {
       status: 400,
-      body: { message: `Error: invalid params value ${error.details[0].message}` },
+      body: { message: errMsg },
+    };
+  }
+
+  /**
+   * Validating parameters
+   */
+  try {
+    await paramsSchema.validateAsync(params);
+  } catch (error) {
+    const errMsg = 'Error: invalid params value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
+
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
+
+    return {
+      status: 400,
+      body: {
+        message: `${errMsg} ${validationMessage}`,
+        error,
+      },
     };
   }
 
@@ -61,21 +90,9 @@ exports.handler = async (event) => {
     };
   }
 
-  const { 'tenant-id': tenantId, id: integrationId } = params;
-  const validPermissions = validateTenantPermissions(tenantId, identity, lambdaPermissions);
-  const validPlatformPermissions = validatePlatformPermissions(identity, lambdaPlatformPermissions);
-
-  if (!(validPermissions || validPlatformPermissions)) {
-    const errMsg = 'Error not enough permissions';
-
-    log.warn(errMsg, logContext);
-
-    return {
-      status: 400,
-      body: { message: errMsg },
-    };
-  }
-
+  /**
+   * Getting apps records from dynamo
+   */
   const queryParams = {
     Key: {
       'tenant-id': tenantId,

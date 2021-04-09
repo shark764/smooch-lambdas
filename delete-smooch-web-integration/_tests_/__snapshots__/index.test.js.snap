@@ -135,7 +135,8 @@ Object {
 exports[`delete-smooch-web-integration sends back status 400 when there are invalid parameters 1`] = `
 Object {
   "body": Object {
-    "message": "Error: invalid params value \\"id\\" is required",
+    "error": [ValidationError: "id" is required],
+    "message": "Error: invalid params value(s). \\"id\\" is required",
   },
   "status": 400,
 }

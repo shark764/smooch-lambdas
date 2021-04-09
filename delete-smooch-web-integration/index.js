@@ -35,20 +35,54 @@ const lambdaPermissions = ['WEB_INTEGRATIONS_APP_UPDATE'];
 
 exports.handler = async (event) => {
   const { params, identity } = event;
-  const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
+  const logContext = { tenantId: params['tenant-id'], userId: identity['user-id'] };
 
   log.info('delete-smooch-web-integration was called', { ...logContext, params, SMOOCH_API_URL });
+
+  /**
+   * Validating permissions
+   */
+
+  const { 'tenant-id': tenantId, id: integrationId } = params;
+  const validPermissions = validateTenantPermissions(tenantId, identity, lambdaPermissions);
+
+  if (!validPermissions) {
+    const errMsg = 'Error not enough permissions';
+
+    log.warn(errMsg, logContext);
+
+    return {
+      status: 400,
+      body: { message: errMsg },
+    };
+  }
+
+  /**
+   * Validating parameters
+   */
 
   try {
     await paramsSchema.validateAsync(params);
   } catch (error) {
-    log.error('Error: invalid params value', logContext, error);
+    const errMsg = 'Error: invalid params value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
+
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
 
     return {
       status: 400,
-      body: { message: `Error: invalid params value ${error.details[0].message}` },
+      body: {
+        message: `${errMsg} ${validationMessage}`,
+        error,
+      },
     };
   }
+
+  /**
+   * Getting apps keys from secret manager
+   */
 
   let appSecrets;
 
@@ -67,19 +101,9 @@ exports.handler = async (event) => {
     };
   }
 
-  const { 'tenant-id': tenantId, id: integrationId } = params;
-  const validPermissions = validateTenantPermissions(tenantId, identity, lambdaPermissions);
-
-  if (!validPermissions) {
-    const errMsg = 'Error not enough permissions';
-
-    log.warn(errMsg, logContext);
-
-    return {
-      status: 400,
-      body: { message: errMsg },
-    };
-  }
+  /**
+   * Getting apps records from dynamo
+   */
 
   const queryParams = {
     Key: {
@@ -115,6 +139,10 @@ exports.handler = async (event) => {
     };
   }
 
+  /**
+   * Getting apps keys from secret manager
+   */
+
   let smooch;
 
   try {
@@ -138,6 +166,10 @@ exports.handler = async (event) => {
 
   logContext.smoochAppId = appId;
 
+  /**
+   * Deleting smooch integration
+   */
+
   try {
     await smooch.integrations.delete({ appId, integrationId });
   } catch (error) {
@@ -150,6 +182,10 @@ exports.handler = async (event) => {
       body: { message: errMsg },
     };
   }
+
+  /**
+   * Deleting apps records from dynamo
+   */
 
   const deleteParams = {
     TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,

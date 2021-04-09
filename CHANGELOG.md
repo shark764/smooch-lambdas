@@ -1,3 +1,6 @@
+# 1.39.0
+* CXV1-24143 - Updated get-facebook-integrations, logging changes to API lambdas
+
 # 1.38.0
 * CXV1-24143 - Adding terraform permissions for facebook lambdas
 

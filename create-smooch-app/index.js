@@ -43,29 +43,9 @@ exports.handler = async (event) => {
 
   log.info('create-smooch-app was called', { ...logContext, params, SMOOCH_API_URL });
 
-  try {
-    await paramsSchema.validateAsync(params);
-  } catch (error) {
-    log.error('Error: invalid params value', { ...logContext, validationMessage: error.details[0].message }, error);
-
-    return {
-      status: 400,
-      body: { message: `Error: invalid params value ${error.details[0].message}` },
-    };
-  }
-
-  try {
-    await bodySchema.validateAsync(body);
-  } catch (error) {
-    const errMsg = 'Error: invalid body value';
-
-    log.warn(errMsg, { ...logContext, validationMessage: error.details[0].message }, error);
-
-    return {
-      status: 400,
-      body: { message: `${errMsg} ${error.details[0].message}` },
-    };
-  }
+  /**
+   * Validating permissions
+   */
 
   const { 'tenant-id': tenantId, auth } = params;
   const validPermissions = validatePlatformPermissions(identity, lambdaPermissions);
@@ -115,6 +95,52 @@ exports.handler = async (event) => {
     };
   }
 
+  /**
+   * Validating parameters
+   */
+
+  try {
+    await paramsSchema.validateAsync(params);
+  } catch (error) {
+    const errMsg = 'Error: invalid params value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
+
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
+
+    return {
+      status: 400,
+      body: {
+        message: `${errMsg} ${validationMessage}`,
+        error,
+      },
+    };
+  }
+
+  try {
+    await bodySchema.validateAsync(body);
+  } catch (error) {
+    const errMsg = 'Error: invalid body value(s).';
+    const validationMessage = error.details
+      .map(({ message }) => message)
+      .join(' / ');
+
+    log.warn(errMsg, { ...logContext, validationMessage }, error);
+
+    return {
+      status: 400,
+      body: {
+        message: `${errMsg} ${validationMessage}`,
+        error,
+      },
+    };
+  }
+
+  /**
+   * Getting account keys from secret manager
+   */
+
   let accountSecrets;
   try {
     accountSecrets = await secretsClient.getSecretValue({
@@ -151,6 +177,10 @@ exports.handler = async (event) => {
       body: { message: errMsg },
     };
   }
+
+  /**
+   * Creating smooch integration
+   */
 
   let newApp;
   try {
@@ -189,6 +219,10 @@ exports.handler = async (event) => {
       body: { message: errMsg },
     };
   }
+
+  /**
+   * Getting apps keys from secret manager
+   */
 
   let appSecrets;
   try {
@@ -255,6 +289,10 @@ exports.handler = async (event) => {
       updated: (new Date()).toISOString(),
     },
   };
+
+  /**
+   * Setting apps records in dynamo
+   */
 
   try {
     await docClient.put(smoochParams).promise();

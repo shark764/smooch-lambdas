@@ -98,7 +98,7 @@ exports[`get-smooch-apps sends back status 400 when there are invalid params val
 Object {
   "body": Object {
     "error": [ValidationError: "tenant-id" is not allowed to be empty],
-    "message": "Error: invalid params value \\"tenant-id\\" is not allowed to be empty",
+    "message": "Error: invalid params value(s). \\"tenant-id\\" is not allowed to be empty",
   },
   "status": 400,
 }

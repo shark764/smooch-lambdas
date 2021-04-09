@@ -238,7 +238,8 @@ Object {
 exports[`update-smooch-web-integration sends back status 400 when there are invalid body value 1`] = `
 Object {
   "body": Object {
-    "message": "Error: invalid body value \\"prechatCapture\\" is required",
+    "error": [ValidationError: "prechatCapture" is required],
+    "message": "Error: invalid body value(s). \\"prechatCapture\\" is required",
   },
   "status": 400,
 }
@@ -247,7 +248,8 @@ Object {
 exports[`update-smooch-web-integration sends back status 400 when there are invalid params value 1`] = `
 Object {
   "body": Object {
-    "message": "Error: invalid params value \\"tenant-id\\" is not allowed to be empty",
+    "error": [ValidationError: "tenant-id" is not allowed to be empty],
+    "message": "Error: invalid params value(s). \\"tenant-id\\" is not allowed to be empty",
   },
   "status": 400,
 }

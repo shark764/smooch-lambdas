@@ -32,16 +32,9 @@ exports.handler = async (event) => {
 
   log.info('delete-smooch-app was called', { ...logContext, params, SMOOCH_API_URL });
 
-  try {
-    await paramsSchema.validateAsync(params);
-  } catch (error) {
-    log.warn('Error: invalid params value', { ...logContext, validationMessage: error.details[0].message });
-
-    return {
-      status: 400,
-      body: { message: `Error: invalid params value ${error.details[0].message}` },
-    };
-  }
+  /**
+   * Validating permissions
+   */
 
   const { 'tenant-id': tenantId, id: appId } = params;
   const validPermissions = validatePlatformPermissions(identity, lambdaPermissions);
@@ -56,6 +49,26 @@ exports.handler = async (event) => {
       body: { message: errMsg },
     };
   }
+
+  /**
+   * Validating parameters
+   */
+
+  try {
+    await paramsSchema.validateAsync(params);
+  } catch (error) {
+    log.warn('Error: invalid params value', { ...logContext, validationMessage: error.details[0].message });
+
+    return {
+      status: 400,
+      body: { message: `Error: invalid params value ${error.details[0].message}` },
+    };
+  }
+
+  /**
+   * Getting apps keys from secret manager
+   */
+
   let accountSecrets;
 
   logContext.smoochAppId = appId;
@@ -118,6 +131,10 @@ exports.handler = async (event) => {
       body: { message: errMsg },
     };
   }
+
+  /**
+   * Deleting apps records from dynamo
+   */
 
   const deleteParams = {
     TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
