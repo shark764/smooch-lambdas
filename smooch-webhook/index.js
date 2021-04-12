@@ -195,6 +195,7 @@ exports.handler = async (event) => {
               metadataSource: platform,
               client,
               collectActions,
+              appUser,
             });
             break;
           }
@@ -292,6 +293,7 @@ exports.handleFormResponse = async ({
         appId,
         userId,
         appUser: {
+          givenName: customerIdentifier,
           properties: {
             ...properties,
             customer: customerIdentifier,
@@ -1084,6 +1086,7 @@ exports.handleCustomerMessage = async ({
   channelType,
   client,
   collectActions,
+  appUser,
 }) => {
   if (hasInteractionItem && interactionId) {
     let workingInteractionId = interactionId;
@@ -1217,6 +1220,7 @@ exports.handleCustomerMessage = async ({
     let customerIdentifier = properties.customer;
 
     if (!customerIdentifier) {
+      let givenName;
       if (metadataSource === 'whatsapp') {
         const phoneNumber = parsePhoneNumber(client.displayName);
         if (!phoneNumber) {
@@ -1227,14 +1231,17 @@ exports.handleCustomerMessage = async ({
           return 'Unable to parse whatsapp customer phone number';
         }
         customerIdentifier = phoneNumber.number;
+        givenName = customerIdentifier;
       } else if (metadataSource === 'web') {
         log.info(
           'Customer name was not provided to web message, hard-code setting it to "Customer"',
           logContext,
         );
         customerIdentifier = 'Customer';
+        givenName = customerIdentifier;
       } else if (metadataSource === 'messenger') {
         customerIdentifier = client.displayName;
+        givenName = appUser.givenName;
       } else {
         throw new Error('Unable to get Customer Identifier - Unsupported Platform');
       }
@@ -1246,6 +1253,7 @@ exports.handleCustomerMessage = async ({
           appId,
           userId,
           appUser: {
+            givenName,
             properties: {
               ...properties,
               customer: customerIdentifier,
