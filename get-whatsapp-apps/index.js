@@ -59,7 +59,7 @@ exports.handler = async (event) => {
       platform: lambdaPlatformPermissions,
     };
     const errMsg = 'Error not enough permissions';
-    log.warn(errMsg, logContext, expectedPermissions);
+    log.warn(errMsg, { ...logContext, expectedPermissions });
 
     return {
       status: 403,

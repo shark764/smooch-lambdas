@@ -1,3 +1,6 @@
+# 1.40.0
+* CXV1-24143 - Added create-facebook-integration lambda
+
 # 1.39.1
 * CXV1-24144 - reverted the givenName removal from smooch-webhook
 

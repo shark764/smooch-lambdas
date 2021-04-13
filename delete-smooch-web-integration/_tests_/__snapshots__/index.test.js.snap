@@ -145,6 +145,11 @@ Object {
 exports[`delete-smooch-web-integration sends back status 400 when there are not enough permissions 1`] = `
 Object {
   "body": Object {
+    "expectedPermissions": Object {
+      "tenant": Array [
+        "WEB_INTEGRATIONS_APP_UPDATE",
+      ],
+    },
     "message": "Error not enough permissions",
   },
   "status": 400,

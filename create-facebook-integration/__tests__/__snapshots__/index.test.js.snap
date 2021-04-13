@@ -1,0 +1,320 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`create-faceboook-integration Everthing is successful Walkthrough passes in the correct arguments to axios 1`] = `
+Array [
+  Array [
+    Object {
+      "method": "get",
+      "url": "https://graph.facebook.com/12345678?fields=access_token&access_token=short-user-access-token",
+    },
+  ],
+  Array [
+    Object {
+      "method": "get",
+      "url": "https://graph.facebook.com/oauth/access_token?client_id=5e31c81640a22c000f5d7f27&client_secret=123457&grant_type=client_credentials",
+    },
+  ],
+  Array [
+    Object {
+      "headers": Object {
+        "Authorization": "Bearer access-token",
+      },
+      "method": "delete",
+      "url": "https://graph.facebook.com/v10.0/5e31c81640a22c000f5d7f27/subscriptions?object=page",
+    },
+  ],
+]
+`;
+
+exports[`create-faceboook-integration Everthing is successful Walkthrough passes in the correct arguments to createIntegration() 1`] = `
+Array [
+  Array [
+    "5e31c81640a22c000f5d7f28",
+    Object {
+      "appId": "5e31c81640a22c000f5d7f27",
+      "appSecret": "123457",
+      "pageAccessToken": "access-token",
+      "type": "messenger",
+    },
+  ],
+]
+`;
+
+exports[`create-faceboook-integration Everthing is successful Walkthrough passes in the correct arguments to docClient.update() 1`] = `
+Array [
+  Array [
+    Object {
+      "ExpressionAttributeNames": Object {
+        "#appId": "app-id",
+        "#createdBy": "created-by",
+        "#name": "name",
+        "#type": "type",
+        "#updatedBy": "updated-by",
+      },
+      "ExpressionAttributeValues": Object {
+        ":appId": "5e31c81640a22c000f5d7f28",
+        ":created": "January 1 1970",
+        ":createdBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        ":name": "smooch",
+        ":t": "facebook",
+        ":updated": "January 1 1970",
+        ":updatedBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      },
+      "Key": Object {
+        "id": "667802d812321342",
+        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+      },
+      "ReturnValues": "ALL_NEW",
+      "TableName": "us-east-1-dev-smooch",
+      "UpdateExpression": "set #type = :t, #appId = :appId, #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
+  created = :created, updated = :updated",
+    },
+  ],
+]
+`;
+
+exports[`create-faceboook-integration Everthing is successful Walkthrough passes in the correct arguments to secretsClient.getSecretValue() 1`] = `
+Array [
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-app",
+    },
+  ],
+]
+`;
+
+exports[`create-faceboook-integration Everthing is successful Walkthrough passes in the correct arguments to validateTenantPermissions 1`] = `
+Array [
+  Array [
+    "66d83870-30df-4a3b-8801-59edff162034",
+    Object {
+      "user-id": "667802d8-2260-436c-958a-2ee0f71f73f0",
+    },
+    Array [
+      "FACEBOOK_INTEGRATIONS_APP_UPDATE",
+    ],
+  ],
+]
+`;
+
+exports[`create-faceboook-integration Everthing is successful sends back status 201 when the code runs without error 1`] = `
+Object {
+  "body": Object {
+    "result": Object {
+      "id": "667802d812321342",
+      "pageName": "page-name",
+      "type": "messenger",
+      "undefined": "done",
+    },
+  },
+  "status": 201,
+}
+`;
+
+exports[`create-faceboook-integration Everthing is successful sends back status 201 when the code runs without error 2`] = `
+Array [
+  Array [
+    Object {
+      "method": "get",
+      "url": "https://graph.facebook.com/12345678?fields=access_token&access_token=short-user-access-token",
+    },
+  ],
+  Array [
+    Object {
+      "method": "get",
+      "url": "https://graph.facebook.com/oauth/access_token?client_id=5e31c81640a22c000f5d7f27&client_secret=123457&grant_type=client_credentials",
+    },
+  ],
+  Array [
+    Object {
+      "headers": Object {
+        "Authorization": "Bearer access-token",
+      },
+      "method": "delete",
+      "url": "https://graph.facebook.com/v10.0/5e31c81640a22c000f5d7f27/subscriptions?object=page",
+    },
+  ],
+  Array [
+    Object {
+      "method": "get",
+      "url": "https://graph.facebook.com/12345678?fields=access_token&access_token=short-user-access-token",
+    },
+  ],
+  Array [
+    Object {
+      "method": "get",
+      "url": "https://graph.facebook.com/oauth/access_token?client_id=5e31c81640a22c000f5d7f27&client_secret=123457&grant_type=client_credentials",
+    },
+  ],
+  Array [
+    Object {
+      "headers": Object {
+        "Authorization": "Bearer access-token",
+      },
+      "method": "delete",
+      "url": "https://graph.facebook.com/v10.0/5e31c81640a22c000f5d7f27/subscriptions?object=page",
+    },
+  ],
+]
+`;
+
+exports[`create-faceboook-integration Everthing is successful when decription and client disconnect minutes are not provided 1`] = `
+Array [
+  Array [
+    Object {
+      "ExpressionAttributeNames": Object {
+        "#appId": "app-id",
+        "#createdBy": "created-by",
+        "#name": "name",
+        "#type": "type",
+        "#updatedBy": "updated-by",
+      },
+      "ExpressionAttributeValues": Object {
+        ":appId": "5e31c81640a22c000f5d7f28",
+        ":created": "January 1 1970",
+        ":createdBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
+        ":name": "smooch",
+        ":t": "facebook",
+        ":updated": "January 1 1970",
+        ":updatedBy": "667802d8-2260-436c-958a-2ee0f71f73f0",
+      },
+      "Key": Object {
+        "id": "667802d812321342",
+        "tenant-id": "66d83870-30df-4a3b-8801-59edff162034",
+      },
+      "ReturnValues": "ALL_NEW",
+      "TableName": "us-east-1-dev-smooch",
+      "UpdateExpression": "set #type = :t, #appId = :appId, #name = :name, #createdBy = :createdBy, #updatedBy = :updatedBy,
+  created = :created, updated = :updated",
+    },
+  ],
+]
+`;
+
+exports[`create-faceboook-integration passes in the correct arguments to axios when facebook page access token is provided 1`] = `
+Array [
+  Array [
+    Object {
+      "method": "get",
+      "url": "https://graph.facebook.com/oauth/access_token?client_id=5e31c81640a22c000f5d7f27&client_secret=123457&grant_type=client_credentials",
+    },
+  ],
+  Array [
+    Object {
+      "headers": Object {
+        "Authorization": "Bearer access-token",
+      },
+      "method": "delete",
+      "url": "https://graph.facebook.com/v10.0/5e31c81640a22c000f5d7f27/subscriptions?object=page",
+    },
+  ],
+]
+`;
+
+exports[`create-faceboook-integration sends back status 400 when both user access token and page access token are missing 1`] = `
+Object {
+  "body": Object {
+    "error": "Page Access Token and User Access Token missing, Please provide any one of the token",
+  },
+  "status": 400,
+}
+`;
+
+exports[`create-faceboook-integration sends back status 400 when there are not enough permissions 1`] = `
+Object {
+  "body": Object {
+    "expectedPermissions": Object {
+      "tenant": Array [
+        "FACEBOOK_INTEGRATIONS_APP_UPDATE",
+      ],
+    },
+    "message": "Error not enough permissions",
+  },
+  "status": 400,
+}
+`;
+
+exports[`create-faceboook-integration sends back status 400 when there is a invalid body value 1`] = `
+Object {
+  "body": Object {
+    "error": [ValidationError: "appId" is required],
+    "message": "Error: invalid body value(s). \\"appId\\" is required",
+  },
+  "status": 400,
+}
+`;
+
+exports[`create-faceboook-integration sends back status 400 when there is a invalid params value 1`] = `
+Object {
+  "body": Object {
+    "error": [ValidationError: "id" is not allowed],
+    "message": "Error: invalid params value(s). \\"id\\" is not allowed",
+  },
+  "status": 400,
+}
+`;
+
+exports[`create-faceboook-integration sends back status 500 when facebook api for delete subscription returns error 1`] = `
+Object {
+  "body": Object {
+    "error": "Unexpected error occurred deleting current page subscription.",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-faceboook-integration sends back status 500 when facebook api for get app token returns error 1`] = `
+Object {
+  "body": Object {
+    "error": "Unexpected error occurred retrieving App Access token.",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-faceboook-integration sends back status 500 when facebook api returns error 1`] = `
+Object {
+  "body": Object {
+    "error": "Unexpected error occurred retrieving Page Access token. Please try again with Facebook Login/Another user access token",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-faceboook-integration sends back status 500 when fails to parse credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "Failed to parse smooch credentials or credentials does not exists",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-faceboook-integration sends back status 500 when there is a error creating facebook integration for tenant 1`] = `
+Object {
+  "body": Object {
+    "error": [Error],
+    "message": "An Error has occurred trying to create a facebook integration for tenant",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-faceboook-integration sends back status 500 when there is a error retrieving digital channels credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "An Error has occurred trying to retrieve digital channels credentials",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-faceboook-integration sends back status 500 when there is a error saving records in DynamoDB for tenant 1`] = `
+Object {
+  "body": Object {
+    "error": [TypeError: docClient.update(...).promise is not a function],
+    "message": "An Error has occurred trying to save a record in DynamoDB for tenant",
+  },
+  "status": 500,
+}
+`;

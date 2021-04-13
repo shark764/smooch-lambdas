@@ -107,6 +107,15 @@ Object {
 exports[`get-smooch-apps sends back status 400 when there are not enough permissions 1`] = `
 Object {
   "body": Object {
+    "expectedPermissions": Object {
+      "platform": Array [
+        "PLATFORM_DIGITAL_CHANNELS_APP",
+        "PLATFORM_VIEW_ALL",
+      ],
+      "tenant": Array [
+        "DIGITAL_CHANNELS_APP_READ",
+      ],
+    },
     "message": "Error not enough permissions",
   },
   "status": 400,

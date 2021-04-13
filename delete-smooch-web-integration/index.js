@@ -45,15 +45,17 @@ exports.handler = async (event) => {
 
   const { 'tenant-id': tenantId, id: integrationId } = params;
   const validPermissions = validateTenantPermissions(tenantId, identity, lambdaPermissions);
-
+  const expectedPermissions = {
+    tenant: lambdaPermissions,
+  };
   if (!validPermissions) {
     const errMsg = 'Error not enough permissions';
 
-    log.warn(errMsg, logContext);
+    log.warn(errMsg, { ...logContext, expectedPermissions });
 
     return {
       status: 400,
-      body: { message: errMsg },
+      body: { message: errMsg, expectedPermissions },
     };
   }
 

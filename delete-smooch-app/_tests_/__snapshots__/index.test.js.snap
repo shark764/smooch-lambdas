@@ -199,6 +199,11 @@ Object {
 exports[`delete-smooch-app sends back status 400 when there are not enough permissions 1`] = `
 Object {
   "body": Object {
+    "expectedPermissions": Object {
+      "tenant": Array [
+        "PLATFORM_DIGITAL_CHANNELS_APP",
+      ],
+    },
     "message": "Error not enough permissions",
   },
   "status": 400,

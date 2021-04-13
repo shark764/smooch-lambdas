@@ -143,6 +143,14 @@ Object {
 exports[`get-smooch-web-integration sends back status 400 error when there are not enough permissions 1`] = `
 Object {
   "body": Object {
+    "expectedPermissions": Object {
+      "platform": Array [
+        "PLATFORM_VIEW_ALL",
+      ],
+      "tenant": Array [
+        "WEB_INTEGRATIONS_APP_READ",
+      ],
+    },
     "message": "Error not enough permissions",
   },
   "status": 400,
