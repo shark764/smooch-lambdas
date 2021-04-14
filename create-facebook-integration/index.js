@@ -60,7 +60,7 @@ exports.handler = async (event) => {
     log.warn(errMsg, { ...logContext, expectedPermissions });
 
     return {
-      status: 400,
+      status: 403,
       body: { message: errMsg, expectedPermissions },
     };
   }

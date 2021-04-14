@@ -1,6 +1,6 @@
 {
   "name": "smooch-lambdas",
-  "version": "1.40.1",
+  "version": "1.40.2",
   "scripts": {
     "alonzo": "alonzo",
     "alonzo:install": "alonzo --install",
@@ -17,7 +17,7 @@
   "author": "SerenovaLLC",
   "license": "UNLICENSED",
   "dependencies": {
-    "alonzo": "9.0.4"
+    "alonzo": "9.0.5"
   },
   "devDependencies": {
     "eslint": "^6.8.0",

@@ -191,7 +191,7 @@ describe('create-smooch-app', () => {
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back status 400 when there are not enough permissions', async () => {
+  it('sends back status 403 when there are not enough permissions', async () => {
     validatePlatformPermissions.mockReturnValueOnce(false);
     const result = await handler(event);
     expect(result).toMatchSnapshot();

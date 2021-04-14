@@ -231,7 +231,7 @@ describe('create-smooch-web-integration', () => {
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back status 400 when there are not enough permissions', async () => {
+  it('sends back status 403 when there are not enough permissions', async () => {
     validateTenantPermissions.mockReturnValueOnce(false);
     const result = await handler(event);
     expect(result).toMatchSnapshot();

@@ -1,3 +1,6 @@
+# 1.40.2
+* no-jira - update alonzo to fix the install script, changed permission error code from 400 to 403 for smooch apps
+
 # 1.40.1
 * no-jira - Fix build process to update alonzo in dependency and include aws-sdk in dev-dependency
 

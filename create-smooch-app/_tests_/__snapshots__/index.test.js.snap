@@ -179,7 +179,7 @@ Object {
 }
 `;
 
-exports[`create-smooch-app sends back status 400 when there are not enough permissions 1`] = `
+exports[`create-smooch-app sends back status 403 when there are not enough permissions 1`] = `
 Object {
   "body": Object {
     "expectedPermissions": Object {
@@ -189,7 +189,7 @@ Object {
     },
     "message": "Error not enough permissions",
   },
-  "status": 400,
+  "status": 403,
 }
 `;
 

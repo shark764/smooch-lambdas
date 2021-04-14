@@ -196,7 +196,16 @@ Object {
 }
 `;
 
-exports[`delete-smooch-app sends back status 400 when there are not enough permissions 1`] = `
+exports[`delete-smooch-app sends back status 400 when there is an error retrieving integrations 1`] = `
+Object {
+  "body": Object {
+    "message": "An error occured trying to retrieve integrations",
+  },
+  "status": 400,
+}
+`;
+
+exports[`delete-smooch-app sends back status 403 when there are not enough permissions 1`] = `
 Object {
   "body": Object {
     "expectedPermissions": Object {
@@ -206,16 +215,7 @@ Object {
     },
     "message": "Error not enough permissions",
   },
-  "status": 400,
-}
-`;
-
-exports[`delete-smooch-app sends back status 400 when there is an error retrieving integrations 1`] = `
-Object {
-  "body": Object {
-    "message": "An error occured trying to retrieve integrations",
-  },
-  "status": 400,
+  "status": 403,
 }
 `;
 
