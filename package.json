@@ -1,7 +1,6 @@
 {
   "name": "smooch-lambdas",
-  "version": "1.40.0",
-  "dependencies": {},
+  "version": "1.40.1",
   "scripts": {
     "alonzo": "alonzo",
     "alonzo:install": "alonzo --install",
@@ -17,8 +16,10 @@
   },
   "author": "SerenovaLLC",
   "license": "UNLICENSED",
+  "dependencies": {
+    "alonzo": "9.0.4"
+  },
   "devDependencies": {
-    "alonzo": "9.0.1",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",

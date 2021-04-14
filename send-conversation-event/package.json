@@ -5,9 +5,11 @@
   "repository": {},
   "license": "UNLICENSED",
   "dependencies": {
-    "alonzo": "9.0.0",
-    "aws-sdk": "^2.877.0",
+    "alonzo": "9.0.4",
     "axios": "^0.21.1",
     "smooch-core": "^8.11.4"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.877.0"
   }
 }

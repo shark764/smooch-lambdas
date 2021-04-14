@@ -10,6 +10,7 @@ rules.rules = {
   'no-restricted-syntax': 0,
   'no-await-in-loop': 0,
   'no-use-before-define': [2, 'nofunc'],
+  'import/no-extraneous-dependencies': ['error', {'devDependencies': true}]
 };
 
 module.exports = rules;

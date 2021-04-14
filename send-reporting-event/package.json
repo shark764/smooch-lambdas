@@ -5,8 +5,10 @@
   "repository": {},
   "license": "UNLICENSED",
   "dependencies": {
-    "alonzo": "9.0.0",
-    "aws-sdk": "^2.877.0",
+    "alonzo": "9.0.4",
     "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.877.0"
   }
 }

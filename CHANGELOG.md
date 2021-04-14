@@ -1,3 +1,6 @@
+# 1.40.1
+* no-jira - Fix build process to update alonzo in dependency and include aws-sdk in dev-dependency
+
 # 1.40.0
 * CXV1-24143 - Added create-facebook-integration lambda
 

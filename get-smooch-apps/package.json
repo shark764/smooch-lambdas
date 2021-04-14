@@ -6,7 +6,9 @@
   "license": "UNLICENSED",
   "dependencies": {
     "joi": "^17.4.0",
-    "alonzo": "9.0.0",
+    "alonzo": "9.0.4"
+  },
+  "devDependencies": {
     "aws-sdk": "^2.877.0"
   }
 }
