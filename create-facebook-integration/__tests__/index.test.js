@@ -221,8 +221,22 @@ describe('create-faceboook-integration', () => {
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back status 500 when facebook api returns error', async () => {
+  it('sends back status 500 when facebook api returns error while long lived user access token', async () => {
     jest.clearAllMocks();
+    axios.mockImplementationOnce(new Error());
+    mockBody.facebookPageAccessToken = undefined;
+    const result = await handler(event);
+    expect(result).toMatchSnapshot();
+  });
+
+  it('sends back status 500 when facebook api returns error while page access token', async () => {
+    jest.clearAllMocks();
+    axios.mockImplementationOnce(() => Promise.resolve({
+      status: 200,
+      data: {
+        access_token: 'access-token',
+      },
+    }));
     axios.mockImplementationOnce(new Error());
     mockBody.facebookPageAccessToken = undefined;
     const result = await handler(event);
@@ -246,6 +260,12 @@ describe('create-faceboook-integration', () => {
         access_token: 'access-token',
       },
     }));
+    axios.mockImplementationOnce(() => Promise.resolve({
+      status: 200,
+      data: {
+        access_token: 'access-token',
+      },
+    }));
     axios.mockImplementationOnce(new Error());
     const result = await handler(event);
     expect(result).toMatchSnapshot();
@@ -253,6 +273,12 @@ describe('create-faceboook-integration', () => {
 
   it('sends back status 500 when facebook api for delete subscription returns error', async () => {
     jest.clearAllMocks();
+    axios.mockImplementationOnce(() => Promise.resolve({
+      status: 200,
+      data: {
+        access_token: 'access-token',
+      },
+    }));
     axios.mockImplementationOnce(() => Promise.resolve({
       status: 200,
       data: {

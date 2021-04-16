@@ -128,12 +128,10 @@ exports.handler = async (event) => {
   }
 
   const { appId } = body;
+  let appKeys;
   const defaultClient = SunshineConversationsClient.ApiClient.instance;
   try {
-    const appKeys = JSON.parse(appSecrets.SecretString);
-    const { basicAuth } = defaultClient.authentications;
-    basicAuth.username = appKeys[`${appId}-id`];
-    basicAuth.password = appKeys[`${appId}-secret`];
+    appKeys = JSON.parse(appSecrets.SecretString);
   } catch (error) {
     const errMsg = 'Failed to parse smooch credentials or credentials does not exists';
     log.error(errMsg, logContext, error);
@@ -143,6 +141,10 @@ exports.handler = async (event) => {
       body: { message: errMsg },
     };
   }
+
+  const { basicAuth } = defaultClient.authentications;
+  basicAuth.username = appKeys[`${appId}-id`];
+  basicAuth.password = appKeys[`${appId}-secret`];
 
   const {
     facebookAppId,
@@ -170,12 +172,32 @@ exports.handler = async (event) => {
     pageAccessToken = facebookPageAccessToken;
   } else {
     /**
+    * Fetch Long Lived User Access Token
+    */
+    let longLivedUserAccessToken;
+    try {
+      const { data } = await axios({
+        method: 'get',
+        url: `https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=${facebookAppId}&client_secret=${facebookAppSecret}&fb_exchange_token=${facebookUserAccessToken}`,
+      });
+      longLivedUserAccessToken = data.access_token;
+    } catch (error) {
+      log.error('Unexpected error occurred retrieving long lived user access token', logContext, error);
+      return {
+        status: 500,
+        body: {
+          error: 'Unexpected error occurred retrieving Page Access token. Please try again with Facebook Login/Another user access token',
+        },
+      };
+    }
+
+    /**
     * Fetch facebook Page Access Token
     */
     try {
       const { data } = await axios({
         method: 'get',
-        url: `https://graph.facebook.com/${facebookPageId}?fields=access_token&access_token=${facebookUserAccessToken}`,
+        url: `https://graph.facebook.com/${facebookPageId}?fields=access_token&access_token=${longLivedUserAccessToken}`,
       });
       pageAccessToken = data.access_token;
     } catch (error) {

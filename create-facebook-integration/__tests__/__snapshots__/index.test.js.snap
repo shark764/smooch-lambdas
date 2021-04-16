@@ -5,7 +5,13 @@ Array [
   Array [
     Object {
       "method": "get",
-      "url": "https://graph.facebook.com/12345678?fields=access_token&access_token=short-user-access-token",
+      "url": "https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=5e31c81640a22c000f5d7f27&client_secret=123457&fb_exchange_token=short-user-access-token",
+    },
+  ],
+  Array [
+    Object {
+      "method": "get",
+      "url": "https://graph.facebook.com/12345678?fields=access_token&access_token=access-token",
     },
   ],
   Array [
@@ -116,7 +122,13 @@ Array [
   Array [
     Object {
       "method": "get",
-      "url": "https://graph.facebook.com/12345678?fields=access_token&access_token=short-user-access-token",
+      "url": "https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=5e31c81640a22c000f5d7f27&client_secret=123457&fb_exchange_token=short-user-access-token",
+    },
+  ],
+  Array [
+    Object {
+      "method": "get",
+      "url": "https://graph.facebook.com/12345678?fields=access_token&access_token=access-token",
     },
   ],
   Array [
@@ -137,7 +149,13 @@ Array [
   Array [
     Object {
       "method": "get",
-      "url": "https://graph.facebook.com/12345678?fields=access_token&access_token=short-user-access-token",
+      "url": "https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=5e31c81640a22c000f5d7f27&client_secret=123457&fb_exchange_token=short-user-access-token",
+    },
+  ],
+  Array [
+    Object {
+      "method": "get",
+      "url": "https://graph.facebook.com/12345678?fields=access_token&access_token=access-token",
     },
   ],
   Array [
@@ -272,7 +290,16 @@ Object {
 }
 `;
 
-exports[`create-faceboook-integration sends back status 500 when facebook api returns error 1`] = `
+exports[`create-faceboook-integration sends back status 500 when facebook api returns error while long lived user access token 1`] = `
+Object {
+  "body": Object {
+    "error": "Unexpected error occurred retrieving Page Access token. Please try again with Facebook Login/Another user access token",
+  },
+  "status": 500,
+}
+`;
+
+exports[`create-faceboook-integration sends back status 500 when facebook api returns error while page access token 1`] = `
 Object {
   "body": Object {
     "error": "Unexpected error occurred retrieving Page Access token. Please try again with Facebook Login/Another user access token",

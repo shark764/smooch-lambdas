@@ -1,3 +1,6 @@
+# 1.41.0
+* CXV1-24143 - Added delete-facebook-lambda + added long lived user access token in create facebook integration
+
 # 1.40.2
 * no-jira - update alonzo to fix the install script, changed permission error code from 400 to 403 for smooch apps
 
