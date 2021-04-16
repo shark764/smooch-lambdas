@@ -1,3 +1,6 @@
+# 1.42.0
+* CXV1-24143 - Adding get-facebook-integration lambda
+
 # 1.41.0
 * CXV1-24143 - Added delete-facebook-lambda + added long lived user access token in create facebook integration
 

@@ -5,6 +5,13 @@
   "repository": {},
   "license": "UNLICENSED",
   "dependencies": {
-    "alonzo": "9.0.5"
+    "alonzo": "9.0.5",
+    "axios": "^0.21.1",
+    "joi": "^17.4.0",
+    "serenova-js-utils": "^4.7.0",
+    "sunshine-conversations-client": "^9.4.3"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.877.0"
   }
 }
