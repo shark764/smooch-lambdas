@@ -1,3 +1,6 @@
+# 1.43.0
+* CXV1-24143 - Adding update-facebook-integration lambda
+
 # 1.42.0
 * CXV1-24143 - Adding get-facebook-integration lambda
 
