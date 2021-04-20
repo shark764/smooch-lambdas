@@ -1240,12 +1240,16 @@ exports.handleCustomerMessage = async ({
         customerIdentifier = 'Customer';
         givenName = customerIdentifier;
       } else if (metadataSource === 'messenger') {
-        customerIdentifier = client.displayName;
-        givenName = appUser.givenName;
+        if (client.displayName) {
+          customerIdentifier = client.displayName;
+          givenName = appUser.givenName;
+        } else {
+          customerIdentifier = 'Customer';
+          givenName = customerIdentifier;
+        }
       } else {
         throw new Error('Unable to get Customer Identifier - Unsupported Platform');
       }
-
       let smoochUser;
       const smooch = await exports.smoochCore({ appId, logContext });
       try {

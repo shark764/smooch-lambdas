@@ -1,3 +1,6 @@
+# 1.43.1
+* no-jira - Changed update web intergration response from 201 to 200, added support for messenger with no name from smooch
+
 # 1.43.0
 * CXV1-24143 - Adding update-facebook-integration lambda
 
