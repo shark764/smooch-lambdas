@@ -464,7 +464,7 @@ describe('update-whatsapp-integration', () => {
     const result = await handler(event);
     expect(result).toEqual({
       body: {
-        message: 'The app does not exist for this tenant',
+        message: 'The integration does not exist for this tenant',
         whatsappId: '5e31c81640a22c000f5d7f28',
       },
       status: 404,

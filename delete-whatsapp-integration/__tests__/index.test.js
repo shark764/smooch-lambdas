@@ -32,21 +32,14 @@ const mockGet = jest.fn()
     }),
   }));
 
-const mockDeleteSmoochCore = jest.fn()
-  .mockImplementation(() => ({
-    promise: () => ({}),
-  }));
-
 const mockDelete = jest.fn()
   .mockImplementation(() => ({
     promise: () => ({}),
   }));
 
-const mockSmoochCore = jest.fn(() => ({
-  integrations: {
-    delete: mockDeleteSmoochCore,
-  },
-}));
+const mockDeleteIntegration = jest.fn()
+  .mockImplementation(() => ({}));
+
 
 jest.mock('aws-sdk', () => ({
   config: {
@@ -61,13 +54,29 @@ jest.mock('aws-sdk', () => ({
   SecretsManager: jest.fn().mockImplementation(() => ({ getSecretValue: mockGetSecretValue })),
 }));
 
-jest.mock('smooch-core', () => mockSmoochCore);
+const mockAuthentication = {
+  basicAuth: {
+    username: 'id',
+    password: 'secret',
+  },
+};
+
+jest.mock('sunshine-conversations-client', () => ({
+  ApiClient: {
+    instance: {
+      authentications: mockAuthentication,
+    },
+  },
+  IntegrationsApi: jest.fn().mockImplementation(() => ({
+    deleteIntegration: mockDeleteIntegration,
+  })),
+}));
 
 const { handler } = require('../index');
 
-describe('delete-smooch-web-integration', () => {
+describe('delete-whatsapp-integration', () => {
   describe('Everthing is successful', () => {
-    it('sends back status 200 when the web integration is deleted successfully', async () => {
+    it('sends back status 200 when the whatsapp integration is deleted successfully', async () => {
       const result = await handler(event);
       expect(result).toMatchSnapshot();
     });
@@ -75,24 +84,20 @@ describe('delete-smooch-web-integration', () => {
       beforeAll(async () => {
         await handler(event);
       });
-      it('passes in the correct arguments to secretClient.getSecretValue()', async () => {
-        expect(mockGetSecretValue.mock.calls).toMatchSnapshot();
-      });
-
       it('passes in the correct arguments to validateTenantPermissions', async () => {
         expect(validateTenantPermissions.mock.calls).toMatchSnapshot();
+      });
+
+      it('passes in the correct arguments to secretClient.getSecretValue()', async () => {
+        expect(mockGetSecretValue.mock.calls).toMatchSnapshot();
       });
 
       it('passes in the correct arguments to docClient.get()', async () => {
         expect(mockGet.mock.calls).toMatchSnapshot();
       });
 
-      it('passes in the correct arguments to SmoochCore', async () => {
-        expect(mockSmoochCore.mock.calls).toMatchSnapshot();
-      });
-
-      it('passes in the correct arguments to smooch.integrations.delete()', async () => {
-        expect(mockDeleteSmoochCore.mock.calls).toMatchSnapshot();
+      it('passes in the correct arguments to sunshine conversation client deleteIntegration()', async () => {
+        expect(mockDeleteIntegration.mock.calls).toMatchSnapshot();
       });
 
       it('passes in the correct arguments to docClient.delete()', async () => {
@@ -100,6 +105,13 @@ describe('delete-smooch-web-integration', () => {
       });
     });
   });
+
+  it('sends back status 403 when there are not enough permissions', async () => {
+    validateTenantPermissions.mockReturnValueOnce(false);
+    const result = await handler(event);
+    expect(result).toMatchSnapshot();
+  });
+
   it('sends back status 400 when there are invalid parameters', async () => {
     const mockEvent = {
       params: {
@@ -119,12 +131,6 @@ describe('delete-smooch-web-integration', () => {
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back status 403 when there are not enough permissions', async () => {
-    validateTenantPermissions.mockReturnValueOnce(false);
-    const result = await handler(event);
-    expect(result).toMatchSnapshot();
-  });
-
   it('sends back status 404 when the integration does not exist for the tenant', async () => {
     mockGet.mockImplementationOnce(() => ({
       promise: () => ({}),
@@ -139,7 +145,7 @@ describe('delete-smooch-web-integration', () => {
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back status 500 when there is a error validating digital channels credentials', async () => {
+  it('sends back status 500 when there is a error parsing smooch credentials', async () => {
     mockGetSecretValue.mockImplementationOnce(() => ({
       promise: () => ({}),
     }));
@@ -147,14 +153,14 @@ describe('delete-smooch-web-integration', () => {
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back status 500 when there is a error deleting web integration', async () => {
-    mockDeleteSmoochCore.mockRejectedValueOnce(new Error());
+  it('sends back status 500 when there is a error deleting records in DynamoDB', async () => {
+    mockDelete.mockRejectedValueOnce(new Error());
     const result = await handler(event);
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back status 500 when there is a error deleting records in DynamoDB', async () => {
-    mockDelete.mockRejectedValueOnce(new Error());
+  it('sends back status 500 when there is a error deleting whatsapp integration', async () => {
+    mockDeleteIntegration.mockRejectedValueOnce(new Error());
     const result = await handler(event);
     expect(result).toMatchSnapshot();
   });

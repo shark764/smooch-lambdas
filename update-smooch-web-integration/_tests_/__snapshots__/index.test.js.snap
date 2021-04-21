@@ -226,15 +226,6 @@ Object {
 }
 `;
 
-exports[`update-smooch-web-integration sends back status 400 when the app does not exist for the tenant 1`] = `
-Object {
-  "body": Object {
-    "message": "The app does not exist for this tenant",
-  },
-  "status": 400,
-}
-`;
-
 exports[`update-smooch-web-integration sends back status 400 when there are invalid body value 1`] = `
 Object {
   "body": Object {
@@ -266,6 +257,15 @@ Object {
     "message": "Error not enough permissions",
   },
   "status": 403,
+}
+`;
+
+exports[`update-smooch-web-integration sends back status 404 when the integration does not exist for the tenant 1`] = `
+Object {
+  "body": Object {
+    "message": "The integration does not exist for this tenant",
+  },
+  "status": 404,
 }
 `;
 

@@ -1,3 +1,6 @@
+# 1.44.0
+* CXV1-24310 - Added new delete whatsapp integration lambda, changed no-integration response code as 404 for web, updated facebook dev-dependency
+
 # 1.43.1
 * no-jira - Changed update web intergration response from 201 to 200, added support for messenger with no name from smooch
 

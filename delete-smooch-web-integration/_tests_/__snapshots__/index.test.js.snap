@@ -156,12 +156,12 @@ Object {
 }
 `;
 
-exports[`delete-smooch-web-integration sends back status 500 when the app does not exist for the tenant 1`] = `
+exports[`delete-smooch-web-integration sends back status 404 when the integration does not exist for the tenant 1`] = `
 Object {
   "body": Object {
-    "message": "The app does not exist for this tenant",
+    "message": "The integration does not exist for this tenant",
   },
-  "status": 400,
+  "status": 404,
 }
 `;
 

@@ -171,7 +171,7 @@ describe('get-smooch-web-integration', () => {
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back status 500 when the app does not exit for tenant', async () => {
+  it('sends back status 404 when the integration does not exit for tenant', async () => {
     mockGet.mockImplementationOnce(() => ({
       promise: () => ({}),
     }));

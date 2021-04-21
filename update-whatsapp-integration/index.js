@@ -122,7 +122,7 @@ exports.handler = async (event) => {
      * If no record is found, we throw an error
      */
     if (!Item) {
-      const errMsg = 'The app does not exist for this tenant';
+      const errMsg = 'The integration does not exist for this tenant';
 
       log.error(errMsg, logContext);
 

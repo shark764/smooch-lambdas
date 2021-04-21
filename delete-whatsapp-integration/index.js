@@ -1,5 +1,5 @@
 /**
- * Lambda that deletes a smooch web integration
+ * Lambda that deletes a smooch whatsapp integration
  * */
 
 const AWS = require('aws-sdk');
@@ -10,7 +10,7 @@ const {
     api: { validateTenantPermissions },
   },
 } = require('alonzo');
-const SmoochCore = require('smooch-core');
+const SunshineConversationsClient = require('sunshine-conversations-client');
 
 const secretsClient = new AWS.SecretsManager();
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -31,13 +31,13 @@ const {
   ENVIRONMENT,
   SMOOCH_API_URL,
 } = process.env;
-const lambdaPermissions = ['WEB_INTEGRATIONS_APP_UPDATE'];
+const lambdaPermissions = ['WHATSAPP_INTEGRATIONS_APP_UPDATE'];
 
 exports.handler = async (event) => {
   const { params, identity } = event;
-  const logContext = { tenantId: params['tenant-id'], userId: identity['user-id'] };
+  const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
 
-  log.info('delete-smooch-web-integration was called', { ...logContext, params, SMOOCH_API_URL });
+  log.info('delete-whatsapp-integration was called', { ...logContext, params, SMOOCH_API_URL });
 
   /**
    * Validating permissions
@@ -142,21 +142,15 @@ exports.handler = async (event) => {
   }
 
   /**
-   * Getting apps keys from secret manager
+   * Delete integration records from smooch
    */
 
-  let smooch;
-
+  const defaultClient = SunshineConversationsClient.ApiClient.instance;
+  let appKeys;
   try {
-    const appKeys = JSON.parse(appSecrets.SecretString);
-    smooch = new SmoochCore({
-      keyId: appKeys[`${appId}-id`],
-      secret: appKeys[`${appId}-secret`],
-      scope: 'app',
-      serviceUrl: SMOOCH_API_URL,
-    });
+    appKeys = JSON.parse(appSecrets.SecretString);
   } catch (error) {
-    const errMsg = 'An Error has occurred trying to validate digital channels credentials';
+    const errMsg = 'An Error parsing smooch credential or credentials are empty';
 
     log.error(errMsg, logContext, error);
 
@@ -166,16 +160,17 @@ exports.handler = async (event) => {
     };
   }
 
+  const { basicAuth } = defaultClient.authentications;
+  basicAuth.username = appKeys[`${appId}-id`];
+  basicAuth.password = appKeys[`${appId}-secret`];
   logContext.smoochAppId = appId;
 
-  /**
-   * Deleting smooch integration
-   */
+  const apiInstance = new SunshineConversationsClient.IntegrationsApi();
 
   try {
-    await smooch.integrations.delete({ appId, integrationId });
+    await apiInstance.deleteIntegration(appId, integrationId);
   } catch (error) {
-    const errMsg = 'An Error has occurred trying to delete an web integration';
+    const errMsg = 'An Error has occurred trying to delete an whatsapp integration';
 
     log.error(errMsg, logContext, error);
 
@@ -184,10 +179,6 @@ exports.handler = async (event) => {
       body: { message: errMsg },
     };
   }
-
-  /**
-   * Deleting apps records from dynamo
-   */
 
   const deleteParams = {
     TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
@@ -196,6 +187,10 @@ exports.handler = async (event) => {
       id: integrationId,
     },
   };
+
+  /**
+   * Delete integration records from dynamo
+   */
 
   log.debug('Deleting record in DynamoDB', { ...logContext, deleteParams });
   try {
@@ -211,16 +206,16 @@ exports.handler = async (event) => {
     };
   }
 
-  log.info('user deleted a smooch web-integration', {
+  log.info('user deleted a smooch whatsapp-integration', {
     userId: identity['user-id'],
     tenantId,
     smoochIntegrationId: integrationId,
     audit: true,
   });
-  log.info('delete-smooch-web-integration complete', logContext);
+  log.info('delete-whatsapp-integration complete', logContext);
 
   return {
     status: 200,
-    body: { message: `The web integration with for tenant ${tenantId} and integrationId ${integrationId} has been deleted successfully`, deleted: true },
+    body: { message: `The whatsapp integration for tenant ${tenantId} and integrationId ${integrationId} has been deleted successfully`, deleted: true },
   };
 };

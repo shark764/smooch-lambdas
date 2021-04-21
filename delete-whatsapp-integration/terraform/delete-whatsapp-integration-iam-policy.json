@@ -1,0 +1,33 @@
+{
+  "Statement": [
+    {
+      "Sid": "terraform",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "ec2:CreateNetworkInterface",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DeleteNetworkInterface"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    },
+    {
+        "Sid": "GetDeleteItem",
+        "Action": [
+            "dynamodb:GetItem", 
+            "dynamodb:DeleteItem"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:dynamodb:*:*:table/*-smooch"
+    },
+    {
+        "Sid": "GetSecrets",
+        "Action": "secretsmanager:GetSecretValue",
+        "Effect": "Allow",
+        "Resource": [
+            "arn:aws:secretsmanager:*:*:secret:*-smooch-app-??????"
+        ]
+    }]
+}

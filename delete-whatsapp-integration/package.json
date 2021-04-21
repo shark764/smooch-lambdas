@@ -1,12 +1,11 @@
 {
-  "name": "update-facebook-integration",
+  "name": "delete-whatsapp-integration",
   "version": "1.0.0",
-  "description": "API to update a smooch facebook integration for a tenant",
+  "description": "delete-whatsapp-integration - new lambda description",
   "repository": {},
   "license": "UNLICENSED",
   "dependencies": {
     "alonzo": "9.0.5",
-    "axios": "^0.21.1",
     "joi": "^17.4.0",
     "serenova-js-utils": "^4.7.0",
     "sunshine-conversations-client": "^9.4.3"

@@ -336,7 +336,7 @@ describe('update-smooch-web-integration', () => {
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back status 400 when the app does not exist for the tenant', async () => {
+  it('sends back status 404 when the integration does not exist for the tenant', async () => {
     mockGet.mockImplementationOnce(() => ({
       promise: () => ({}),
     }));

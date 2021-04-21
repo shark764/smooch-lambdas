@@ -117,7 +117,7 @@ exports.handler = async (event) => {
         };
       }
     } else {
-      const errMsg = 'The app does not exist for this tenant';
+      const errMsg = 'The integration does not exist for this tenant';
 
       log.error(errMsg, logContext);
 

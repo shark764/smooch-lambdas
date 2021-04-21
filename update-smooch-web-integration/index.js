@@ -156,12 +156,12 @@ exports.handler = async (event) => {
     if (queryResponse.Item) {
       appId = queryResponse.Item['app-id'];
     } else {
-      const errMsg = 'The app does not exist for this tenant';
+      const errMsg = 'The integration does not exist for this tenant';
 
       log.error(errMsg, logContext);
 
       return {
-        status: 400,
+        status: 404,
         body: { message: errMsg },
       };
     }

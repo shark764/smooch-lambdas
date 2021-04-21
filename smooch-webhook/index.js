@@ -1219,7 +1219,8 @@ exports.handleCustomerMessage = async ({
   } else if (!hasInteractionItem) {
     let customerIdentifier = properties.customer;
 
-    if (!customerIdentifier) {
+    if (!customerIdentifier
+      || (metadataSource === 'messenger' && customerIdentifier === 'Customer' && client.displayName)) {
       let givenName;
       if (metadataSource === 'whatsapp') {
         const phoneNumber = parsePhoneNumber(client.displayName);

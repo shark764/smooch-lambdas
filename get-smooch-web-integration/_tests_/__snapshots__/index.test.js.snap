@@ -157,12 +157,12 @@ Object {
 }
 `;
 
-exports[`get-smooch-web-integration sends back status 500 when the app does not exit for tenant 1`] = `
+exports[`get-smooch-web-integration sends back status 404 when the integration does not exit for tenant 1`] = `
 Object {
   "body": Object {
-    "message": "The app does not exist for this tenant",
+    "message": "The integration does not exist for this tenant",
   },
-  "status": 500,
+  "status": 404,
 }
 `;
 
