@@ -252,7 +252,7 @@ exports.handler = async (event) => {
   log.info('update-whatsapp-integration complete', { ...logContext, result });
 
   return {
-    status: 201,
+    status: 200,
     body: { result },
   };
 };

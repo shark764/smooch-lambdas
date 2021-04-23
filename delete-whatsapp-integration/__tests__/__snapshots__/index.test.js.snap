@@ -107,6 +107,16 @@ Object {
 }
 `;
 
+exports[`delete-whatsapp-integration Everthing is successful sends back status 200 when the whatsapp integration is deleted successfully with automated test 1`] = `
+Object {
+  "body": Object {
+    "deleted": true,
+    "message": "The whatsapp integration for tenant 66d83870-30df-4a3b-8801-59edff162034 and integrationId 667802d8-2260-436c-958a-2ee0f71f73f0 has been deleted successfully",
+  },
+  "status": 200,
+}
+`;
+
 exports[`delete-whatsapp-integration sends back status 400 when there are invalid parameters 1`] = `
 Object {
   "body": Object {

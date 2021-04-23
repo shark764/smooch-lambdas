@@ -76,7 +76,27 @@ const { handler } = require('../index');
 
 describe('delete-whatsapp-integration', () => {
   describe('Everthing is successful', () => {
+    it('sends back status 200 when the whatsapp integration is deleted successfully with automated test', async () => {
+      const mockEvent = {
+        params: {
+          'tenant-id': '66d83870-30df-4a3b-8801-59edff162034',
+          id: '667802d8-2260-436c-958a-2ee0f71f73f0',
+        },
+        body: {
+          test: true,
+        },
+        identity: {
+          'user-id': '667802d8-2260-436c-958a-2ee0f71f73f0',
+        },
+      };
+      const result = await handler(mockEvent);
+      expect(result).toMatchSnapshot();
+      expect(mockDeleteIntegration).not.toHaveBeenCalled();
+      expect(mockDelete).toHaveBeenCalled();
+    });
+
     it('sends back status 200 when the whatsapp integration is deleted successfully', async () => {
+      jest.clearAllMocks();
       const result = await handler(event);
       expect(result).toMatchSnapshot();
     });

@@ -1,3 +1,6 @@
+# 1.44.1
+* CXV1-24310 - Added test parameter to delete-whatsapp-lambda for automated testing. Fixed error code response in update whatsapp lambda
+
 # 1.44.0
 * CXV1-24310 - Added new delete whatsapp integration lambda, changed no-integration response code as 404 for web, updated facebook dev-dependency
 

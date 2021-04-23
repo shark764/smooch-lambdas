@@ -88,7 +88,7 @@ describe('update-whatsapp-integration', () => {
             name: 'smooch',
           },
         },
-        status: 201,
+        status: 200,
       });
     });
     describe('Walkthrough', () => {

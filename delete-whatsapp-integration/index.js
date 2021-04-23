@@ -34,8 +34,10 @@ const {
 const lambdaPermissions = ['WHATSAPP_INTEGRATIONS_APP_UPDATE'];
 
 exports.handler = async (event) => {
-  const { params, identity } = event;
+  const { body, params, identity } = event;
   const logContext = { tenantId: params['tenant-id'], smoochUserId: identity['user-id'] };
+  /* **** Only used for automated tests **** Does not delete actual integration from Smooch **** */
+  const automatedTest = body && (body.test) && (body.test === true) ? true : undefined;
 
   log.info('delete-whatsapp-integration was called', { ...logContext, params, SMOOCH_API_URL });
 
@@ -145,40 +147,47 @@ exports.handler = async (event) => {
    * Delete integration records from smooch
    */
 
-  const defaultClient = SunshineConversationsClient.ApiClient.instance;
-  let appKeys;
-  try {
-    appKeys = JSON.parse(appSecrets.SecretString);
-  } catch (error) {
-    const errMsg = 'An Error parsing smooch credential or credentials are empty';
+  /* Only used for automated testing */
+  if (!automatedTest) {
+    const defaultClient = SunshineConversationsClient.ApiClient.instance;
+    let appKeys;
+    try {
+      appKeys = JSON.parse(appSecrets.SecretString);
+    } catch (error) {
+      const errMsg = 'An Error parsing smooch credential or credentials are empty';
 
-    log.error(errMsg, logContext, error);
+      log.error(errMsg, logContext, error);
 
-    return {
-      status: 500,
-      body: { message: errMsg },
-    };
+      return {
+        status: 500,
+        body: { message: errMsg },
+      };
+    }
+
+    const { basicAuth } = defaultClient.authentications;
+    basicAuth.username = appKeys[`${appId}-id`];
+    basicAuth.password = appKeys[`${appId}-secret`];
+    logContext.smoochAppId = appId;
+
+    const apiInstance = new SunshineConversationsClient.IntegrationsApi();
+
+    try {
+      await apiInstance.deleteIntegration(appId, integrationId);
+    } catch (error) {
+      const errMsg = 'An Error has occurred trying to delete an whatsapp integration';
+
+      log.error(errMsg, logContext, error);
+
+      return {
+        status: 500,
+        body: { message: errMsg },
+      };
+    }
   }
 
-  const { basicAuth } = defaultClient.authentications;
-  basicAuth.username = appKeys[`${appId}-id`];
-  basicAuth.password = appKeys[`${appId}-secret`];
-  logContext.smoochAppId = appId;
-
-  const apiInstance = new SunshineConversationsClient.IntegrationsApi();
-
-  try {
-    await apiInstance.deleteIntegration(appId, integrationId);
-  } catch (error) {
-    const errMsg = 'An Error has occurred trying to delete an whatsapp integration';
-
-    log.error(errMsg, logContext, error);
-
-    return {
-      status: 500,
-      body: { message: errMsg },
-    };
-  }
+  /**
+   * Delete integration records from dynamo
+   */
 
   const deleteParams = {
     TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
@@ -187,10 +196,6 @@ exports.handler = async (event) => {
       id: integrationId,
     },
   };
-
-  /**
-   * Delete integration records from dynamo
-   */
 
   log.debug('Deleting record in DynamoDB', { ...logContext, deleteParams });
   try {
