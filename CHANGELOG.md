@@ -1,3 +1,6 @@
+# 1.44.2
+* CXV1-24310 - removed fbAppId, fbPageId dependency from Update Facebook lambda
+
 # 1.44.1
 * CXV1-24310 - Added test parameter to delete-whatsapp-lambda for automated testing. Fixed error code response in update whatsapp lambda
 

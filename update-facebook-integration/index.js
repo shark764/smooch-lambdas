@@ -20,9 +20,7 @@ const paramsSchema = Joi.object({
 
 const bodySchema = Joi.object({
   appId: Joi.string().required(),
-  facebookAppId: Joi.string().required(),
   facebookAppSecret: Joi.string(),
-  facebookPageId: Joi.string().required(),
   facebookUserAccessToken: Joi.string(),
   facebookPageAccessToken: Joi.string(),
   name: Joi.string().trim().min(1).required(),
@@ -146,15 +144,37 @@ exports.handler = async (event) => {
 
   const {
     appId,
-    facebookAppId,
     facebookAppSecret,
     facebookUserAccessToken,
     facebookPageAccessToken,
-    facebookPageId,
     name,
     description,
     clientDisconnectMinutes,
   } = body;
+
+  let facebookIntegration;
+  /**
+  * Fetch facebook Integration
+  */
+  try {
+    const { data } = await axios({
+      method: 'get',
+      url: `https://api.smooch.io/v2/apps/${appId}/integrations/${integrationId}`,
+      auth: {
+        username: appKeys[`${appId}-id`],
+        password: appKeys[`${appId}-secret`],
+      },
+    });
+    facebookIntegration = data.integration;
+  } catch (error) {
+    log.error('Unexpected error occurred getting integration from smooch', logContext, error);
+    return {
+      status: 500,
+      body: {
+        error: 'Unexpected error occurred getting integration from smooch',
+      },
+    };
+  }
 
   if (facebookAppSecret || facebookPageAccessToken) {
     let pageAccessToken;
@@ -178,7 +198,7 @@ exports.handler = async (event) => {
       try {
         const { data } = await axios({
           method: 'get',
-          url: `https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=${facebookAppId}&client_secret=${facebookAppSecret}&fb_exchange_token=${facebookUserAccessToken}`,
+          url: `https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=${facebookIntegration.appId}&client_secret=${facebookAppSecret}&fb_exchange_token=${facebookUserAccessToken}`,
         });
         longLivedUserAccessToken = data.access_token;
       } catch (error) {
@@ -197,7 +217,7 @@ exports.handler = async (event) => {
       try {
         const { data } = await axios({
           method: 'get',
-          url: `https://graph.facebook.com/${facebookPageId}?fields=access_token&access_token=${longLivedUserAccessToken}`,
+          url: `https://graph.facebook.com/${facebookIntegration.pageId}?fields=access_token&access_token=${longLivedUserAccessToken}`,
         });
         pageAccessToken = data.access_token;
       } catch (error) {
@@ -233,30 +253,6 @@ exports.handler = async (event) => {
         body: { message: errMsg, error },
       };
     }
-  }
-
-  let facebookIntegration;
-  /**
-  * Fetch facebook Integration
-  */
-  try {
-    const { data } = await axios({
-      method: 'get',
-      url: `https://api.smooch.io/v2/apps/${appId}/integrations/${integrationId}`,
-      auth: {
-        username: appKeys[`${appId}-id`],
-        password: appKeys[`${appId}-secret`],
-      },
-    });
-    facebookIntegration = data.integration;
-  } catch (error) {
-    log.error('Unexpected error occurred getting integration from smooch', logContext, error);
-    return {
-      status: 500,
-      body: {
-        error: 'Unexpected error occurred getting integration from smooch',
-      },
-    };
   }
 
   /**
@@ -334,8 +330,8 @@ exports.handler = async (event) => {
     userId: identity['user-id'],
     tenantId,
     appId,
-    facebookAppId,
-    facebookPageId,
+    facebookAppId: facebookIntegration.facebookAppId,
+    facebookPageId: facebookIntegration.facebookPageId,
     auditData: Object.keys(body),
     audit: true,
   });

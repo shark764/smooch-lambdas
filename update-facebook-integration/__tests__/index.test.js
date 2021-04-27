@@ -59,9 +59,7 @@ axios.mockImplementation(() => Promise.resolve({
 const mockBody = {
   appId: '5e31c81640a22c000f5d7f28',
   name: 'smooch',
-  facebookAppId: '5e31c81640a22c000f5d7f27',
   facebookAppSecret: '123457',
-  facebookPageId: '12345678',
   facebookUserAccessToken: 'short-user-access-token',
   description: 'description',
   clientDisconnectMinutes: 150,
@@ -157,8 +155,6 @@ describe('update-faceboook-integration', () => {
     const body = {
       appId: '5e31c81640a22c000f5d7f28',
       name: 'smooch',
-      facebookAppId: '5e31c81640a22c000f5d7f27',
-      facebookPageId: '12345678',
       description: 'description',
       clientDisconnectMinutes: 150,
     };
@@ -183,8 +179,6 @@ describe('update-faceboook-integration', () => {
     const body = {
       appId: '5e31c81640a22c000f5d7f28',
       name: 'smooch',
-      facebookAppId: '5e31c81640a22c000f5d7f27',
-      facebookPageId: '12345678',
       facebookPageAccessToken: 'page-access-token',
       description: 'description',
       clientDisconnectMinutes: 150,
@@ -262,6 +256,21 @@ describe('update-faceboook-integration', () => {
 
   it('sends back status 500 when facebook api returns error for long lived token', async () => {
     jest.clearAllMocks();
+    axios.mockImplementationOnce(() => Promise.resolve({
+      status: 200,
+      data: {
+        access_token: 'access-token',
+        integration: {
+          id: '667802d812321342',
+          status: 'active',
+          type: 'messenger',
+          displayName: 'display-name',
+          appId: 'facebook-app-id',
+          pageName: 'facebook-page-name',
+          pageId: 'facebook-page-id',
+        },
+      },
+    }));
     axios.mockImplementationOnce(new Error());
     mockBody.facebookPageAccessToken = undefined;
     const result = await handler(event);
