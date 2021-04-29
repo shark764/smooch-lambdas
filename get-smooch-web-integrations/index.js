@@ -56,7 +56,7 @@ exports.handler = async (event) => {
    */
 
   try {
-    await paramsSchema.validateAsync(params);
+    await paramsSchema.validateAsync(params, { abortEarly: false });
   } catch (error) {
     const errMsg = 'Error: invalid params value(s).';
     const validationMessage = error.details

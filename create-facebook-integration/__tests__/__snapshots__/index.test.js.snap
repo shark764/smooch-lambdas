@@ -241,8 +241,7 @@ Object {
 exports[`create-faceboook-integration sends back status 400 when there is a invalid body value 1`] = `
 Object {
   "body": Object {
-    "error": [ValidationError: "appId" is required],
-    "message": "Error: invalid body value(s). \\"appId\\" is required",
+    "message": "Error: invalid body value(s). \\"appId\\" is required / \\"facebookAppId\\" is required / \\"facebookAppSecret\\" is required / \\"facebookPageId\\" is required / \\"name\\" is required",
   },
   "status": 400,
 }

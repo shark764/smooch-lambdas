@@ -229,7 +229,6 @@ Object {
 exports[`update-smooch-web-integration sends back status 400 when there are invalid body value 1`] = `
 Object {
   "body": Object {
-    "error": [ValidationError: "prechatCapture" is required],
     "message": "Error: invalid body value(s). \\"prechatCapture\\" is required",
   },
   "status": 400,

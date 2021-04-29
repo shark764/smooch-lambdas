@@ -69,7 +69,7 @@ exports.handler = async (event) => {
    */
 
   try {
-    await bodySchema.validateAsync(body);
+    await bodySchema.validateAsync(body, { abortEarly: false });
   } catch (error) {
     const errMsg = 'Error: invalid body value(s).';
     const validationMessage = error.details
@@ -82,13 +82,12 @@ exports.handler = async (event) => {
       status: 400,
       body: {
         message: `${errMsg} ${validationMessage}`,
-        error,
       },
     };
   }
 
   try {
-    await paramsSchema.validateAsync(params);
+    await paramsSchema.validateAsync(params, { abortEarly: false });
   } catch (error) {
     const errMsg = 'Error: invalid params value(s).';
     const validationMessage = error.details
@@ -206,7 +205,7 @@ exports.handler = async (event) => {
         return {
           status: 500,
           body: {
-            error: 'Unexpected error occurred retrieving Page Access token. Please try again with Facebook Login/Another user access token',
+            error: 'Unexpected error occurred retrieving Long Lived User Access token. Please try again with Facebook Login/Another user access token',
           },
         };
       }

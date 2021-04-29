@@ -1,3 +1,6 @@
+# 1.44.3
+* CXV1-24310 - Fixed error msg response for web/facebook for multiple required param in body
+
 # 1.44.2
 * CXV1-24310 - removed fbAppId, fbPageId dependency from Update Facebook lambda
 

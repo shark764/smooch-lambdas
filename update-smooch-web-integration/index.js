@@ -82,7 +82,7 @@ exports.handler = async (event) => {
    */
 
   try {
-    await bodySchema.validateAsync(body);
+    await bodySchema.validateAsync(body, { abortEarly: false });
   } catch (error) {
     const errMsg = 'Error: invalid body value(s).';
     const validationMessage = error.details
@@ -95,13 +95,12 @@ exports.handler = async (event) => {
       status: 400,
       body: {
         message: `${errMsg} ${validationMessage}`,
-        error,
       },
     };
   }
 
   try {
-    await paramsSchema.validateAsync(params);
+    await paramsSchema.validateAsync(params, { abortEarly: false });
   } catch (error) {
     const errMsg = 'Error: invalid params value(s).';
     const validationMessage = error.details

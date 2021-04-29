@@ -162,7 +162,6 @@ Object {
 exports[`create-smooch-app sends back status 400 when there are invalid body values 1`] = `
 Object {
   "body": Object {
-    "error": [ValidationError: "name" is required],
     "message": "Error: invalid body value(s). \\"name\\" is required",
   },
   "status": 400,

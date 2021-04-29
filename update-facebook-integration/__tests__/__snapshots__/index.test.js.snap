@@ -199,8 +199,7 @@ Object {
 exports[`update-faceboook-integration sends back status 400 when there is a invalid body value 1`] = `
 Object {
   "body": Object {
-    "error": [ValidationError: "appId" is required],
-    "message": "Error: invalid body value(s). \\"appId\\" is required",
+    "message": "Error: invalid body value(s). \\"appId\\" is required / \\"name\\" is required",
   },
   "status": 400,
 }
@@ -242,7 +241,7 @@ Object {
 exports[`update-faceboook-integration sends back status 500 when facebook api returns error for long lived token 1`] = `
 Object {
   "body": Object {
-    "error": "Unexpected error occurred retrieving Page Access token. Please try again with Facebook Login/Another user access token",
+    "error": "Unexpected error occurred retrieving Long Lived User Access token. Please try again with Facebook Login/Another user access token",
   },
   "status": 500,
 }

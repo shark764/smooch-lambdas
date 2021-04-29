@@ -57,7 +57,7 @@ exports.handler = async (event) => {
    */
 
   try {
-    await paramsSchema.validateAsync(params);
+    await paramsSchema.validateAsync(params, { abortEarly: false });
   } catch (error) {
     log.warn('Error: invalid params value', { ...logContext, validationMessage: error.details[0].message });
 

@@ -286,25 +286,28 @@ describe('update-faceboook-integration', () => {
     expect(result).toMatchSnapshot();
   });
 
+  it('sends back status 500 when smooch get integration api returns error', async () => {
+    jest.clearAllMocks();
+    axios.mockImplementationOnce(new Error());
+    const result = await handler(event);
+    expect(result).toMatchSnapshot();
+  });
+
   it('sends back status 500 when facebook api for get page access token returns error', async () => {
     jest.clearAllMocks();
     axios.mockImplementationOnce(() => Promise.resolve({
       status: 200,
       data: {
         access_token: 'access-token',
-      },
-    }));
-    axios.mockImplementationOnce(new Error());
-    const result = await handler(event);
-    expect(result).toMatchSnapshot();
-  });
-
-  it('sends back status 500 when smooch get integration api returns error', async () => {
-    jest.clearAllMocks();
-    axios.mockImplementationOnce(() => Promise.resolve({
-      status: 200,
-      data: {
-        access_token: 'access-token',
+        integration: {
+          id: '667802d812321342',
+          status: 'active',
+          type: 'messenger',
+          displayName: 'display-name',
+          appId: 'facebook-app-id',
+          pageName: 'facebook-page-name',
+          pageId: 'facebook-page-id',
+        },
       },
     }));
     axios.mockImplementationOnce(() => Promise.resolve({
@@ -319,6 +322,7 @@ describe('update-faceboook-integration', () => {
   });
 
   it('sends back status 400 when both user access token and page access token are missing', async () => {
+    jest.clearAllMocks();
     mockBody.facebookPageAccessToken = undefined;
     mockBody.facebookUserAccessToken = undefined;
     const result = await handler(event);
