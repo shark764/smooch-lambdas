@@ -199,11 +199,31 @@ describe('smooch-webhook', () => {
           ...eventBody,
           trigger: 'message:appUser',
           messages: [
-            { type: 'file' },
-            { },
+            { _id: 'message-id', type: 'file' },
           ],
         }));
-        expect(result).toEqual('success');
+        expect(result).toEqual([
+          'message-id',
+        ]);
+      });
+
+      it('handles the multiple messages received from smooch', async () => {
+        const result = await handler(event({
+          ...eventBody,
+          trigger: 'message:appUser',
+          messages: [
+            { _id: 'message-id-1', type: 'text' },
+            { _id: 'message-id-2', type: 'file' },
+            { _id: 'message-id-3', type: 'image' },
+            { _id: 'message-id-4', type: 'mock-type' },
+          ],
+        }));
+        expect(result).toEqual([
+          'message-id-1',
+          'message-id-2',
+          'message-id-3',
+          'Unsupported web type message-id-4',
+        ]);
       });
 
       describe('web', () => {
@@ -277,9 +297,9 @@ describe('smooch-webhook', () => {
             const result = await handler(event({
               ...eventBody,
               trigger: 'message:appUser',
-              messages: [{ type: 'mock-type', mediaUrl: 'url://mock-mediaUrl' }],
+              messages: [{ _id: 'message-id', type: 'mock-type', mediaUrl: 'url://mock-mediaUrl' }],
             }));
-            expect(result).toEqual('Unsupported web type');
+            expect(result[0]).toEqual('Unsupported web type message-id');
           });
         });
       });
@@ -294,11 +314,10 @@ describe('smooch-webhook', () => {
               platform: 'mock-platform',
             },
             messages: [
-              { type: 'type' },
-              { },
+              { _id: 'message-id', type: 'type' },
             ],
           }));
-          expect(result).toEqual('Unsupported platform');
+          expect(result[0]).toEqual('Unsupported platform message-id');
         });
       });
     });

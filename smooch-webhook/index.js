@@ -100,121 +100,115 @@ exports.handler = async (event) => {
   logContext.hasInteractionItem = hasInteractionItem;
   logContext.interactionId = interactionId;
   logContext.smoochIntegrationId = integrationId;
-
   switch (trigger) {
     case 'message:appUser': {
       log.debug('Trigger received: message:appUser', logContext);
-      if (!messages || messages.length !== 1) {
-        log.error(
-          'Did not receive exactly one message from Smooch. Handling the first.',
-          { ...logContext, messages },
-        );
-      }
-      const message = messages[0];
-      const { type, _id: smoochMessageId } = message;
       const collectActions = interactionItem && (
         interactionItem.CollectActions === [] ? undefined : interactionItem.CollectActions
       );
+      const messagesStatus = await Promise.all(messages.map(async (message) => {
+        const { type, _id: smoochMessageId } = message;
+        logContext.collectActions = collectActions;
+        logContext.smoochMessageType = type;
+        logContext.smoochMessageId = smoochMessageId;
 
-      logContext.collectActions = collectActions;
-      logContext.smoochMessageType = type;
-      logContext.smoochMessageId = smoochMessageId;
-
-      if (platform === 'web') {
-        log.debug('Platform received: web', logContext);
-        const channelType = 'messaging';
-        switch (type) {
-          case 'formResponse': {
-            log.debug('Web type received: formResponse', { ...logContext, form: message });
-            await exports.handleFormResponse({
-              appId,
-              userId,
-              integrationId,
-              tenantId,
-              interactionId,
-              form: message,
-              auth,
-              logContext,
-              properties,
-              channelType,
-              metadataSource: platform,
-              collectActions,
-            });
-            break;
+        if (platform === 'web') {
+          log.debug('Platform received: web', logContext);
+          const channelType = 'messaging';
+          switch (type) {
+            case 'formResponse': {
+              log.debug('Web type received: formResponse', { ...logContext, form: message });
+              await exports.handleFormResponse({
+                appId,
+                userId,
+                integrationId,
+                tenantId,
+                interactionId,
+                form: message,
+                auth,
+                logContext,
+                properties,
+                channelType,
+                metadataSource: platform,
+                collectActions,
+              });
+              break;
+            }
+            case 'text':
+            case 'image':
+            case 'file': {
+              log.debug(`Web type received: ${type}`, logContext);
+              await exports.handleCustomerMessage({
+                hasInteractionItem,
+                interactionId,
+                tenantId,
+                auth,
+                logContext,
+                appId,
+                userId,
+                message,
+                integrationId,
+                properties,
+                type,
+                channelType,
+                metadataSource: platform,
+              });
+              break;
+            }
+            default: {
+              log.warn('Unsupported web type from Smooch', {
+                ...logContext,
+                type,
+              });
+              return `Unsupported web type ${smoochMessageId}`;
+            }
           }
-          case 'text':
-          case 'image':
-          case 'file': {
-            log.debug(`Web type received: ${type}`, logContext);
-            await exports.handleCustomerMessage({
-              hasInteractionItem,
-              interactionId,
-              tenantId,
-              auth,
-              logContext,
-              appId,
-              userId,
-              message,
-              integrationId,
-              properties,
-              type,
-              channelType,
-              metadataSource: platform,
-            });
-            break;
+        } else if (platform === 'whatsapp' || platform === 'messenger') {
+          log.debug(`Platform received: ${platform}`, logContext);
+          const channel = (platform === 'whatsapp') ? 'sms' : 'messaging';
+          switch (type) {
+            case 'text':
+            case 'image':
+            case 'file': {
+              log.debug(`${platform} type received: ${type}`, logContext);
+              await exports.handleCustomerMessage({
+                hasInteractionItem,
+                interactionId,
+                tenantId,
+                auth,
+                logContext,
+                appId,
+                userId,
+                message,
+                integrationId,
+                properties,
+                type,
+                channelType: channel,
+                metadataSource: platform,
+                client,
+                collectActions,
+                appUser,
+              });
+              break;
+            }
+            default: {
+              log.warn(`Unsupported ${platform} type from Smooch`, {
+                ...logContext,
+                type,
+              });
+              return `Unsupported ${platform} type ${smoochMessageId}`;
+            }
           }
-          default: {
-            log.warn('Unsupported web type from Smooch', {
-              ...logContext,
-              type,
-            });
-            return 'Unsupported web type';
-          }
+        } else {
+          log.warn('Unsupported platform from Smooch', {
+            ...logContext,
+            platform,
+          });
+          return `Unsupported platform ${smoochMessageId}`;
         }
-      } else if (platform === 'whatsapp' || platform === 'messenger') {
-        log.debug(`Platform received: ${platform}`, logContext);
-        const channel = (platform === 'whatsapp') ? 'sms' : 'messaging';
-        switch (type) {
-          case 'text':
-          case 'image':
-          case 'file': {
-            log.debug(`${platform} type received: ${type}`, logContext);
-            await exports.handleCustomerMessage({
-              hasInteractionItem,
-              interactionId,
-              tenantId,
-              auth,
-              logContext,
-              appId,
-              userId,
-              message,
-              integrationId,
-              properties,
-              type,
-              channelType: channel,
-              metadataSource: platform,
-              client,
-              collectActions,
-              appUser,
-            });
-            break;
-          }
-          default: {
-            log.warn(`Unsupported ${platform} type from Smooch`, {
-              ...logContext,
-              type,
-            });
-            return `Unsupported ${platform} type`;
-          }
-        }
-      } else {
-        log.warn('Unsupported platform from Smooch', {
-          ...logContext,
-          platform,
-        });
-        return 'Unsupported platform';
-      }
-      break;
+        return `${smoochMessageId}`;
+      }));
+      return messagesStatus;
     }
     case 'conversation:read': {
       log.debug('Trigger received: conversation:read', logContext);
