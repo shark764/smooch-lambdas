@@ -1,4 +1,4 @@
-# 1.45.1
+# 1.45.2
 * CXV1-24412 - Update Facebook lambdas to use smooch API URL
 
 # 1.45.0

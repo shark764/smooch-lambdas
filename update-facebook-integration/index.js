@@ -158,7 +158,7 @@ exports.handler = async (event) => {
   try {
     const { data } = await axios({
       method: 'get',
-      url: `https://${SMOOCH_API_URL}/v2/apps/${appId}/integrations/${integrationId}`,
+      url: `${SMOOCH_API_URL}/v2/apps/${appId}/integrations/${integrationId}`,
       auth: {
         username: appKeys[`${appId}-id`],
         password: appKeys[`${appId}-secret`],
