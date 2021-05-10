@@ -151,7 +151,7 @@ describe('get-facebook-integration', () => {
                   password: 'secret', username: 'id',
                 },
                 method: 'get',
-                url: 'https://api.smooch.io/v2/apps/5fa425ef26770c000c171f9c/integrations/5e31c81640a22c000f5d7f28',
+                url: 'https://mock-smooch-api-url/v2/apps/5fa425ef26770c000c171f9c/integrations/5e31c81640a22c000f5d7f28',
               }],
           ]),
         );

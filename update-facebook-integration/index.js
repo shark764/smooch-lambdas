@@ -158,7 +158,7 @@ exports.handler = async (event) => {
   try {
     const { data } = await axios({
       method: 'get',
-      url: `https://api.smooch.io/v2/apps/${appId}/integrations/${integrationId}`,
+      url: `https://${SMOOCH_API_URL}/v2/apps/${appId}/integrations/${integrationId}`,
       auth: {
         username: appKeys[`${appId}-id`],
         password: appKeys[`${appId}-secret`],
@@ -237,6 +237,7 @@ exports.handler = async (event) => {
     const { basicAuth } = defaultClient.authentications;
     basicAuth.username = appKeys[`${appId}-id`];
     basicAuth.password = appKeys[`${appId}-secret`];
+    defaultClient.basePath = SMOOCH_API_URL;
     const apiInstance = new SunshineConversationsClient.IntegrationsApi();
     const integrationUpdate = new SunshineConversationsClient.IntegrationUpdate();
     integrationUpdate.pageAccessToken = pageAccessToken;

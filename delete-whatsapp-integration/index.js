@@ -164,6 +164,7 @@ exports.handler = async (event) => {
       };
     }
 
+    defaultClient.basePath = SMOOCH_API_URL;
     const { basicAuth } = defaultClient.authentications;
     basicAuth.username = appKeys[`${appId}-id`];
     basicAuth.password = appKeys[`${appId}-secret`];

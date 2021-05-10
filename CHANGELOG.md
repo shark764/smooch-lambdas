@@ -1,3 +1,6 @@
+# 1.45.1
+* CXV1-24412 - Update Facebook lambdas to use smooch API URL
+
 # 1.45.0
 * CXV1-24397 - Added support for multiple messages from smooch
 

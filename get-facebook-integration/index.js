@@ -20,7 +20,7 @@ const paramsSchema = Joi.object({
   auth: Joi.any(),
 });
 
-const { REGION_PREFIX, ENVIRONMENT } = process.env;
+const { REGION_PREFIX, ENVIRONMENT, SMOOCH_API_URL } = process.env;
 const lambdaPermissions = ['FACEBOOK_INTEGRATIONS_APP_READ'];
 const lambdaPlatformPermissions = ['PLATFORM_VIEW_ALL'];
 
@@ -37,6 +37,7 @@ exports.handler = async (event) => {
   log.info('get-facebook-integration was called', {
     ...logContext,
     params,
+    SMOOCH_API_URL,
   });
 
   /**
@@ -180,7 +181,7 @@ exports.handler = async (event) => {
   try {
     const { data } = await axios({
       method: 'get',
-      url: `https://api.smooch.io/v2/apps/${appId}/integrations/${integrationId}`,
+      url: `https://${SMOOCH_API_URL}/v2/apps/${appId}/integrations/${integrationId}`,
       auth: {
         username: appKeys[`${appId}-id`],
         password: appKeys[`${appId}-secret`],
