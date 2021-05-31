@@ -1,3 +1,6 @@
+# 1.45.3
+* CXV1-26918 - Added firstname and lastname for screen pop contact search
+
 # 1.45.2
 * CXV1-24412 - Update Facebook lambdas to use smooch API URL
 

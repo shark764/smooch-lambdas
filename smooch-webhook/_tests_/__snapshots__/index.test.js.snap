@@ -24,7 +24,9 @@ Array [
         "interaction": Object {
           "artifactId": "mock-artifact-id",
           "customerMetadata": Object {
+            "firstName": "firstName",
             "id": "firstName lastName",
+            "lastName": "lastName",
             "webClientProperties": Object {
               "customer": "firstName lastName",
             },

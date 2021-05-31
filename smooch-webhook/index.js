@@ -635,6 +635,23 @@ exports.createInteraction = async ({
       latestMessageSentBy,
     },
   };
+
+  /*
+  Added for customer screen pop up fix.
+  TODO: Clean up once flow is migrated to include Customer Identifier for screen pop up
+  */
+  if (metadataSource !== 'whatsapp') {
+    const customerName = customer.split(' ');
+    const { firstName, lastName } = {
+      firstName: customerName[0],
+      lastName: customerName.slice(1).join(' '),
+    };
+    interactionParams.interaction.customerMetadata = {
+      ...interactionParams.interaction.customerMetadata,
+      firstName,
+      lastName,
+    };
+  }
   log.debug('Creating interaction', { ...logContext, artifactId, interactionParams });
 
   const { data } = await axios({
