@@ -1,3 +1,6 @@
+# 1.46.0
+* CXV1-27005 - Added new lambda for rich messaging action
+
 # 1.45.3
 * CXV1-26918 - Added firstname and lastname for screen pop contact search
 

@@ -1,0 +1,17 @@
+{
+  "name": "smooch-action-send-rich-message",
+  "version": "1.0.0",
+  "description": "handler for handling rich text messages",
+  "repository": {},
+  "license": "UNLICENSED",
+  "dependencies": {
+    "alonzo": "9.0.5",
+    "axios": "^0.21.1",
+    "joi": "^17.4.0",
+    "sunshine-conversations-client": "^9.4.3",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.877.0"
+  }
+}

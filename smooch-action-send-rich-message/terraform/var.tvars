@@ -1,0 +1,6 @@
+include_queue = "true"
+timeout = 30
+memory_size = 128
+zip_path="smooch-action-send-rich-message/smooch-action-send-rich-message.zip"
+handler = "index.handler"
+runtime = "nodejs12.x"
