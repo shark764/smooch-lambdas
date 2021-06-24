@@ -108,10 +108,11 @@ exports.handler = async (event) => {
       );
       const messagesStatus = await Promise.all(messages.map(async (message) => {
         const { type, _id: smoochMessageId } = message;
+        const channelSubType = (platform === 'messenger') ? 'facebook' : platform;
         logContext.collectActions = collectActions;
         logContext.smoochMessageType = type;
         logContext.smoochMessageId = smoochMessageId;
-
+        logContext.channelSubType = channelSubType;
         if (platform === 'web') {
           log.debug('Platform received: web', logContext);
           const channelType = 'messaging';
@@ -130,6 +131,7 @@ exports.handler = async (event) => {
                 properties,
                 channelType,
                 metadataSource: platform,
+                channelSubType,
                 collectActions,
               });
               break;
@@ -152,6 +154,7 @@ exports.handler = async (event) => {
                 type,
                 channelType,
                 metadataSource: platform,
+                channelSubType,
               });
               break;
             }
@@ -185,6 +188,7 @@ exports.handler = async (event) => {
                 type,
                 channelType: channel,
                 metadataSource: platform,
+                channelSubType,
                 client,
                 collectActions,
                 appUser,
@@ -263,6 +267,7 @@ exports.handleFormResponse = async ({
   properties,
   channelType,
   metadataSource,
+  channelSubType,
   collectActions,
 }) => {
   let customerIdentifier = properties.customer;
@@ -307,6 +312,7 @@ exports.handleFormResponse = async ({
         tenantId,
         channelType,
         metadataSource,
+        channelSubType,
         integrationId,
         customer: customerIdentifier,
         properties,
@@ -487,6 +493,7 @@ exports.createInteraction = async ({
   userId,
   tenantId,
   metadataSource,
+  channelSubType,
   channelType,
   integrationId,
   customer,
@@ -615,6 +622,7 @@ exports.createInteraction = async ({
     contactPoint,
     source: 'smooch',
     channelType,
+    channelSubType,
     direction: 'inbound',
     interaction: {
       customerMetadata: {
@@ -1094,6 +1102,7 @@ exports.handleCustomerMessage = async ({
   properties,
   type,
   metadataSource,
+  channelSubType,
   channelType,
   client,
   collectActions,
@@ -1159,6 +1168,7 @@ exports.handleCustomerMessage = async ({
             userId,
             tenantId,
             metadataSource,
+            channelSubType,
             channelType,
             integrationId,
             customer: properties.customer,
@@ -1290,6 +1300,7 @@ exports.handleCustomerMessage = async ({
         userId,
         tenantId,
         metadataSource,
+        channelSubType,
         channelType,
         integrationId,
         customer: customerIdentifier,

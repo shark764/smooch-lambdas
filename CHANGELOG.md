@@ -1,3 +1,6 @@
+# 1.46.1
+* CXV1-27015 - Added channel-sub-type as interaction params to support multiple channels
+
 # 1.46.0
 * CXV1-27005 - Added new lambda for rich messaging action
 

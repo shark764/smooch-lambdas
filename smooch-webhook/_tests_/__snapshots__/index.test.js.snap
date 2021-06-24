@@ -16,6 +16,7 @@ Array [
     Object {
       "auth": "auth",
       "data": Object {
+        "channelSubType": undefined,
         "channelType": undefined,
         "contactPoint": "contactPoint",
         "customer": "firstName lastName",
@@ -200,6 +201,7 @@ Array [
     Object {
       "appId": "mock-app-id",
       "auth": "auth",
+      "channelSubType": "web",
       "channelType": undefined,
       "customer": "customer",
       "integrationId": "mock-integrationId-id",
@@ -259,6 +261,7 @@ Array [
     Object {
       "appId": "mock-app-id",
       "auth": "auth",
+      "channelSubType": "web",
       "channelType": undefined,
       "customer": "customer",
       "integrationId": "mock-integrationId-id",
@@ -375,6 +378,7 @@ Array [
     Object {
       "appId": "mock-app-id",
       "auth": "auth",
+      "channelSubType": "web",
       "channelType": undefined,
       "customer": "mock-email",
       "integrationId": "mock-integration-id",
@@ -436,11 +440,13 @@ Array [
         "id": "mock-secret-id",
         "secret": "mock-secret",
       },
+      "channelSubType": "web",
       "channelType": "messaging",
       "hasInteractionItem": true,
       "integrationId": "mock-integration-id",
       "interactionId": "1",
       "logContext": Object {
+        "channelSubType": "web",
         "collectActions": undefined,
         "hasInteractionItem": true,
         "interactionId": "1",
@@ -481,6 +487,7 @@ Array [
         "id": "mock-secret-id",
         "secret": "mock-secret",
       },
+      "channelSubType": "web",
       "channelType": "messaging",
       "collectActions": undefined,
       "form": Object {
@@ -493,6 +500,7 @@ Array [
       "integrationId": "mock-integration-id",
       "interactionId": "1",
       "logContext": Object {
+        "channelSubType": "web",
         "collectActions": undefined,
         "hasInteractionItem": true,
         "interactionId": "1",
@@ -526,11 +534,13 @@ Array [
         "id": "mock-secret-id",
         "secret": "mock-secret",
       },
+      "channelSubType": "web",
       "channelType": "messaging",
       "hasInteractionItem": true,
       "integrationId": "mock-integration-id",
       "interactionId": "1",
       "logContext": Object {
+        "channelSubType": "web",
         "collectActions": undefined,
         "hasInteractionItem": true,
         "interactionId": "1",
@@ -571,11 +581,13 @@ Array [
         "id": "mock-secret-id",
         "secret": "mock-secret",
       },
+      "channelSubType": "web",
       "channelType": "messaging",
       "hasInteractionItem": true,
       "integrationId": "mock-integration-id",
       "interactionId": "1",
       "logContext": Object {
+        "channelSubType": "web",
         "collectActions": undefined,
         "hasInteractionItem": true,
         "interactionId": "1",

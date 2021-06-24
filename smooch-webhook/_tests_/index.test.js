@@ -404,6 +404,7 @@ describe('smooch-webhook', () => {
       userId: 'mock-user-id',
       integrationId: 'mock-integration-id',
       tenantId: 'mock-tenant-id',
+      channelSubType: 'web',
       interactionId: 'mock-interaction-id',
       form: {
         name: 'Web User ',
@@ -1098,6 +1099,7 @@ describe('smooch-webhook', () => {
       properties: { customer: 'customer' },
       type: 'type',
       metadataSource: 'web',
+      channelSubType: 'web',
     };
 
     const inActiveInteractionError = new Error();
