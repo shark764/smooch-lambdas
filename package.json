@@ -1,6 +1,6 @@
 {
   "name": "smooch-lambdas",
-  "version": "1.46.1",
+  "version": "1.46.2",
   "scripts": {
     "alonzo": "alonzo",
     "alonzo:install": "alonzo --install",

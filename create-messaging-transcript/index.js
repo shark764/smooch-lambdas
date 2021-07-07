@@ -279,6 +279,7 @@ function formatMessages(
               } : {},
             } : {},
           } : {},
+          actions: message.actions ? message.actions : {},
         },
         from: (message.metadata && message.metadata.resourceId) || message.authorId,
         'tenant-id': tenantId,

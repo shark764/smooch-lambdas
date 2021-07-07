@@ -1,3 +1,6 @@
+# 1.46.2
+* CXV1-26993 - Smooch Rich Messaging | Text Message Transcripts with shorthand and/or action buttons
+
 # 1.46.1
 * CXV1-27015 - Added channel-sub-type as interaction params to support multiple channels
 

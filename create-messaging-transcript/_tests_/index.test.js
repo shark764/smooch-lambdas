@@ -72,7 +72,7 @@ const spyOnUploadArtifactFile = jest.spyOn(index, 'uploadArtifactFile');
 const { handler } = require('../index');
 
 describe('create-messaging-transcript', () => {
-  describe('Everthing is successful', () => {
+  describe('Everything is successful', () => {
     it("messages are filtered for type 'formResponse' and quotedMessage", async () => {
       mockGetMessages.mockImplementationOnce(() => ({
         previous: 'https://www.unit-tests.com?before=100',
@@ -283,6 +283,41 @@ describe('create-messaging-transcript', () => {
       }));
       await handler(event);
       expect(spyOnUploadArtifactFile.mock.calls[7][1]).toMatchSnapshot();
+    });
+
+    it('messages contains actions (shorthand message)', async () => {
+      mockGetMessages.mockImplementationOnce(() => ({
+        previous: 'https://www.unit-tests.com?before=100',
+        messages: [
+          {
+            type: 'text',
+            _id: '5e31c81640a22c000f5d7f29',
+            role: 'appMaker',
+            received: 50,
+            metadata: {
+              type: 'TYPE',
+            },
+            actions: [
+              {
+                _id: 'mock-id-1',
+                text: 'mock button name 1',
+                uri: 'https://www.domain.com',
+              },
+              {
+                _id: 'mock-id-2',
+                text: 'mock button name 2',
+                uri: 'https://www.domain.com',
+              },
+            ],
+          },
+        ],
+      }));
+      mockGetMessages.mockImplementationOnce(() => ({
+        previous: 'https://www.unit-tests.com',
+        messages: [],
+      }));
+      await handler(event);
+      expect(spyOnUploadArtifactFile.mock.calls[8][1]).toMatchSnapshot();
     });
 
     it("messages are mapped for role 'appMaker' and type 'form'", async () => {

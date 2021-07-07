@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`create-messaging-transcript Everthing is successful Walkthrough passes in the correct arguments to SmoochCore 1`] = `
+exports[`create-messaging-transcript Everything is successful Walkthrough passes in the correct arguments to SmoochCore 1`] = `
 Array [
   Array [
     Object {
@@ -13,7 +13,7 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful Walkthrough passes in the correct arguments to axios 1`] = `
+exports[`create-messaging-transcript Everything is successful Walkthrough passes in the correct arguments to axios 1`] = `
 Array [
   Array [
     Object {
@@ -84,7 +84,7 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful Walkthrough passes in the correct arguments to axios to get interaction metadata 1`] = `
+exports[`create-messaging-transcript Everything is successful Walkthrough passes in the correct arguments to axios to get interaction metadata 1`] = `
 Array [
   Object {
     "auth": Object {
@@ -97,7 +97,7 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful Walkthrough passes in the correct arguments to axios to push file to artifact 1`] = `
+exports[`create-messaging-transcript Everything is successful Walkthrough passes in the correct arguments to axios to push file to artifact 1`] = `
 Array [
   Object {
     "auth": Object {
@@ -111,7 +111,7 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful Walkthrough passes in the correct arguments to secretClient.getSecretValue() to get cx credentials 1`] = `
+exports[`create-messaging-transcript Everything is successful Walkthrough passes in the correct arguments to secretClient.getSecretValue() to get cx credentials 1`] = `
 Array [
   Object {
     "SecretId": "us-east-1-dev-smooch-cx",
@@ -119,7 +119,7 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful Walkthrough passes in the correct arguments to secretClient.getSecretValue() to get digital channels credentials 1`] = `
+exports[`create-messaging-transcript Everything is successful Walkthrough passes in the correct arguments to secretClient.getSecretValue() to get digital channels credentials 1`] = `
 Array [
   Object {
     "SecretId": "us-east-1-dev-smooch-app",
@@ -127,7 +127,7 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful Walkthrough passes in the correct arguments to smooch.appUsers.getMessages() 1`] = `
+exports[`create-messaging-transcript Everything is successful Walkthrough passes in the correct arguments to smooch.appUsers.getMessages() 1`] = `
 Array [
   Array [
     Object {
@@ -147,12 +147,13 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful messages are filtered for metadata 1`] = `
+exports[`create-messaging-transcript Everything is successful messages are filtered for metadata 1`] = `
 Array [
   Object {
     "channelId": null,
     "payload": Object {
       "body": Object {
+        "actions": Object {},
         "contentType": "formResponse",
         "file": Object {
           "mediaSize": undefined,
@@ -190,12 +191,13 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful messages are filtered for previous timestamp 1`] = `
+exports[`create-messaging-transcript Everything is successful messages are filtered for previous timestamp 1`] = `
 Array [
   Object {
     "channelId": null,
     "payload": Object {
       "body": Object {
+        "actions": Object {},
         "contentType": "formResponse",
         "file": Object {
           "mediaSize": undefined,
@@ -233,12 +235,13 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful messages are filtered for role 'appUser' and type '' 1`] = `
+exports[`create-messaging-transcript Everything is successful messages are filtered for role 'appUser' and type '' 1`] = `
 Array [
   Object {
     "channelId": null,
     "payload": Object {
       "body": Object {
+        "actions": Object {},
         "contentType": "formResponse",
         "file": Object {
           "mediaSize": undefined,
@@ -276,12 +279,13 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful messages are filtered for type 'formResponse' and quotedMessage 1`] = `
+exports[`create-messaging-transcript Everything is successful messages are filtered for type 'formResponse' and quotedMessage 1`] = `
 Array [
   Object {
     "channelId": null,
     "payload": Object {
       "body": Object {
+        "actions": Object {},
         "contentType": "formResponse",
         "file": Object {
           "mediaSize": undefined,
@@ -319,12 +323,13 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful messages are mapped for role 'appMaker' and type 'form' 1`] = `
+exports[`create-messaging-transcript Everything is successful messages are mapped for role 'appMaker' and type 'form' 1`] = `
 Array [
   Object {
     "channelId": null,
     "payload": Object {
       "body": Object {
+        "actions": Object {},
         "contentType": "formResponse",
         "file": Object {
           "mediaSize": undefined,
@@ -362,12 +367,57 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful messages for whatsapp interaction use phonenumber as display name 1`] = `
+exports[`create-messaging-transcript Everything is successful messages contains actions (shorthand message) 1`] = `
 Array [
   Object {
     "channelId": null,
     "payload": Object {
       "body": Object {
+        "actions": Array [
+          Object {
+            "_id": "mock-id-1",
+            "text": "mock button name 1",
+            "uri": "https://www.domain.com",
+          },
+          Object {
+            "_id": "mock-id-2",
+            "text": "mock button name 2",
+            "uri": "https://www.domain.com",
+          },
+        ],
+        "contentType": "text",
+        "file": Object {
+          "mediaSize": undefined,
+          "mediaType": undefined,
+          "mediaUrl": undefined,
+        },
+        "id": "5e31c81640a22c000f5d7f29",
+        "quotedMessage": Object {},
+        "text": undefined,
+      },
+      "from": undefined,
+      "metadata": Object {
+        "name": "system",
+        "source": "smooch",
+        "type": "TYPE",
+      },
+      "tenant-id": "250faddb-9723-403a-9bd5-3ca710cb26e5",
+      "timestamp": "1970-01-01T00:00:50Z",
+      "to": null,
+      "type": "message",
+    },
+    "timestamp": "50000",
+  },
+]
+`;
+
+exports[`create-messaging-transcript Everything is successful messages for whatsapp interaction use phonenumber as display name 1`] = `
+Array [
+  Object {
+    "channelId": null,
+    "payload": Object {
+      "body": Object {
+        "actions": Object {},
         "contentType": "text",
         "file": Object {
           "mediaSize": undefined,
@@ -394,12 +444,13 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful messages from agent uses "from" from metadata to display name 1`] = `
+exports[`create-messaging-transcript Everything is successful messages from agent uses "from" from metadata to display name 1`] = `
 Array [
   Object {
     "channelId": null,
     "payload": Object {
       "body": Object {
+        "actions": Object {},
         "contentType": "text",
         "file": Object {
           "mediaSize": undefined,
@@ -426,12 +477,13 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful messages from agent uses "name" from message object to display name 1`] = `
+exports[`create-messaging-transcript Everything is successful messages from agent uses "name" from message object to display name 1`] = `
 Array [
   Object {
     "channelId": null,
     "payload": Object {
       "body": Object {
+        "actions": Object {},
         "contentType": "text",
         "file": Object {
           "mediaSize": undefined,
@@ -458,12 +510,13 @@ Array [
 ]
 `;
 
-exports[`create-messaging-transcript Everthing is successful messages from system shows "system" as display name 1`] = `
+exports[`create-messaging-transcript Everything is successful messages from system shows "system" as display name 1`] = `
 Array [
   Object {
     "channelId": null,
     "payload": Object {
       "body": Object {
+        "actions": Object {},
         "contentType": "text",
         "file": Object {
           "mediaSize": undefined,

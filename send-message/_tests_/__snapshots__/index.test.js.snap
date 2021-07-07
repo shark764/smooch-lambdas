@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`send-message Everthing is successful Walkthrough passes in the correct arguments to SmoochCore 1`] = `
+exports[`send-message Everything is successful Walkthrough passes in the correct arguments to SmoochCore 1`] = `
 Array [
   Object {
     "keyId": "id",
@@ -11,7 +11,7 @@ Array [
 ]
 `;
 
-exports[`send-message Everthing is successful Walkthrough passes in the correct arguments to axios to get interaction metadata 1`] = `
+exports[`send-message Everything is successful Walkthrough passes in the correct arguments to axios to get interaction metadata 1`] = `
 Object {
   "auth": Object {
     "5e31c81640a22c000f5d7c55-id": "id",
@@ -22,7 +22,7 @@ Object {
 }
 `;
 
-exports[`send-message Everthing is successful Walkthrough passes in the correct arguments to smooch.appUsers.sendMessage() 1`] = `
+exports[`send-message Everything is successful Walkthrough passes in the correct arguments to smooch.appUsers.sendMessage() 1`] = `
 Array [
   Array [
     Object {
@@ -171,7 +171,7 @@ Array [
 ]
 `;
 
-exports[`send-message Everthing is successful Walkthrough passes in the correct arguments to sqs.sendMessages() in sendReportingEvent() 1`] = `
+exports[`send-message Everything is successful Walkthrough passes in the correct arguments to sqs.sendMessages() in sendReportingEvent() 1`] = `
 Array [
   Object {
     "MessageBody": "{\\"tenantId\\":\\"66d83870-30df-4a3b-8801-59edff162034\\",\\"interactionId\\":\\"66d83870-30df-4a3b-8801-59edff162040\\",\\"resourceId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"topic\\":\\"agent-message\\",\\"appName\\":\\"us-east-1-dev-send-message\\"}",
@@ -180,12 +180,29 @@ Array [
 ]
 `;
 
-exports[`send-message Everthing is successful sends back status 200 when the code runs without any error 1`] = `
+exports[`send-message Everything is successful sends back status 200 when the code runs without any error 1`] = `
 Object {
   "body": Object {
     "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
     "message": Object {
+      "actions": Array [
+        Object {
+          "id": "mock-id-1",
+          "text": "mock button name 1",
+          "uri": "https://www.domain.com",
+        },
+        Object {
+          "id": "mock-id-2",
+          "text": "mock button name 2",
+          "uri": "https://www.domain.com",
+        },
+      ],
       "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+      "contentType": undefined,
+      "file": Object {
+        "mediaType": undefined,
+        "mediaUrl": undefined,
+      },
       "from": "first-name last-name",
       "id": "5e31c81640a22c000f5d7c80",
       "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
@@ -198,12 +215,29 @@ Object {
 }
 `;
 
-exports[`send-message Everthing is successful when there is a error checking for dead interaction 1`] = `
+exports[`send-message Everything is successful when there is a error checking for dead interaction 1`] = `
 Object {
   "body": Object {
     "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
     "message": Object {
+      "actions": Array [
+        Object {
+          "id": "mock-id-1",
+          "text": "mock button name 1",
+          "uri": "https://www.domain.com",
+        },
+        Object {
+          "id": "mock-id-2",
+          "text": "mock button name 2",
+          "uri": "https://www.domain.com",
+        },
+      ],
       "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+      "contentType": undefined,
+      "file": Object {
+        "mediaType": undefined,
+        "mediaUrl": undefined,
+      },
       "from": "first-name last-name",
       "id": "5e31c81640a22c000f5d7c80",
       "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",
@@ -216,12 +250,29 @@ Object {
 }
 `;
 
-exports[`send-message Everthing is successful when there is a error sending reporting event 1`] = `
+exports[`send-message Everything is successful when there is a error sending reporting event 1`] = `
 Object {
   "body": Object {
     "interactionId": "66d83870-30df-4a3b-8801-59edff162040",
     "message": Object {
+      "actions": Array [
+        Object {
+          "id": "mock-id-1",
+          "text": "mock button name 1",
+          "uri": "https://www.domain.com",
+        },
+        Object {
+          "id": "mock-id-2",
+          "text": "mock button name 2",
+          "uri": "https://www.domain.com",
+        },
+      ],
       "agentMessageId": "66d83870-30df-4a3b-8801-59edff162045",
+      "contentType": undefined,
+      "file": Object {
+        "mediaType": undefined,
+        "mediaUrl": undefined,
+      },
       "from": "first-name last-name",
       "id": "5e31c81640a22c000f5d7c80",
       "resourceId": "667802d8-2260-436c-958a-2ee0f71f73f0",

@@ -138,7 +138,8 @@ exports.handler = async (event) => {
             }
             case 'text':
             case 'image':
-            case 'file': {
+            case 'file':
+            case 'location': {
               log.debug(`Web type received: ${type}`, logContext);
               await exports.handleCustomerMessage({
                 hasInteractionItem,
@@ -172,7 +173,8 @@ exports.handler = async (event) => {
           switch (type) {
             case 'text':
             case 'image':
-            case 'file': {
+            case 'file':
+            case 'location': {
               log.debug(`${platform} type received: ${type}`, logContext);
               await exports.handleCustomerMessage({
                 hasInteractionItem,

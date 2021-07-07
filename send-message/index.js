@@ -118,7 +118,7 @@ exports.handler = async (event) => {
   }
 
   /**
-   * If heartbeat is successfull continue as normal
+   * If heartbeat is successful continue as normal
    * if not, return an error
    */
   try {
@@ -195,6 +195,12 @@ exports.handler = async (event) => {
     agentMessageId,
     resourceId,
     timestamp: messageSent.message.received * 1000,
+    contentType: messageSent.message.type,
+    actions: messageSent.message.actions ? messageSent.message.actions : {},
+    file: (messageSent.message.type !== 'text') ? {
+      mediaUrl: messageSent.message.mediaUrl,
+      mediaType: messageSent.message.mediaType,
+    } : {},
   };
 
   log.info('Sent smooch message successfully', { ...logContext, smoochMessage: messageSent });

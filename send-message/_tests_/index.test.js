@@ -58,6 +58,18 @@ const mockSendMessage = jest.fn().mockImplementation(() => ({
     _id: '5e31c81640a22c000f5d7c80',
     text: 'text',
     received: 50,
+    actions: [
+      {
+        id: 'mock-id-1',
+        text: 'mock button name 1',
+        uri: 'https://www.domain.com',
+      },
+      {
+        id: 'mock-id-2',
+        text: 'mock button name 2',
+        uri: 'https://www.domain.com',
+      },
+    ],
   },
 }));
 
@@ -106,7 +118,7 @@ jest.mock('smooch-core', () => mockSmoochCore);
 const { handler } = require('../index');
 
 describe('send-message', () => {
-  describe('Everthing is successful', () => {
+  describe('Everything is successful', () => {
     it('sends back status 200 when the code runs without any error', async () => {
       const result = await handler(event);
       expect(result).toMatchSnapshot();
@@ -234,7 +246,7 @@ describe('send-message', () => {
       beforeEach(async () => {
         await handler(event);
       });
-      it('passes in the correct arguments to secretClient.getSecretValue() to retrieve digital channles credentials', async () => {
+      it('passes in the correct arguments to secretClient.getSecretValue() to retrieve digital channels credentials', async () => {
         expect(mockGetSecretValue.mock.calls[0]).toEqual(
           expect.arrayContaining([
             {
@@ -264,6 +276,7 @@ describe('send-message', () => {
 
       it('passes in the correct arguments to smooch.appUsers.sendMessage()', async () => {
         expect(mockSendMessage.mock.calls).toMatchSnapshot();
+        jest.clearAllMocks();
       });
 
       // it('passes in the correct arguments to docClient.get() in getClientInactivityTimeout()', async () => {
