@@ -81,6 +81,7 @@ describe('create-messaging-transcript', () => {
           type: 'formResponse',
           received: 50,
           name: 'firstName lastName',
+          textFallback: 'text-fallback:response',
           quotedMessage: {
             content: {
               metadata: 'meta-data',
@@ -105,6 +106,7 @@ describe('create-messaging-transcript', () => {
           type: '',
           role: 'appUser',
           received: 50,
+          textFallback: 'text-fallback:response',
         }],
       }));
       mockGetMessages.mockImplementationOnce(() => ({
@@ -123,6 +125,7 @@ describe('create-messaging-transcript', () => {
           _id: '5e31c81640a22c000f5d7f28',
           role: 'appMaker',
           received: 50,
+          textFallback: 'text-fallback:response',
           metadata: {
             type: 'TYPE',
             from: 'first-Name last-Name',
@@ -144,6 +147,7 @@ describe('create-messaging-transcript', () => {
           type: 'file',
           _id: '5e31c81640a22c000f5d7f28',
           role: 'appMaker',
+          textFallback: 'text-fallback:response',
           received: 150,
           metadata: {
             type: 'TYPE',
@@ -157,6 +161,7 @@ describe('create-messaging-transcript', () => {
           type: 'file',
           _id: '5e31c81640a22c000f5d7f28',
           role: 'appMaker',
+          textFallback: 'text-fallback:response',
           received: 99,
           metadata: {
             type: 'TYPE',
@@ -171,6 +176,7 @@ describe('create-messaging-transcript', () => {
           _id: '5e31c81640a22c000f5d7f28',
           role: 'appMaker',
           received: 15,
+          textFallback: 'text-fallback:response',
           metadata: {
             type: 'TYPE',
             from: 'first-Name last-Name',
@@ -198,6 +204,7 @@ describe('create-messaging-transcript', () => {
             _id: '5e31c81640a22c000f5d7f29',
             role: 'appUser',
             received: 50,
+            textFallback: 'text-fallback:response',
             metadata: {
               type: 'TYPE',
               from: 'first-Name last-Name',
@@ -222,6 +229,7 @@ describe('create-messaging-transcript', () => {
             _id: '5e31c81640a22c000f5d7f29',
             name: '+50371675753 lastName',
             role: 'appMaker',
+            textFallback: 'text-fallback:response',
             received: 50,
             metadata: {
               type: 'TYPE',
@@ -247,6 +255,7 @@ describe('create-messaging-transcript', () => {
             _id: '5e31c81640a22c000f5d7f29',
             role: 'appMaker',
             received: 50,
+            textFallback: 'text-fallback:response',
             metadata: {
               type: 'TYPE',
               from: 'first-Name last-Name',
@@ -271,6 +280,7 @@ describe('create-messaging-transcript', () => {
             _id: '5e31c81640a22c000f5d7f29',
             role: 'appMaker',
             received: 50,
+            textFallback: 'text-fallback:response',
             metadata: {
               type: 'TYPE',
             },
@@ -328,6 +338,7 @@ describe('create-messaging-transcript', () => {
           type: 'form',
           _id: '5e31c81640a22c000f5d7f28',
           role: 'appMaker',
+          textFallback: 'text-fallback:response',
           received: 50,
           metadata: {},
           fields: [{ label: 'collect-message' }],

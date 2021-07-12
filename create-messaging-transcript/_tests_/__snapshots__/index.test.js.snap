@@ -173,7 +173,7 @@ Array [
             "type": undefined,
           },
         },
-        "text": "collect-message response",
+        "text": "{\\"responses\\":[{\\"name\\":\\"text-fallback\\",\\"text\\":\\"response\\"}]}",
       },
       "from": undefined,
       "metadata": Object {
@@ -217,7 +217,7 @@ Array [
             "type": undefined,
           },
         },
-        "text": "collect-message response",
+        "text": "{\\"responses\\":[{\\"name\\":\\"text-fallback\\",\\"text\\":\\"response\\"}]}",
       },
       "from": undefined,
       "metadata": Object {
@@ -261,7 +261,7 @@ Array [
             "type": undefined,
           },
         },
-        "text": "collect-message response",
+        "text": "{\\"responses\\":[{\\"name\\":\\"text-fallback\\",\\"text\\":\\"response\\"}]}",
       },
       "from": undefined,
       "metadata": Object {
@@ -305,7 +305,7 @@ Array [
             "type": undefined,
           },
         },
-        "text": "collect-message response",
+        "text": "{\\"responses\\":[{\\"name\\":\\"text-fallback\\",\\"text\\":\\"response\\"}]}",
       },
       "from": undefined,
       "metadata": Object {
@@ -349,7 +349,7 @@ Array [
             "type": undefined,
           },
         },
-        "text": "collect-message response",
+        "text": "{\\"responses\\":[{\\"name\\":\\"text-fallback\\",\\"text\\":\\"response\\"}]}",
       },
       "from": undefined,
       "metadata": Object {

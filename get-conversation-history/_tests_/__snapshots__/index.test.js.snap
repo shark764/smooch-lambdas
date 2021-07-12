@@ -217,7 +217,7 @@ Object {
           },
         },
         "resourceId": null,
-        "text": "collect-message response",
+        "text": "{\\"responses\\":[{\\"name\\":\\"collect-message response\\"}]}",
         "timestamp": NaN,
         "type": "customer",
       },

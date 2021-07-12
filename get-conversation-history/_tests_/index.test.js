@@ -75,6 +75,7 @@ describe('get-conversation-history', () => {
               },
             },
             fields: [{ text: 'collect-message response' }],
+            textFallback: 'collect-message response',
           },
         ],
       }));
@@ -163,7 +164,7 @@ describe('get-conversation-history', () => {
               type: 'agent',
               from: '',
             },
-            fields: [{ label: 'collect-message' }],
+            fields: [{ label: 'collect-message', name: 'collect-message' }],
           },
         ],
       }));

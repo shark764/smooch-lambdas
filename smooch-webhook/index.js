@@ -34,7 +34,9 @@ exports.handler = async (event) => {
   const eventBody = JSON.parse(event.Records[0].body);
   const { body, tenantId } = eventBody;
   const {
-    appUser, messages, app, client, trigger, timestamp, activity,
+    appUser, messages, app, client, trigger, timestamp, activity, destination,
+    conversation,
+    postbacks,
   } = body;
   const { _id: appId } = app;
   const { properties, _id: userId } = appUser;
@@ -45,7 +47,7 @@ exports.handler = async (event) => {
     smoochUserId: userId,
     smoochTrigger: trigger,
   };
-
+  const { _id: conversationId } = conversation;
   log.info('smooch-webhook was called', { ...logContext, body, SMOOCH_API_URL });
 
   if (event.Records.length !== 1) {
@@ -55,11 +57,19 @@ exports.handler = async (event) => {
     );
   }
 
-  if (!client) {
+  let platform;
+  let integrationId;
+  if (client) {
+    platform = client.platform;
+    integrationId = client.integrationId;
+  } else if (destination) {
+    platform = destination.type;
+    integrationId = destination.integrationId;
+  } else {
     log.error('No client on Smooch params', { ...logContext, body });
     return 'no client';
   }
-  const { platform } = client;
+
   logContext.smoochPlatform = platform;
 
   let cxAuthSecret;
@@ -96,7 +106,6 @@ exports.handler = async (event) => {
     interactionItem.InteractionId === 'interaction-404' ? undefined : interactionItem.InteractionId
   );
 
-  const { integrationId } = client;
   logContext.hasInteractionItem = hasInteractionItem;
   logContext.interactionId = interactionId;
   logContext.smoochIntegrationId = integrationId;
@@ -130,6 +139,7 @@ exports.handler = async (event) => {
                 logContext,
                 properties,
                 channelType,
+                conversationId,
                 metadataSource: platform,
                 channelSubType,
                 collectActions,
@@ -154,6 +164,8 @@ exports.handler = async (event) => {
                 properties,
                 type,
                 channelType,
+                conversationId,
+                collectActions,
                 metadataSource: platform,
                 channelSubType,
               });
@@ -189,6 +201,7 @@ exports.handler = async (event) => {
                 properties,
                 type,
                 channelType: channel,
+                conversationId,
                 metadataSource: platform,
                 channelSubType,
                 client,
@@ -249,6 +262,34 @@ exports.handler = async (event) => {
       });
       break;
     }
+    case 'message:delivery:failure': {
+      const { error: deliveryError } = body;
+      logContext.messageDeliveryError = deliveryError;
+      log.info(`${platform} message failed to deliver to customer`, logContext);
+      // TODO: handle failure cases for Facebook and others
+      return 'message failure';
+    }
+    case 'postback': {
+      logContext.postback = postbacks;
+      log.debug('Trigger received: postback', logContext);
+      const { actionId } = messages[0].metadata;
+      const { subId } = messages[0].metadata;
+      const response = {
+        eventId: messages[0]._id,
+        conversationId,
+        postback: messages[0].action.payload,
+        user: 'customer',
+      };
+      try {
+        await exports.sendFlowActionResponse({
+          logContext, actionId, subId, response,
+        });
+      } catch (error) {
+        log.error('Error sending flow response', logContext, error);
+        throw error;
+      }
+      return 'trigger postback';
+    }
     default: {
       log.warn('Unsupported trigger from Smooch', { ...logContext, trigger });
       return 'unsupported trigger';
@@ -268,6 +309,7 @@ exports.handleFormResponse = async ({
   logContext,
   properties,
   channelType,
+  conversationId,
   metadataSource,
   channelSubType,
   collectActions,
@@ -321,6 +363,7 @@ exports.handleFormResponse = async ({
         smoochMessageId: form._id,
         auth,
         logContext,
+        conversationId,
         timestamp: form.received,
       });
     } catch (error) {
@@ -342,14 +385,140 @@ exports.handleFormResponse = async ({
         });
         break;
       default:
-        log.warn('Received an unsupported formResponse', {
-          ...logContext,
+        await exports.handleMultipleFormResponse({
+          tenantId,
+          interactionId,
           form,
+          auth,
+          conversationId,
+          logContext,
+          collectActions,
         });
-        return 'unsupported formresponse';
     }
   }
   return 'handleFormResponse Successful';
+};
+
+function formatTextFallBack(text) {
+  const responses = text.split('\n').map((message) => {
+    const messageArray = message.split(':');
+    return {
+      name: messageArray[0],
+      text: messageArray[1],
+    };
+  });
+  return {
+    responses,
+  };
+}
+
+exports.handleMultipleFormResponse = async function handleMultipleFormResponse({
+  tenantId,
+  interactionId,
+  form,
+  auth,
+  conversationId,
+  collectActions: pendingActions,
+  logContext,
+}) {
+  if (!interactionId) {
+    log.info('No interaction ID. Ignoring collect message response.', logContext);
+    return 'No Interaction ID';
+  }
+  const { data: metadata } = await getMetadata({ tenantId, interactionId, auth });
+  const { actionId, subId } = form.quotedMessage.content.metadata;
+
+  log.debug('DEBUG - Interaction metadata', { ...logContext, metadata, form });
+  if (!pendingActions) {
+    log.error('There are no pending collect-message actions', {
+      ...logContext,
+      actionId,
+    });
+    throw new Error('There are no pending actions');
+  }
+  // Create updated-metadata by removing incoming collect-action from the interaction metadata
+  const updatedActions = pendingActions.filter(
+    (action) => action.actionId !== actionId,
+  );
+  await exports.setCollectActions({
+    collectAction: updatedActions,
+    userId: logContext.smoochUserId,
+    logContext,
+  });
+  metadata.latestMessageSentBy = 'customer';
+
+  // If the updated actions length is different from the old one
+  // that means the collect-message response was pending and has been removed
+  if (pendingActions.length === updatedActions.length) {
+    log.error('Action cannot be found in pending-actions', {
+      ...logContext,
+      pendingActions,
+      incomingAction: actionId,
+    });
+    throw new Error('Action could not be found in pending-actions');
+  }
+
+  // Remove action from pending actions
+  try {
+    await exports.updateInteractionMetadataAsync({
+      tenantId,
+      interactionId,
+      metadata,
+      logContext,
+    });
+    log.info('Removed collect-message action from metadata', logContext);
+  } catch (error) {
+    log.warn(
+      'Error removing pending collect-message action from metadata. Continuing.',
+      logContext,
+      error,
+    );
+  }
+
+  const responseText = JSON.stringify(formatTextFallBack(form.textFallback));
+  const message = {
+    role: form.role,
+    source: form.source,
+    authorId: form.authorId,
+    name: form.name,
+    _id: form._id,
+    type: form.type,
+    received: form.received,
+    text: responseText,
+  };
+  // Send response to resources
+  try {
+    await exports.sendCustomerMessageToParticipants({
+      tenantId,
+      interactionId,
+      contentType: form.type,
+      message,
+      auth,
+      logContext,
+    });
+    log.debug('Sent form response to participants', {
+      ...logContext,
+      message,
+    });
+  } catch (error) {
+    log.error(
+      'Error sending form response to participants',
+      logContext,
+      error,
+    );
+  }
+
+  const response = {
+    eventId: form._id,
+    conversationId,
+    message: form.textFallback,
+  };
+  // Update flow
+  await exports.sendFlowActionResponse({
+    logContext, actionId, subId, response,
+  });
+
+  return 'handleMultipleFormResponse Successful';
 };
 
 exports.handleCollectMessageResponse = async function handleCollectMessageResponse({
@@ -504,6 +673,7 @@ exports.createInteraction = async ({
   auth,
   smoochMessageId,
   isInteractionDead,
+  conversationId,
   timestamp,
   latestMessageSentBy = 'customer',
 }) => {
@@ -640,6 +810,7 @@ exports.createInteraction = async ({
       customer,
       smoochIntegrationId: integrationId,
       artifactId,
+      conversationId,
       participants: [],
       firstCustomerMessageTimestamp: timestamp,
       latestMessageSentBy,
@@ -715,7 +886,6 @@ exports.sendCustomerMessageToParticipants = async function sendCustomerMessageTo
     log.debug('Got interaction metadata', { ...logContext, interaction: data });
     const { participants, customer } = data;
     ({ artifactId } = data);
-
     await Promise.all(
       participants.map(async (participant) => {
         const { resourceId, sessionId } = participant;
@@ -1106,6 +1276,7 @@ exports.handleCustomerMessage = async ({
   metadataSource,
   channelSubType,
   channelType,
+  conversationId,
   client,
   collectActions,
   appUser,
@@ -1178,6 +1349,7 @@ exports.handleCustomerMessage = async ({
             smoochMessageId: message._id,
             auth,
             logContext,
+            conversationId,
             isInteractionDead: true,
             // Creating interaction with first message
             // received timestamp
@@ -1191,23 +1363,49 @@ exports.handleCustomerMessage = async ({
       }
     }
 
-    if (metadataSource !== 'web' && collectActions.length > 0 && type === 'text') {
-      const { actionId, subId } = collectActions[0];
-      const response = message.text;
-      try {
-        await exports.sendFlowActionResponse({
-          logContext, actionId, subId, response,
-        });
-      } catch (error) {
-        log.error('Error sending flow response', logContext, error);
-        throw error;
+    if (collectActions.length > 0 && (type === 'text' || type === 'location')) {
+      let actionId;
+      let subId;
+      let pendingActions;
+      let response;
+      if (metadataSource === 'web') {
+        const pendingAction = collectActions.filter(
+          (action) => action.messageType !== 'form',
+        );
+        if (pendingAction) {
+          actionId = pendingAction[0].actionId;
+          subId = pendingAction[0].subId;
+          pendingActions = collectActions.filter(
+            (action) => action.actionId !== actionId,
+          );
+          response = {
+            eventId: message._id,
+            conversationId,
+            message: message.textFallback,
+          };
+        }
+      } else {
+        actionId = collectActions[0].actionId;
+        subId = collectActions[0].subId;
+        pendingActions = [];
+        response = message.text;
       }
-      await exports.setCollectActions({
-        collectAction: [],
-        userId: logContext.smoochUserId,
-        logContext,
-      });
-      log.info('Handled non-web collect message', logContext);
+      if (actionId && subId) {
+        try {
+          await exports.sendFlowActionResponse({
+            logContext, actionId, subId, response,
+          });
+        } catch (error) {
+          log.error('Error sending flow response', logContext, error);
+          throw error;
+        }
+        await exports.setCollectActions({
+          collectAction: pendingActions,
+          userId: logContext.smoochUserId,
+          logContext,
+        });
+        log.info('Handled collect message', logContext);
+      }
     }
     await exports.sendCustomerMessageToParticipants({
       appId,
@@ -1307,6 +1505,7 @@ exports.handleCustomerMessage = async ({
         integrationId,
         customer: customerIdentifier,
         properties,
+        conversationId,
         smoochMessageId: message._id,
         auth,
         logContext,

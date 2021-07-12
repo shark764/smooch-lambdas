@@ -33,6 +33,7 @@ const mockGet = jest.fn()
       Item: {
         InteractionId: '1',
         'contact-point': 'contactPoint',
+        CollectActions: [],
       },
     }),
   }));
@@ -138,6 +139,13 @@ const eventBody = {
     integrationId: 'mock-integration-id',
     platform: 'web',
   },
+  conversation: {
+    _id: 'mock-conversation-id',
+  },
+  destination: {
+    integrationId: 'mock-integration-id',
+    type: 'web',
+  },
   timestamp: 'mock-timestamp',
 };
 
@@ -163,6 +171,7 @@ describe('smooch-webhook', () => {
     it('returns when there is no client', async () => {
       const bodyWithoutClient = { ...eventBody };
       delete bodyWithoutClient.client;
+      delete bodyWithoutClient.destination;
       const result = await handler(event(bodyWithoutClient));
       expect(result).toEqual('no client');
     });
@@ -406,6 +415,7 @@ describe('smooch-webhook', () => {
       tenantId: 'mock-tenant-id',
       channelSubType: 'web',
       interactionId: 'mock-interaction-id',
+      conversationId: 'mock-conversation-id',
       form: {
         name: 'Web User ',
         type: 'formResponse',
@@ -418,6 +428,7 @@ describe('smooch-webhook', () => {
       auth: 'auth',
       logContext: '',
       properties: { customer: 'customer' },
+      collectActions: [],
     };
 
     describe('prechat capture', () => {
@@ -520,18 +531,32 @@ describe('smooch-webhook', () => {
         expect(spyOnHandleCollectMessageResponse.mock.calls).toMatchSnapshot();
       });
 
-      it('breaks when receives an unsupported formResponse', async () => {
+      it('breaks when receives an multi field formResponse', async () => {
         const mockInput = {
           ...input,
           form: {
-            name: 'mock-form-name',
+            name: 'web',
+            type: 'formResponse',
             fields: [{
+              text: 'mock-text',
               name: 'mock-name',
             }],
+            _id: '_id',
+            received: '10',
+            quotedMessage: {
+              content: {
+                metadata: {
+                  actionId: 'actionId',
+                  subId: 'subId',
+                },
+              },
+            },
+            textFallback: 'mock-fallback-text',
           },
+          collectActions: [{ actionId: 'actionId', subId: 'subId' }],
         };
         const result = await handleFormResponse(mockInput);
-        expect(result).toEqual('unsupported formresponse');
+        expect(result).toEqual('handleFormResponse Successful');
       });
     });
   });
@@ -665,6 +690,7 @@ describe('smooch-webhook', () => {
       tenantId: 'mock-tenant-id',
       source: '',
       integrationId: 'mock-integration-id',
+      conversationId: 'mock-conversation-id',
       customer: 'firstName lastName',
       properties: { customer: 'firstName lastName' },
       logContext: 'logContext',
@@ -1090,6 +1116,7 @@ describe('smooch-webhook', () => {
       logContext: 'logContext',
       appId: 'mock-app-id',
       userId: 'mock-user-id',
+      conversationId: 'mock-converastion-id',
       message: {
         received: '10',
         _id: 'mock_id',
@@ -1100,6 +1127,7 @@ describe('smooch-webhook', () => {
       type: 'type',
       metadataSource: 'web',
       channelSubType: 'web',
+      collectActions: [],
     };
 
     const inActiveInteractionError = new Error();

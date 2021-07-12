@@ -1,3 +1,6 @@
+# 1.46.3
+* CXV1-27005 - Updated rich messaging lambda and changes to smooch webhook for handling rich messsages
+
 # 1.46.2
 * CXV1-26993 - Smooch Rich Messaging | Text Message Transcripts with shorthand and/or action buttons
 

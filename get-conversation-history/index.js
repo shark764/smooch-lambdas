@@ -146,15 +146,15 @@ exports.handler = async (event) => {
           } : {},
         } : {},
       } : {},
-      type: message.role === 'appMaker' ? message.metadata.type : 'customer',
-      from: message.role === 'appMaker' ? message.metadata.from : customer,
+      type: (message.role === 'appMaker' || message.role === 'business') ? message.metadata.type : 'customer',
+      from: (message.role === 'appMaker' || message.role === 'business') ? message.metadata.from : customer,
       file: {
         mediaUrl: message.mediaUrl,
         mediaType: message.mediaType,
         mediaSize: message.mediaSize,
       },
       contentType: message.type,
-      resourceId: message.role === 'appMaker' ? message.metadata.resourceId : null,
+      resourceId: (message.role === 'appMaker' || message.role === 'business') ? message.metadata.resourceId : null,
       timestamp: message.received * 1000,
     }));
 
@@ -174,13 +174,26 @@ async function getMetadata({ tenantId, interactionId, auth }) {
   });
 }
 
+function formatTextFallBack(text) {
+  const responses = text.split('\n').map((message) => {
+    const messageArray = message.split(':');
+    return {
+      name: messageArray[0],
+      text: messageArray[1],
+    };
+  });
+  return {
+    responses,
+  };
+}
+
 function getMessageText(message) {
-  if (message.role === 'appMaker' && message.type === 'form') {
+  if (message.role === 'appMaker' && message.type === 'form' && message.fields[0].name === 'collect-message') {
     return message.fields[0].label; // collect-message
   }
 
   if (message.type === 'formResponse') {
-    return message.fields[0].text; // collect-message response
+    return JSON.stringify(formatTextFallBack(message.textFallback)); // multiple form responses
   }
 
   return message.text; // normal messages

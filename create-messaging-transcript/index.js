@@ -216,13 +216,26 @@ async function uploadArtifactFile(
   });
 }
 
+function formatTextFallBack(text) {
+  const responses = text.split('\n').map((message) => {
+    const messageArray = message.split(':');
+    return {
+      name: messageArray[0],
+      text: messageArray[1],
+    };
+  });
+  return {
+    responses,
+  };
+}
+
 function getMessageText(message) {
   if (message.role === 'appMaker' && message.type === 'form') {
     return message.fields[0].label; // collect-message
   }
 
   if (message.type === 'formResponse') {
-    return message.fields[0].text; // collect-message response
+    return JSON.stringify(formatTextFallBack(message.textFallback)); // collect-message response
   }
 
   return message.text; // normal messages

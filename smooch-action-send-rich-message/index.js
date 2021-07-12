@@ -3,9 +3,10 @@ const SunshineConversationsClient = require('sunshine-conversations-client');
 const Joi = require('joi');
 const AWS = require('aws-sdk');
 const axios = require('axios');
-const { v1: uuidv1 } = require('uuid');
-const { getMetadata } = require('./resources/commonFunctions');
+const ednData = require('edn-data');
+const { sendMessageToParticipants } = require('./resources/commonFunctions');
 
+const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 
@@ -35,6 +36,21 @@ const actionSchema = Joi.array().items(Joi.object({
   then: Joi.object({
     payload: Joi.string().required(),
     iconUrl: Joi.string(),
+  }),
+}));
+
+const carouselActionSchema = Joi.array().items(Joi.object({
+  type: Joi.string().valid('link', 'postback').required(),
+  text: Joi.string().required(),
+  metadata: Joi.any(),
+}).when(Joi.object({ type: Joi.string().valid('link') }).unknown(), {
+  then: Joi.object({
+    uri: Joi.string().required(),
+    default: Joi.string(),
+  }),
+}).when(Joi.object({ type: Joi.string().valid('postback') }).unknown(), {
+  then: Joi.object({
+    payload: Joi.string().required(),
   }),
 }));
 
@@ -102,33 +118,33 @@ const messageSchema = Joi.object({
         mediaType: Joi.string(),
         altText: Joi.string(),
         size: Joi.string().valid('compact', 'large'),
-        actions: actionSchema,
+        actions: carouselActionSchema,
         metadata: Joi.any(),
       })),
     }),
   });
 exports.handler = async (event) => {
-  let {
+  const {
     body,
   } = event.Records[0];
-
-  body = JSON.parse(body);
   const {
-    id,
+    id: actionId,
     'tenant-id': tenantId,
     'sub-id': subId,
     'interaction-id': interactionId,
     metadata,
     parameters,
-  } = body;
+  } = JSON.parse(body);
 
   const {
     'app-id': appId,
     'user-id': userId,
-    participants,
+    source,
     'conversation-id': conversationId,
   } = metadata;
-  const { from, message } = parameters;
+  const { from, message: ednMessage, 'wait-for-response': waitForResponse } = parameters;
+  const message = ednData.parseEDNString(ednMessage, { mapAs: 'object', keywordAs: 'string' });
+  const { type: messageType } = message;
 
   const logContext = {
     tenantId,
@@ -145,9 +161,7 @@ exports.handler = async (event) => {
     }).promise();
   } catch (error) {
     const errMsg = 'An Error has occurred trying to retrieve cx credentials';
-
     log.error(errMsg, logContext, error);
-
     throw error;
   }
 
@@ -172,25 +186,10 @@ exports.handler = async (event) => {
       .join(' / ');
 
     log.error(errMsg, { ...logContext, validationMessage }, error);
-    try {
-      await axios({
-        method: 'post',
-        url: errResponseUrl,
-        data: { // send error response
-          source: 'smooch',
-          subId,
-          errorMessage: errMsg,
-          errorCode: 500,
-          metadata: {},
-          update: {},
-        },
-        auth: cxAuth,
-      });
-    } catch (error2) {
-      log.error('An Error ocurred trying to send an error response', logContext, error2);
-      throw error2;
-    }
-    return;
+    await sendFlowErrorResponse({
+      errResponseUrl, subId, cxAuth, logContext, errMsg,
+    });
+    return 'invalid message values';
   }
 
   let appKeys;
@@ -201,14 +200,41 @@ exports.handler = async (event) => {
   } catch (error) {
     const errMsg = 'Failed to parse smooch credentials or credentials does not exists';
     log.error(errMsg, logContext, error);
-
-    return;
+    return 'failed to parse smooch credentials';
   }
 
   defaultClient.basePath = SMOOCH_API_URL;
   const { basicAuth } = defaultClient.authentications;
   basicAuth.username = appKeys[`${appId}-id`];
   basicAuth.password = appKeys[`${appId}-secret`];
+
+  let agentDisplayMessage;
+  let sendActionResponse = !waitForResponse;
+  logContext.source = source;
+  logContext.message = message;
+  let sendMessageType = 'received-message';
+  if (source === 'web' || source === 'messenger' || source === 'whatsapp') {
+    if (messageType === 'form' && source === 'web') {
+      agentDisplayMessage = message.blockChatInput ? 'Multi-field form sent. Customer chat input blocked until form is submitted.' : 'Multi-field form sent.';
+      sendActionResponse = false;
+      sendMessageType = 'system-silent';
+      log.info(`Receieved form message for ${source}`, logContext);
+    } else if (messageType === 'form' && source !== 'web') {
+      log.error(`Unsupported message type for ${source}`, logContext);
+      await sendFlowErrorResponse({
+        errResponseUrl, subId, cxAuth, logContext,
+      });
+      return 'unsupported message type';
+    } else {
+      log.info(`Receieved ${messageType} message for ${source}`, logContext);
+    }
+  } else {
+    log.error('Unsupported smooch platform', logContext);
+    await sendFlowErrorResponse({
+      errResponseUrl, subId, cxAuth, logContext,
+    });
+    return 'unsupported platform';
+  }
 
   /**
    * Send smooch message
@@ -221,121 +247,170 @@ exports.handler = async (event) => {
   };
   messagePost.content = message;
   messagePost.metadata = {
-    type: 'system',
+    type: from,
     from,
     interactionId,
+    subId,
+    actionId,
   };
   let smoochMessage;
   try {
-    const { messages } = apiInstance.postMessage(appId, conversationId, messagePost);
-    smoochMessage = messages;
+    const data = await apiInstance.postMessage(appId, conversationId, messagePost);
+    smoochMessage = data.messages;
   } catch (error) {
     const errMsg = 'An Error has occurred trying to send smooch rich message to customer';
     log.warn(errMsg, logContext, error);
-    try {
-      await axios({
-        method: 'post',
-        url: errResponseUrl,
-        data: { // send error response
-          source: 'smooch',
-          subId,
-          errorMessage: errMsg,
-          errorCode: 500,
-          metadata: {},
-          update: {},
-        },
-        auth: cxAuth,
-      });
-    } catch (error2) {
-      log.warn('An Error ocurred trying to send an error response', logContext, error2);
-    }
-
-    throw error;
-  }
-
-  let interactionMetadata;
-  try {
-    ({ data: interactionMetadata } = await getMetadata({
-      tenantId,
-      interactionId,
-      auth: cxAuth,
-    }));
-
-    log.debug('Got interaction metadata', {
-      ...logContext,
-      interaction: interactionMetadata,
+    await sendFlowErrorResponse({
+      errResponseUrl, subId, cxAuth, logContext, errMsg,
     });
-  } catch (error) {
-    log.error('An error occurred retrieving the interaction metadata', logContext, error);
-
     throw error;
   }
 
+  if (!agentDisplayMessage) {
+    agentDisplayMessage = smoochMessage[0].content.text;
+  }
   smoochMessage = {
-    id: smoochMessage.id,
+    id: smoochMessage[0].id,
     from,
-    timestamp: smoochMessage.received * 1000,
-    type: 'system',
-    text: smoochMessage.content.text,
+    timestamp: new Date(smoochMessage[0].received),
+    type: from,
+    contentType: smoochMessage[0].content.type,
+    text: agentDisplayMessage,
+    file: {
+      mediaUrl: smoochMessage[0].content.mediaUrl,
+      mediaType: smoochMessage[0].content.mediaType,
+      mediaSize: smoochMessage[0].content.mediaSize,
+    },
   };
 
-  if (
-    interactionMetadata.source !== 'web'
-    || (interactionMetadata.source === 'web' && from !== 'CxEngageHiddenMessage')
-  ) {
-    try {
-      participants.forEach(async (participant) => {
-        await sendSqsMessage({
-          tenantId,
-          interactionId,
-          resourceId: participant['resource-id'],
-          sessionId: participant['session-id'],
-          messageType: 'received-message',
-          message: smoochMessage,
-          logContext,
-        });
-      });
-    } catch (error) {
-      const errMsg = 'An Error has occurred trying to send rich message to SQS queue';
-      log.error(errMsg, logContext, error);
-      try {
-        await axios({
-          method: 'post',
-          url: errResponseUrl,
-          data: {
-            // send error response
-            source: 'smooch',
-            subId,
-            errorMessage: errMsg,
-            errorCode: 500,
-            metadata: {},
-            update: {},
-          },
-          auth: cxAuth,
-        });
-      } catch (error2) {
-        log.warn(
-          'An Error ocurred trying to send an error response',
-          logContext,
-          error2,
-        );
-      }
-      throw error;
-    }
+  if (source !== 'web' || (source === 'web' && from !== 'CxEngageHiddenMessage')) {
+    await sendMessageToParticipants({
+      auth: cxAuth,
+      interactionId,
+      tenantId,
+      logContext,
+      message: smoochMessage,
+      messageType: sendMessageType,
+    });
   } else {
     log.info(
       'Skipping hidden message sent to participants',
       logContext,
       smoochMessage,
-      participants,
     );
   }
 
-  await sendFlowActionResponse({ logContext, actionId: id, subId });
+  const response = {
+    messageId: smoochMessage.id,
+    messageContent: agentDisplayMessage,
+    from,
+    resource: from,
+  };
+
+  if (sendActionResponse) {
+    await sendFlowActionResponse({
+      logContext, actionId, subId, response,
+    });
+  } else {
+    await handleCollectMessage({
+      logContext,
+      actionId,
+      subId,
+      userId,
+      source,
+      messageType,
+      interactionId,
+    });
+  }
+  return 'smooch-action-send-rich-message successful';
 };
 
+async function handleCollectMessage({
+  logContext,
+  actionId,
+  subId,
+  userId,
+  source,
+  messageType,
+  interactionId,
+}) {
+  let smoochInteractionRecord;
+  try {
+    smoochInteractionRecord = await docClient
+      .get({
+        TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-interactions`,
+        Key: {
+          SmoochUserId: userId,
+        },
+      })
+      .promise();
+  } catch (error) {
+    log.error('Failed to get smooch interaction record', logContext, error);
+    throw error;
+  }
+  const interactionItem = smoochInteractionRecord && smoochInteractionRecord.Item;
+  const hasInteractionItem = interactionItem && Object.entries(interactionItem).length !== 0;
+  const activeInteractionId = interactionItem && interactionItem.InteractionId;
+  if (!hasInteractionItem || !activeInteractionId) {
+    log.warn('No active interaction exists', logContext);
+    return 'no active interaction';
+  }
+  if (interactionId !== activeInteractionId) {
+    log.warn('Got action request from old interaction', logContext);
+    return 'old interaction';
+  }
+
+  let collectActions = interactionItem && interactionItem.CollectActions;
+
+  if (source === 'web') {
+    const existingAction = collectActions.find(
+      (action) => action.actionId === actionId,
+    );
+    if (existingAction) {
+      log.warn('Actions already exists in pending interactions', { ...logContext, actionId });
+      return 'pending actions';
+    }
+    collectActions.push({ actionId, subId, messageType });
+  } else {
+    if (collectActions && (collectActions.length > 0)) {
+      log.warn('Collect Actions already exists, overwriting with new action', logContext);
+    }
+    collectActions = [{ actionId, subId, messageType }];
+  }
+
+  await setCollectActions({
+    collectAction: collectActions,
+    userId,
+    logContext,
+  });
+  return 'handleCollectMessage successful';
+}
+
+async function setCollectActions({
+  collectAction, userId, logContext,
+}) {
+  const params = {
+    TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch-interactions`,
+    Key: {
+      SmoochUserId: userId,
+    },
+    UpdateExpression: 'set CollectActions = :c',
+    ExpressionAttributeValues: {
+      ':c': collectAction,
+    },
+    ReturnValues: 'UPDATED_NEW',
+  };
+  try {
+    const data = await docClient.update(params).promise();
+    log.debug('Updated collectActions', { ...logContext, updated: data });
+  } catch (error) {
+    log.error('An error ocurred updating collectActions', logContext, error);
+    throw error;
+  }
+}
+
 async function sendFlowActionResponse({
-  logContext, actionId, subId,
+  logContext, actionId, subId, response,
 }) {
   const { tenantId, interactionId } = logContext;
   const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-send-flow-response`;
@@ -344,7 +419,9 @@ async function sendFlowActionResponse({
     source: 'smooch',
     subId,
     metadata: {},
-    update: {},
+    update: {
+      response,
+    },
   };
   const payload = JSON.stringify({
     tenantId,
@@ -359,59 +436,28 @@ async function sendFlowActionResponse({
   await sqs.sendMessage(sqsMessageAction).promise();
 }
 
-async function sendSqsMessage({
-  interactionId,
-  tenantId,
-  sessionId,
-  resourceId,
+async function sendFlowErrorResponse({
+  errResponseUrl,
+  subId,
+  cxAuth,
   logContext,
-  messageType,
-  message,
+  errMsg,
 }) {
-  const parameters = {
-    resourceId,
-    sessionId,
-    tenantId,
-    interactionId,
-    messageType,
-    message,
-  };
-  const action = JSON.stringify({
-    tenantId,
-    interactionId,
-    actionId: uuidv1(),
-    subId: uuidv1(),
-    type: 'send-message',
-    ...parameters,
-  });
-  const QueueName = `${tenantId}_${resourceId}`;
-  let queueUrl;
-
   try {
-    const { QueueUrl } = sqs.getQueueUrl({ QueueName }).promise();
-    queueUrl = QueueUrl;
+    await axios({
+      method: 'post',
+      url: errResponseUrl,
+      data: {
+        source: 'smooch',
+        subId,
+        errorMessage: errMsg,
+        errorCode: 500,
+        metadata: {},
+        update: {},
+      },
+      auth: cxAuth,
+    });
   } catch (error) {
-    log.error('An error occured trying to get queue url', logContext, error);
-    throw error;
+    log.warn('An Error ocurred trying to send an error response', logContext, error);
   }
-
-  if (!queueUrl) {
-    try {
-      const createQueueParams = {
-        QueueName,
-      };
-      const { QueueUrl } = await sqs.createQueue(createQueueParams).promise();
-      queueUrl = QueueUrl;
-    } catch (error) {
-      log.error('An error occured trying to create queue', logContext, error);
-      throw error;
-    }
-  }
-
-  const sendSQSParams = {
-    MessageBody: action,
-    QueueUrl: queueUrl,
-  };
-
-  await sqs.sendMessage(sendSQSParams).promise();
 }
