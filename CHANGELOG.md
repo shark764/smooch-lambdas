@@ -1,3 +1,6 @@
+# 1.47.0
+* CXV1-27076 - Added set-webhook-triggers lambda to migrate smooch apps
+
 # 1.46.3
 * CXV1-27005 - Updated rich messaging lambda and changes to smooch webhook for handling rich messsages
 

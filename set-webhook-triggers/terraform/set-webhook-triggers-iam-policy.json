@@ -1,0 +1,35 @@
+{
+  "Statement": [{
+      "Sid": "Lambda",
+      "Action": [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "ec2:CreateNetworkInterface",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DeleteNetworkInterface",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueUrl",
+          "sqs:ListDeadLetterSourceQueues",
+          "sqs:ReceiveMessage",
+          "sqs:SendMessage",
+          "sqs:GetQueueAttributes"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+  }, {
+      "Sid": "GetSecrets",
+      "Action": "secretsmanager:GetSecretValue",
+      "Effect": "Allow",
+      "Resource": [
+          "arn:aws:secretsmanager:*:*:secret:*-smooch-account-??????"
+      ]
+  }, {
+      "Sid": "SmoochInteractionDynamo",
+      "Action": [
+          "dynamodb:Scan"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:dynamodb:*:*:table/*-smooch"
+  }]
+}

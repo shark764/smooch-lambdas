@@ -422,7 +422,7 @@ exports.handleMultipleFormResponse = async function handleMultipleFormResponse({
   logContext,
 }) {
   if (!interactionId) {
-    log.info('No interaction ID. Ignoring collect message response.', logContext);
+    log.info('No interaction ID. Ignoring multiform response.', logContext);
     return 'No Interaction ID';
   }
   const { data: metadata } = await getMetadata({ tenantId, interactionId, auth });
@@ -430,7 +430,7 @@ exports.handleMultipleFormResponse = async function handleMultipleFormResponse({
 
   log.debug('DEBUG - Interaction metadata', { ...logContext, metadata, form });
   if (!pendingActions) {
-    log.error('There are no pending collect-message actions', {
+    log.error('There are no pending multiform actions', {
       ...logContext,
       actionId,
     });
@@ -466,10 +466,10 @@ exports.handleMultipleFormResponse = async function handleMultipleFormResponse({
       metadata,
       logContext,
     });
-    log.info('Removed collect-message action from metadata', logContext);
+    log.info('Removed multiform action from metadata', logContext);
   } catch (error) {
     log.warn(
-      'Error removing pending collect-message action from metadata. Continuing.',
+      'Error removing pending multiform action from metadata. Continuing.',
       logContext,
       error,
     );

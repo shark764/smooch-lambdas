@@ -231,11 +231,14 @@ function formatTextFallBack(text) {
 
 function getMessageText(message) {
   if (message.role === 'appMaker' && message.type === 'form') {
-    return message.fields[0].label; // collect-message
+    if (message.fields[0].name === 'collect-message') {
+      return message.fields[0].label;
+    }
+    return message.blockChatInput ? 'Multi-field form sent. Customer chat input blocked until form is submitted.' : 'Multi-field form sent.';
   }
 
   if (message.type === 'formResponse') {
-    return JSON.stringify(formatTextFallBack(message.textFallback)); // collect-message response
+    return message.fields[0].name === 'collect-message' ? message.fields[0].text : JSON.stringify(formatTextFallBack(message.textFallback));
   }
 
   return message.text; // normal messages

@@ -1,0 +1,6 @@
+include_queue = "true"
+runtime = "nodejs12.x"
+timeout = 150
+memory_size = 128
+zip_path = "set-webhook-triggers/set-webhook-triggers.zip"
+handler = "index.handler"

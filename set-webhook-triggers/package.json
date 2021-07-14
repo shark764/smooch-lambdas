@@ -1,0 +1,14 @@
+{
+  "name": "set-webhook-triggers",
+  "version": "1.0.0",
+  "description": "set-webhook-triggers - new lambda description",
+  "repository": {},
+  "license": "UNLICENSED",
+  "dependencies": {
+    "alonzo": "9.0.5",
+    "smooch-core": "^8.11.4"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.877.0"
+  }
+}

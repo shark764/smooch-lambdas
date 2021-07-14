@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`set-webhook-triggers Everything is successful Walkthrough passes in the correct arguments to SmoochCore 1`] = `
+Array [
+  Array [
+    Object {
+      "keyId": "id",
+      "scope": "account",
+      "secret": "secret",
+      "serviceUrl": "mock-smooch-api-url",
+    },
+  ],
+]
+`;
+
+exports[`set-webhook-triggers Everything is successful Walkthrough passes in the correct arguments to docClient.scan() 1`] = `
+Array [
+  Array [
+    Object {
+      "TableName": "us-east-1-dev-smooch",
+    },
+  ],
+]
+`;
+
+exports[`set-webhook-triggers Everything is successful Walkthrough passes in the correct arguments to secretClient.getSecretValue() to get cx credentials 1`] = `
+Array [
+  Array [
+    Object {
+      "SecretId": "us-east-1-dev-smooch-account",
+    },
+  ],
+]
+`;
+
+exports[`set-webhook-triggers Everything is successful Walkthrough passes in the correct arguments to smooch.apps.update() 1`] = `
+Array [
+  Array [
+    "app-id",
+    "webhook-id",
+    Object {
+      "triggers": Array [
+        "message:appUser",
+        "conversation:read",
+        "typing:appUser",
+        "message:delivery:failure",
+        "postback",
+      ],
+    },
+  ],
+  Array [
+    "app-id",
+    "webhook-id",
+    Object {
+      "triggers": Array [
+        "message:appUser",
+        "conversation:read",
+        "typing:appUser",
+        "message:delivery:failure",
+        "postback",
+      ],
+    },
+  ],
+]
+`;
+
+exports[`set-webhook-triggers throws an error when there is a error scanning apps in DynamoDB 1`] = `[Error: An Error has occurred trying to fetch apps in DynamoDB]`;
+
+exports[`set-webhook-triggers throws an error when there is a problem updating Smooch webhook 1`] = `[Error: At least one of the apps was unable to update. See logs for details.]`;
