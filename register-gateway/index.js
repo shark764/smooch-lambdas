@@ -54,6 +54,10 @@ exports.handler = async () => {
         name: 'collect-message-response',
         target: `arn:aws:sqs:${REGION}:${ACCOUNT_ID}:${REGION_PREFIX}-${ENVIRONMENT}-smooch-action-collect-message-response`,
       },
+      {
+        name: 'send-rich-message',
+        target: `arn:aws:sqs:${REGION}:${ACCOUNT_ID}:${REGION_PREFIX}-${ENVIRONMENT}-smooch-action-send-rich-message`,
+      },
     ],
     subscriptions: [],
   };

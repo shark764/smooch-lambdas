@@ -1,3 +1,6 @@
+# 1.47.1
+* CXV1-27117 - register send-rich-message action to enable flow messages
+
 # 1.47.0
 * CXV1-27076 - Added set-webhook-triggers lambda to migrate smooch apps
 

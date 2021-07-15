@@ -26,6 +26,10 @@ Array [
             "name": "collect-message-response",
             "target": "arn:aws:sqs:AWS-REGION-NAME-us-east-1:460140541257:us-east-1-dev-smooch-action-collect-message-response",
           },
+          Object {
+            "name": "send-rich-message",
+            "target": "arn:aws:sqs:AWS-REGION-NAME-us-east-1:460140541257:us-east-1-dev-smooch-action-send-rich-message",
+          },
         ],
         "subscriptions": Array [],
         "type": "smooch",
