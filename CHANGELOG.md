@@ -1,3 +1,6 @@
+# 1.47.2
+* CXV1-27076 - Fix timeout on set-webhook-trigger, removed queue
+
 # 1.47.1
 * CXV1-27117 - register send-rich-message action to enable flow messages
 
