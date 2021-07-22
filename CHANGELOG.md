@@ -1,3 +1,6 @@
+# 1.47.3
+* CXV1-27074 - Fix axios upload artifact file size limit increased to 50MB, reverted channelSubType temporarily
+
 # 1.47.2
 * CXV1-27076 - Fix timeout on set-webhook-trigger, removed queue
 

@@ -109,7 +109,7 @@ const messageSchema = Joi.object({
   .when(Joi.object({ type: Joi.string().valid('carousel', 'list') }).unknown(), {
     then: Joi.object({
       displaySettings: Joi.object({
-        imageAspectRatio: Joi.string(),
+        imageAspectRatio: Joi.string().valid('horizontal', 'square'),
       }),
       items: Joi.array().items(Joi.object({
         title: Joi.string().required(),
@@ -259,7 +259,7 @@ exports.handler = async (event) => {
     smoochMessage = data.messages;
   } catch (error) {
     const errMsg = 'An Error has occurred trying to send smooch rich message to customer';
-    log.warn(errMsg, logContext, error);
+    log.error(errMsg, logContext, error);
     await sendFlowErrorResponse({
       errResponseUrl, subId, cxAuth, logContext, errMsg,
     });

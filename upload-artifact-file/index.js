@@ -15,6 +15,8 @@ const {
   DOMAIN,
 } = process.env;
 
+const MAX_FILE_SIZE = 52428800;
+
 exports.handler = async (event) => {
   const {
     source,
@@ -106,6 +108,8 @@ exports.handler = async (event) => {
       data: form,
       auth: cxAuth,
       headers: form.getHeaders(),
+      maxContentLength: MAX_FILE_SIZE,
+      maxBodyLength: MAX_FILE_SIZE,
     });
   } catch (err) {
     log.error('Error uploading file to artifact', logContext, err);
