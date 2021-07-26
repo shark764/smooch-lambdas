@@ -218,7 +218,7 @@ exports.handler = async (event) => {
       agentDisplayMessage = message.blockChatInput ? 'Multi-field form sent. Customer chat input blocked until form is submitted.' : 'Multi-field form sent.';
       sendActionResponse = false;
       sendMessageType = 'system-silent';
-      log.info(`Receieved form message for ${source}`, logContext);
+      log.info(`Received form message for ${source}`, logContext);
     } else if (messageType === 'form' && source !== 'web') {
       log.error(`Unsupported message type for ${source}`, logContext);
       await sendFlowErrorResponse({
@@ -226,7 +226,7 @@ exports.handler = async (event) => {
       });
       return 'unsupported message type';
     } else {
-      log.info(`Receieved ${messageType} message for ${source}`, logContext);
+      log.info(`Received ${messageType} message for ${source}`, logContext);
     }
   } else {
     log.error('Unsupported smooch platform', logContext);
@@ -273,8 +273,8 @@ exports.handler = async (event) => {
     id: smoochMessage[0].id,
     from,
     timestamp: new Date(smoochMessage[0].received),
-    type: from,
-    contentType: smoochMessage[0].content.type,
+    type: (sendMessageType === 'system-silent') ? 'system-silent' : from,
+    contentType: (sendMessageType === 'system-silent') ? 'text' : smoochMessage[0].content.type,
     text: agentDisplayMessage,
     file: {
       mediaUrl: smoochMessage[0].content.mediaUrl,
@@ -290,7 +290,7 @@ exports.handler = async (event) => {
       tenantId,
       logContext,
       message: smoochMessage,
-      messageType: sendMessageType,
+      messageType: 'received-message',
     });
   } else {
     log.info(

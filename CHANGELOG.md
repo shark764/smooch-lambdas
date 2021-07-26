@@ -1,3 +1,6 @@
+# 1.47.4
+* CXV1-26997 - Smooch Rich Messaging | Update rich-message lambda to send system-silent message
+
 # 1.47.3
 * CXV1-27074 - Fix axios upload artifact file size limit increased to 50MB, reverted channelSubType temporarily
 
