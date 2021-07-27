@@ -286,6 +286,34 @@ exports.handler = async (event) => {
     };
   }
 
+  // TODO: pass full message content when updating version from v1.1 to v2
+  try {
+    await axios({
+      method: 'post',
+      url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts`,
+      data: {
+        source: 'smooch',
+        interruptType: 'message-sent',
+        interrupt: {
+          messageId: messageSent.message._id,
+          messageContent: {
+            type: messageSent.message.type,
+            text: messageSent.message.text ? messageSent.message.text : '',
+            mediaUrl: messageSent.message.mediaUrl ? messageSent.message.mediaUrl : '',
+            mediaType: messageSent.message.mediaType ? messageSent.message.mediaType : '',
+            altText: messageSent.message.altText ? messageSent.message.altText : '',
+            mediaSize: messageSent.message.mediaSize ? messageSent.message.mediaSize : '',
+          },
+          from,
+          resource: messageSent.message.metadata,
+        },
+      },
+      auth: cxAuth,
+    });
+  } catch (err) {
+    log.error('Error sending message-sent interrupt', logContext, err);
+  }
+
   messageSent = {
     id: messageSent.message._id,
     text: messageSent.message.text,

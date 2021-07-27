@@ -46,7 +46,7 @@ const carouselActionSchema = Joi.array().items(Joi.object({
 }).when(Joi.object({ type: Joi.string().valid('link') }).unknown(), {
   then: Joi.object({
     uri: Joi.string().required(),
-    default: Joi.string(),
+    default: Joi.boolean(),
   }),
 }).when(Joi.object({ type: Joi.string().valid('postback') }).unknown(), {
   then: Joi.object({
@@ -265,6 +265,7 @@ exports.handler = async (event) => {
     });
     throw error;
   }
+  const messageContent = smoochMessage[0].content;
 
   if (!agentDisplayMessage) {
     agentDisplayMessage = smoochMessage[0].content.text;
@@ -302,9 +303,8 @@ exports.handler = async (event) => {
 
   const response = {
     messageId: smoochMessage.id,
-    messageContent: agentDisplayMessage,
+    messageContent,
     from,
-    resource: from,
   };
 
   if (sendActionResponse) {
@@ -321,6 +321,21 @@ exports.handler = async (event) => {
       messageType,
       interactionId,
     });
+  }
+
+  try {
+    await axios({
+      method: 'post',
+      url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts`,
+      data: {
+        source: 'smooch',
+        interruptType: 'message-sent',
+        interrupt: response,
+      },
+      auth: cxAuth,
+    });
+  } catch (err) {
+    log.error('Error sending message-sent interrupt', logContext, err);
   }
   return 'smooch-action-send-rich-message successful';
 };

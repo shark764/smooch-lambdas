@@ -1,3 +1,6 @@
+# 1.48.0
+* CXV1-27153 - Added smooch message interrupts 'message-sent', 'message-received', 'message-postback-received', 'message-delivery-error'
+
 # 1.47.4
 * CXV1-26997 - Smooch Rich Messaging | Update rich-message lambda to send system-silent message
 

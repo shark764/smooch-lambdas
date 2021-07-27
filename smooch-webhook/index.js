@@ -16,6 +16,7 @@ const {
   shouldCheckIfClientIsDisconnected,
   getClientInactivityTimeout,
   sendMessageToParticipants,
+  disconnectClient,
 } = require('./resources/commonFunctions');
 
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
@@ -226,6 +227,29 @@ exports.handler = async (event) => {
           });
           return `Unsupported platform ${smoochMessageId}`;
         }
+
+        /* TODO: update interrupt message content and include event-id
+           when updating smooch from v1.1 to v2 */
+        if (hasInteractionItem) {
+          try {
+            await axios({
+              method: 'post',
+              url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts`,
+              data: {
+                source: 'smooch',
+                interruptType: 'message-received',
+                interrupt: {
+                  conversationId,
+                  message,
+                },
+              },
+              auth,
+            });
+          } catch (err) {
+            log.error('Error sending message-received', logContext, err);
+          }
+        }
+
         return `${smoochMessageId}`;
       }));
       return messagesStatus;
@@ -264,21 +288,51 @@ exports.handler = async (event) => {
       break;
     }
     case 'message:delivery:failure': {
-      const { error: deliveryError } = body;
+      log.debug('Trigger received: message:delivery:failure', logContext);
+      const { error: deliveryError, message: failedMessage } = body;
       logContext.messageDeliveryError = deliveryError;
-      log.info(`${platform} message failed to deliver to customer`, logContext);
-      // TODO: handle failure cases for Facebook and others
+      log.error(`${platform} message failed to deliver to customer`, logContext);
+      /* TODO: handle failure cases for Facebook and others
+         update interrupt message content and include event-id
+         when updating smooch from v1.1 to v2 */
+      if (hasInteractionItem) {
+        try {
+          await axios({
+            method: 'post',
+            url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts`,
+            data: {
+              source: 'smooch',
+              interruptType: 'message-delivery-error',
+              interrupt: {
+                destination,
+                error: deliveryError,
+                conversationId,
+                messageId: failedMessage._id,
+                user: 'customer',
+              },
+            },
+            auth,
+          });
+        } catch (err) {
+          log.error('Error sending message-delivery-error', logContext, err);
+        }
+
+        try {
+          await disconnectClient({ logContext, cxAuth: auth });
+        } catch (error) {
+          log.error('Error disconnecting client', logContext, error);
+        }
+      }
       return 'message failure';
     }
     case 'postback': {
       logContext.postback = postbacks;
       log.debug('Trigger received: postback', logContext);
-      const { actionId } = messages[0].metadata;
-      const { subId } = messages[0].metadata;
+      const { actionId } = postbacks[0].message.metadata;
+      const { subId } = postbacks[0].message.metadata;
       const response = {
-        eventId: messages[0]._id,
         conversationId,
-        postback: messages[0].action.payload,
+        postback: postbacks[0].action,
         user: 'customer',
       };
       try {
@@ -288,6 +342,21 @@ exports.handler = async (event) => {
       } catch (error) {
         log.error('Error sending flow response', logContext, error);
         throw error;
+      }
+
+      try {
+        await axios({
+          method: 'post',
+          url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts`,
+          data: {
+            source: 'smooch',
+            interruptType: 'message-postback-received',
+            interrupt: response,
+          },
+          auth,
+        });
+      } catch (err) {
+        log.error('Error sending message-postback-received', logContext, err);
       }
       return 'trigger postback';
     }
