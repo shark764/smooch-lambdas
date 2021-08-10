@@ -325,6 +325,45 @@ async function sendEndingInteractionNotification({ logContext, cxAuth }) {
   return 'sendEndingInteractionNotification';
 }
 
+async function sendBannerNotification({
+  logContext, cxAuth, notification, message, source,
+}) {
+  const { tenantId, interactionId } = logContext;
+  const { data } = await getMetadata({
+    tenantId,
+    interactionId,
+    auth: cxAuth,
+  });
+  const { participants } = data;
+
+  await Promise.all(
+    participants.map(async (participant) => {
+      const { resourceId, sessionId } = participant;
+      const QueueName = `${tenantId}_${resourceId}`;
+      const { QueueUrl } = await sqs.getQueueUrl({ QueueName }).promise();
+      const payload = JSON.stringify({
+        tenantId,
+        actionId: uuidv1(),
+        interactionId,
+        resourceId,
+        sessionId,
+        type: 'send-message',
+        messageType: 'show-banner',
+        notification,
+        message,
+        source,
+      });
+      const sqsMessageAction = {
+        MessageBody: payload,
+        QueueUrl,
+      };
+      log.info('Sending Error banner notification to skylight', { ...logContext, payload });
+      await sqs.sendMessage(sqsMessageAction).promise();
+    }),
+  );
+  return 'sendBannerNotification';
+}
+
 async function disconnectClient({ logContext, cxAuth }) {
   await performCustomerDisconnect({ logContext, cxAuth });
   log.info('Deleting customer interaction', logContext);
@@ -351,4 +390,5 @@ module.exports = {
   deleteCustomerInteraction,
   createMessagingTranscript,
   sendEndingInteractionNotification,
+  sendBannerNotification,
 };

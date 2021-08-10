@@ -1,6 +1,7 @@
 const { lambda: { log } } = require('alonzo');
 const SmoochCore = require('smooch-core');
 const AWS = require('aws-sdk');
+const axios = require('axios');
 const { v1: uuidv1 } = require('uuid');
 const { sendMessageToParticipants } = require('./resources/commonFunctions');
 
@@ -10,6 +11,7 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 const {
   REGION_PREFIX,
   ENVIRONMENT,
+  DOMAIN,
   SMOOCH_API_URL,
 } = process.env;
 
@@ -110,12 +112,12 @@ exports.handler = async (event) => {
       log.warn('Actions already exists in pending interactions', { ...logContext, actionId });
       return;
     }
-    collectActions.push({ actionId, subId });
+    collectActions.push({ actionId, subId, messageType: 'form' });
   } else {
     if (collectActions && (collectActions.length > 0)) {
       log.warn('Collect Actions already exists, overwriting with new action', logContext);
     }
-    collectActions = [{ actionId, subId }];
+    collectActions = [{ actionId, subId, messageType: 'non-form' }];
   }
 
   await exports.setCollectActions({
@@ -124,6 +126,8 @@ exports.handler = async (event) => {
     logContext,
   });
 
+  let messageSent;
+
   if (source === 'web') {
     if (message.length > 128) {
       log.warn('Message contains more than 128 characters', logContext);
@@ -131,7 +135,7 @@ exports.handler = async (event) => {
     }
 
     try {
-      await smooch.appUsers.sendMessage({
+      messageSent = await smooch.appUsers.sendMessage({
         appId,
         userId,
         message: {
@@ -158,7 +162,7 @@ exports.handler = async (event) => {
     }
   } else {
     try {
-      await smooch.appUsers.sendMessage({
+      messageSent = await smooch.appUsers.sendMessage({
         appId,
         userId,
         message: {
@@ -209,6 +213,28 @@ exports.handler = async (event) => {
     }
   }
 
+  try {
+    await axios({
+      method: 'post',
+      url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts`,
+      data: {
+        source: 'smooch',
+        interruptType: 'message-sent',
+        interrupt: {
+          messageId: messageSent.message._id,
+          messageContent: {
+            type: messageSent.message.type,
+            text: messageSent.message.type === 'form' ? messageSent.message.fields[0].label : messageSent.message.text,
+          },
+          from,
+          resource: messageSent.message.metadata,
+        },
+      },
+      auth,
+    });
+  } catch (err) {
+    log.error('Error sending message-sent interrupt', logContext, err);
+  }
   log.info('smooch-action-collect-message-response was successful', logContext);
 };
 

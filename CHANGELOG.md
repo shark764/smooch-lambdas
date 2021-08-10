@@ -1,3 +1,6 @@
+# 1.48.1
+* CXV1-27115 - Added banner notification for failed facebook messages and other smooch message failure. Fix collect message and postbacks. Added channel-sub-type and artifact-sub-type.
+
 # 1.48.0
 * CXV1-27153 - Added smooch message interrupts 'message-sent', 'message-received', 'message-postback-received', 'message-delivery-error'
 

@@ -17,6 +17,7 @@ const {
   getClientInactivityTimeout,
   sendMessageToParticipants,
   disconnectClient,
+  sendBannerNotification,
 } = require('./resources/commonFunctions');
 
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
@@ -110,20 +111,20 @@ exports.handler = async (event) => {
   logContext.hasInteractionItem = hasInteractionItem;
   logContext.interactionId = interactionId;
   logContext.smoochIntegrationId = integrationId;
+  const collectActions = interactionItem && (
+    interactionItem.CollectActions === [] ? undefined : interactionItem.CollectActions
+  );
+  logContext.collectActions = collectActions;
   switch (trigger) {
     case 'message:appUser': {
       log.debug('Trigger received: message:appUser', logContext);
-      const collectActions = interactionItem && (
-        interactionItem.CollectActions === [] ? undefined : interactionItem.CollectActions
-      );
       const messagesStatus = await Promise.all(messages.map(async (message) => {
         const { type, _id: smoochMessageId } = message;
         // Disabled ChannelSubType to be passed on createInteraction
-        // const channelSubType = (platform === 'messenger') ? 'facebook' : platform;
-        logContext.collectActions = collectActions;
+        const channelSubType = (platform === 'messenger') ? 'facebook' : platform;
         logContext.smoochMessageType = type;
         logContext.smoochMessageId = smoochMessageId;
-        // logContext.channelSubType = channelSubType;
+        logContext.channelSubType = channelSubType;
         if (platform === 'web') {
           log.debug('Platform received: web', logContext);
           const channelType = 'messaging';
@@ -143,7 +144,7 @@ exports.handler = async (event) => {
                 channelType,
                 conversationId,
                 metadataSource: platform,
-                // channelSubType,
+                channelSubType,
                 collectActions,
               });
               break;
@@ -169,7 +170,7 @@ exports.handler = async (event) => {
                 conversationId,
                 collectActions,
                 metadataSource: platform,
-                // channelSubType,
+                channelSubType,
               });
               break;
             }
@@ -205,7 +206,7 @@ exports.handler = async (event) => {
                 channelType: channel,
                 conversationId,
                 metadataSource: platform,
-                // channelSubType,
+                channelSubType,
                 client,
                 collectActions,
                 appUser,
@@ -317,10 +318,44 @@ exports.handler = async (event) => {
           log.error('Error sending message-delivery-error', logContext, err);
         }
 
-        try {
-          await disconnectClient({ logContext, cxAuth: auth });
-        } catch (error) {
-          log.error('Error disconnecting client', logContext, error);
+        if (platform === 'messenger' && (deliveryError.underlyingError.code === 190
+          || deliveryError.underlyingError.code === 102)) {
+          try {
+            await sendBannerNotification({
+              logContext,
+              cxAuth: auth,
+              notification: 'facebook-invalid-token',
+              source: 'facebook',
+              message: deliveryError.underlyingError.message,
+            });
+            try {
+              await disconnectClient({ logContext, cxAuth: auth });
+            } catch (error) {
+              log.error('Error disconnecting client', logContext, error);
+            }
+          } catch (error) {
+            log.error('Error sending banner notification for failed invalid Facebook token message');
+          }
+        } else {
+          let message;
+          if (platform === 'messenger') {
+            message = deliveryError.underlyingError.message;
+          } else if (platform === 'whatsapp') {
+            message = deliveryError.message;
+          } else {
+            message = '';
+          }
+          try {
+            await sendBannerNotification({
+              logContext,
+              cxAuth: auth,
+              notification: 'failed-smooch-message',
+              message,
+              source: platform === 'messenger' ? 'facebook' : platform,
+            });
+          } catch (error) {
+            log.error('Error sending banner notification for failed smooch message');
+          }
         }
       }
       return 'message failure';
@@ -328,35 +363,51 @@ exports.handler = async (event) => {
     case 'postback': {
       logContext.postback = postbacks;
       log.debug('Trigger received: postback', logContext);
-      const { actionId } = postbacks[0].message.metadata;
-      const { subId } = postbacks[0].message.metadata;
-      const response = {
-        conversationId,
-        postback: postbacks[0].action,
-        user: 'customer',
-      };
-      try {
-        await exports.sendFlowActionResponse({
-          logContext, actionId, subId, response,
-        });
-      } catch (error) {
-        log.error('Error sending flow response', logContext, error);
-        throw error;
-      }
+      if (hasInteractionItem) {
+        const { actionId } = postbacks[0].message.metadata;
+        const { subId } = postbacks[0].message.metadata;
+        let pendingActions;
+        const pendingAction = collectActions.find(
+          (action) => action.actionId === actionId,
+        );
+        if (pendingAction) {
+          pendingActions = collectActions.filter(
+            (action) => action.actionId !== actionId,
+          );
+          await exports.setCollectActions({
+            collectAction: pendingActions,
+            userId: logContext.smoochUserId,
+            logContext,
+          });
+        }
+        const response = {
+          conversationId,
+          postback: postbacks[0].action,
+          user: 'customer',
+        };
+        try {
+          await exports.sendFlowActionResponse({
+            logContext, actionId, subId, response: postbacks[0].message, success: true,
+          });
+        } catch (error) {
+          log.error('Error sending flow response', logContext, error);
+          throw error;
+        }
 
-      try {
-        await axios({
-          method: 'post',
-          url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts`,
-          data: {
-            source: 'smooch',
-            interruptType: 'message-postback-received',
-            interrupt: response,
-          },
-          auth,
-        });
-      } catch (err) {
-        log.error('Error sending message-postback-received', logContext, err);
+        try {
+          await axios({
+            method: 'post',
+            url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/interrupts`,
+            data: {
+              source: 'smooch',
+              interruptType: 'message-postback-received',
+              interrupt: response,
+            },
+            auth,
+          });
+        } catch (err) {
+          log.error('Error sending message-postback-received', logContext, err);
+        }
       }
       return 'trigger postback';
     }
@@ -381,7 +432,7 @@ exports.handleFormResponse = async ({
   channelType,
   conversationId,
   metadataSource,
-  // channelSubType,
+  channelSubType,
   collectActions,
 }) => {
   let customerIdentifier = properties.customer;
@@ -426,7 +477,7 @@ exports.handleFormResponse = async ({
         tenantId,
         channelType,
         metadataSource,
-        // channelSubType,
+        channelSubType,
         integrationId,
         customer: customerIdentifier,
         properties,
@@ -487,7 +538,6 @@ exports.handleMultipleFormResponse = async function handleMultipleFormResponse({
   interactionId,
   form,
   auth,
-  conversationId,
   collectActions: pendingActions,
   logContext,
 }) {
@@ -578,14 +628,9 @@ exports.handleMultipleFormResponse = async function handleMultipleFormResponse({
     );
   }
 
-  const response = {
-    eventId: form._id,
-    conversationId,
-    message: form.textFallback,
-  };
   // Update flow
   await exports.sendFlowActionResponse({
-    logContext, actionId, subId, response,
+    logContext, actionId, subId, response: message, success: true,
   });
 
   return 'handleMultipleFormResponse Successful';
@@ -734,7 +779,7 @@ exports.createInteraction = async ({
   userId,
   tenantId,
   metadataSource,
-  // channelSubType,
+  channelSubType,
   channelType,
   integrationId,
   customer,
@@ -839,6 +884,7 @@ exports.createInteraction = async ({
       url: `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}/v1/tenants/${tenantId}/interactions/${interactionId}/artifacts`,
       data: {
         artifactType: 'messaging-transcript',
+        artifactSubType: channelSubType,
       },
       auth,
     });
@@ -875,6 +921,7 @@ exports.createInteraction = async ({
     },
     metadata: {
       source: metadataSource,
+      channelSubType,
       appId,
       userId,
       customer,
@@ -1260,7 +1307,7 @@ exports.sendReportingEvent = async function sendReportingEvent({
 };
 
 exports.sendFlowActionResponse = async function sendFlowActionResponse({
-  logContext, actionId, subId, response,
+  logContext, actionId, subId, response, success,
 }) {
   const { tenantId, interactionId } = logContext;
   const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-send-flow-response`;
@@ -1271,6 +1318,7 @@ exports.sendFlowActionResponse = async function sendFlowActionResponse({
     metadata: {},
     update: {
       response,
+      success,
     },
   };
   const payload = JSON.stringify({
@@ -1344,7 +1392,7 @@ exports.handleCustomerMessage = async ({
   properties,
   type,
   metadataSource,
-  // channelSubType,
+  channelSubType,
   channelType,
   conversationId,
   client,
@@ -1411,7 +1459,7 @@ exports.handleCustomerMessage = async ({
             userId,
             tenantId,
             metadataSource,
-            // channelSubType,
+            channelSubType,
             channelType,
             integrationId,
             customer: properties.customer,
@@ -1433,37 +1481,33 @@ exports.handleCustomerMessage = async ({
       }
     }
 
-    if (collectActions.length > 0 && (type === 'text' || type === 'location')) {
+    if (collectActions.length > 0) {
       let actionId;
       let subId;
       let pendingActions;
       let response;
       if (metadataSource === 'web') {
-        const pendingAction = collectActions.filter(
+        const pendingAction = collectActions.find(
           (action) => action.messageType !== 'form',
         );
         if (pendingAction) {
-          actionId = pendingAction[0].actionId;
-          subId = pendingAction[0].subId;
+          actionId = pendingAction.actionId;
+          subId = pendingAction.subId;
           pendingActions = collectActions.filter(
             (action) => action.actionId !== actionId,
           );
-          response = {
-            eventId: message._id,
-            conversationId,
-            message: message.textFallback,
-          };
+          response = message;
         }
       } else {
         actionId = collectActions[0].actionId;
         subId = collectActions[0].subId;
         pendingActions = [];
-        response = message.text;
+        response = collectActions[0].messageType === 'non-form' ? message.text : message;
       }
       if (actionId && subId) {
         try {
           await exports.sendFlowActionResponse({
-            logContext, actionId, subId, response,
+            logContext, actionId, subId, response, success: true,
           });
         } catch (error) {
           log.error('Error sending flow response', logContext, error);
@@ -1570,7 +1614,7 @@ exports.handleCustomerMessage = async ({
         userId,
         tenantId,
         metadataSource,
-        // channelSubType,
+        channelSubType,
         channelType,
         integrationId,
         customer: customerIdentifier,

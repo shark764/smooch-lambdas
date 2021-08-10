@@ -106,7 +106,7 @@ const messageSchema = Joi.object({
       }),
     }),
   })
-  .when(Joi.object({ type: Joi.string().valid('carousel', 'list') }).unknown(), {
+  .when(Joi.object({ type: Joi.string().valid('carousel') }).unknown(), {
     then: Joi.object({
       displaySettings: Joi.object({
         imageAspectRatio: Joi.string().valid('horizontal', 'square'),
@@ -118,7 +118,22 @@ const messageSchema = Joi.object({
         mediaType: Joi.string(),
         altText: Joi.string(),
         size: Joi.string().valid('compact', 'large'),
-        actions: carouselActionSchema,
+        actions: carouselActionSchema.required(),
+        metadata: Joi.any(),
+      })),
+    }),
+  })
+  .when(Joi.object({ type: Joi.string().valid('list') }).unknown(), {
+    then: Joi.object({
+      actions: carouselActionSchema,
+      items: Joi.array().items(Joi.object({
+        title: Joi.string().required(),
+        description: Joi.string(),
+        mediaUrl: Joi.string(),
+        mediaType: Joi.string(),
+        altText: Joi.string(),
+        size: Joi.string().valid('compact', 'large'),
+        actions: carouselActionSchema.required(),
         metadata: Joi.any(),
       })),
     }),
@@ -265,7 +280,7 @@ exports.handler = async (event) => {
     });
     throw error;
   }
-  const messageContent = smoochMessage[0].content;
+  const messageContent = smoochMessage[0];
 
   if (!agentDisplayMessage) {
     agentDisplayMessage = smoochMessage[0].content.text;
@@ -303,13 +318,13 @@ exports.handler = async (event) => {
 
   const response = {
     messageId: smoochMessage.id,
-    messageContent,
+    messageContent: messageContent.content,
     from,
   };
 
   if (sendActionResponse) {
     await sendFlowActionResponse({
-      logContext, actionId, subId, response,
+      logContext, actionId, subId, response: messageContent, success: true,
     });
   } else {
     await handleCollectMessage({
@@ -425,7 +440,7 @@ async function setCollectActions({
 }
 
 async function sendFlowActionResponse({
-  logContext, actionId, subId, response,
+  logContext, actionId, subId, response, success,
 }) {
   const { tenantId, interactionId } = logContext;
   const QueueName = `${REGION_PREFIX}-${ENVIRONMENT}-send-flow-response`;
@@ -436,6 +451,7 @@ async function sendFlowActionResponse({
     metadata: {},
     update: {
       response,
+      success,
     },
   };
   const payload = JSON.stringify({

@@ -105,6 +105,23 @@ Array [
 
 exports[`performCustomerDisconnect when everything is successful finish successfully 1`] = `"performCustomerDisconnect"`;
 
+exports[`sendBannerNotification successfully sent banner notification 1`] = `
+Array [
+  Array [
+    Object {
+      "MessageBody": "{\\"tenantId\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"actionId\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e97\\",\\"interactionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"resourceId\\":\\"mock-resource-id-1\\",\\"sessionId\\":\\"mock-session-id-1\\",\\"type\\":\\"send-message\\",\\"messageType\\":\\"show-banner\\"}",
+      "QueueUrl": "queueurl",
+    },
+  ],
+  Array [
+    Object {
+      "MessageBody": "{\\"tenantId\\":\\"250faddb-9723-403a-9bd5-3ca710cb26e5\\",\\"actionId\\":\\"7534c040-534d-11ea-8aa0-c32d6a748e97\\",\\"interactionId\\":\\"667802d8-2260-436c-958a-2ee0f71f73f0\\",\\"resourceId\\":\\"mock-resource-id-2\\",\\"sessionId\\":\\"mock-session-id-2\\",\\"type\\":\\"send-message\\",\\"messageType\\":\\"show-banner\\"}",
+      "QueueUrl": "queueurl",
+    },
+  ],
+]
+`;
+
 exports[`sendEndingInteractionNotification successfully sent notification 1`] = `
 Array [
   Array [

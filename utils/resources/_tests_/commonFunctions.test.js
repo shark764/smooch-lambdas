@@ -128,6 +128,7 @@ const {
   getMetadata,
   disconnectClient,
   checkIfClientPastInactiveTimeout,
+  sendBannerNotification,
 } = require('../commonFunctions');
 
 const logContext = {
@@ -597,6 +598,22 @@ describe('sendEndingInteractionNotification', () => {
   });
 
   it('successfully sent notification', async () => {
+    expect(mockSendMessage.mock.calls).toMatchSnapshot();
+  });
+});
+
+describe('sendBannerNotification', () => {
+  let result;
+  beforeAll(async () => {
+    jest.clearAllMocks();
+    result = await sendBannerNotification({ logContext });
+  });
+
+  it('finish successfully', async () => {
+    expect(result).toEqual('sendBannerNotification');
+  });
+
+  it('successfully sent banner notification', async () => {
     expect(mockSendMessage.mock.calls).toMatchSnapshot();
   });
 });
