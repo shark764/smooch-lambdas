@@ -352,7 +352,7 @@ describe('smooch-action-send-rich-message', () => {
       };
       const result = await handler(mockEvent);
       expect(result).toEqual('unsupported message type');
-      expect(mockSqsSendMessage).not.toHaveBeenCalled();
+      expect(mockSqsSendMessage).toHaveBeenCalled();
     });
   });
 

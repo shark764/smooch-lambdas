@@ -420,6 +420,7 @@ Array [
       "conversationEvent": "conversation-read",
       "interactionId": "1",
       "logContext": Object {
+        "channelSubType": "web",
         "collectActions": Array [],
         "hasInteractionItem": true,
         "interactionId": "1",
@@ -647,6 +648,7 @@ Array [
       "conversationEvent": "typing-start",
       "interactionId": "1",
       "logContext": Object {
+        "channelSubType": "web",
         "collectActions": Array [],
         "hasInteractionItem": true,
         "interactionId": "1",

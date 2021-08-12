@@ -17,8 +17,6 @@ const {
   SMOOCH_API_URL,
 } = process.env;
 
-const cxApiUrl = `https://${REGION_PREFIX}-${ENVIRONMENT}-edge.${DOMAIN}`;
-
 const actionSchema = Joi.array().items(Joi.object({
   type: Joi.string().valid('link', 'locationRequest', 'postback', 'reply').required(),
   text: Joi.string().required(),
@@ -167,7 +165,6 @@ exports.handler = async (event) => {
     smoochAppId: appId,
     smoochUserId: userId,
   };
-  const errResponseUrl = `${cxApiUrl}/v1/tenants/${tenantId}/interactions/${interactionId}`;
   log.info('smooch-action-rich-send-message was called', { ...logContext, parameters: event.parameters });
   let cxAuthSecret;
   try {
@@ -197,12 +194,19 @@ exports.handler = async (event) => {
   } catch (error) {
     const errMsg = 'Error: invalid message value(s).';
     const validationMessage = error.details
-      .map(({ errMessage }) => errMessage)
+      .map(({ message: errMessage }) => errMessage)
       .join(' / ');
 
     log.error(errMsg, { ...logContext, validationMessage }, error);
-    await sendFlowErrorResponse({
-      errResponseUrl, subId, cxAuth, logContext, errMsg,
+    await sendFlowActionResponse({
+      logContext,
+      actionId,
+      subId,
+      response: {
+        status: 400,
+        message: validationMessage,
+      },
+      success: false,
     });
     return 'invalid message values';
   }
@@ -236,8 +240,15 @@ exports.handler = async (event) => {
       log.info(`Received form message for ${source}`, logContext);
     } else if (messageType === 'form' && source !== 'web') {
       log.error(`Unsupported message type for ${source}`, logContext);
-      await sendFlowErrorResponse({
-        errResponseUrl, subId, cxAuth, logContext,
+      await sendFlowActionResponse({
+        logContext,
+        actionId,
+        subId,
+        response: {
+          status: 400,
+          message: 'Unsupported message type',
+        },
+        success: false,
       });
       return 'unsupported message type';
     } else {
@@ -245,8 +256,15 @@ exports.handler = async (event) => {
     }
   } else {
     log.error('Unsupported smooch platform', logContext);
-    await sendFlowErrorResponse({
-      errResponseUrl, subId, cxAuth, logContext,
+    await sendFlowActionResponse({
+      logContext,
+      actionId,
+      subId,
+      response: {
+        status: 400,
+        message: 'Unsupported platform',
+      },
+      success: false,
     });
     return 'unsupported platform';
   }
@@ -275,10 +293,10 @@ exports.handler = async (event) => {
   } catch (error) {
     const errMsg = 'An Error has occurred trying to send smooch rich message to customer';
     log.error(errMsg, logContext, error);
-    await sendFlowErrorResponse({
-      errResponseUrl, subId, cxAuth, logContext, errMsg,
+    await sendFlowActionResponse({
+      logContext, actionId, subId, response: error, success: false,
     });
-    throw error;
+    return 'failed to send smooch message';
   }
   const messageContent = smoochMessage[0];
 
@@ -465,30 +483,4 @@ async function sendFlowActionResponse({
     QueueUrl,
   };
   await sqs.sendMessage(sqsMessageAction).promise();
-}
-
-async function sendFlowErrorResponse({
-  errResponseUrl,
-  subId,
-  cxAuth,
-  logContext,
-  errMsg,
-}) {
-  try {
-    await axios({
-      method: 'post',
-      url: errResponseUrl,
-      data: {
-        source: 'smooch',
-        subId,
-        errorMessage: errMsg,
-        errorCode: 500,
-        metadata: {},
-        update: {},
-      },
-      auth: cxAuth,
-    });
-  } catch (error) {
-    log.warn('An Error ocurred trying to send an error response', logContext, error);
-  }
 }

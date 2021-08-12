@@ -115,16 +115,16 @@ exports.handler = async (event) => {
     interactionItem.CollectActions === [] ? undefined : interactionItem.CollectActions
   );
   logContext.collectActions = collectActions;
+  const channelSubType = (platform === 'messenger') ? 'facebook' : platform;
+  logContext.channelSubType = channelSubType;
   switch (trigger) {
     case 'message:appUser': {
       log.debug('Trigger received: message:appUser', logContext);
       const messagesStatus = await Promise.all(messages.map(async (message) => {
         const { type, _id: smoochMessageId } = message;
         // Disabled ChannelSubType to be passed on createInteraction
-        const channelSubType = (platform === 'messenger') ? 'facebook' : platform;
         logContext.smoochMessageType = type;
         logContext.smoochMessageId = smoochMessageId;
-        logContext.channelSubType = channelSubType;
         if (platform === 'web') {
           log.debug('Platform received: web', logContext);
           const channelType = 'messaging';
@@ -292,11 +292,33 @@ exports.handler = async (event) => {
       log.debug('Trigger received: message:delivery:failure', logContext);
       const { error: deliveryError, message: failedMessage } = body;
       logContext.messageDeliveryError = deliveryError;
-      log.error(`${platform} message failed to deliver to customer`, logContext);
+      log.error(`${channelSubType} message failed to deliver to customer`, logContext);
       /* TODO: handle failure cases for Facebook and others
          update interrupt message content and include event-id
          when updating smooch from v1.1 to v2 */
       if (hasInteractionItem) {
+        if (collectActions.length > 0 && channelSubType !== 'web') {
+          try {
+            await exports.sendFlowActionResponse({
+              logContext,
+              actionId: collectActions[0].actionId,
+              subId: collectActions[0].subId,
+              response: {
+                status: 500,
+                message: deliveryError.underlyingError,
+              },
+              success: false,
+            });
+          } catch (error) {
+            log.error('Error sending flow response', logContext, error);
+          }
+          await exports.setCollectActions({
+            collectAction: [],
+            userId: logContext.smoochUserId,
+            logContext,
+          });
+        }
+
         try {
           await axios({
             method: 'post',
@@ -306,10 +328,10 @@ exports.handler = async (event) => {
               interruptType: 'message-delivery-error',
               interrupt: {
                 destination,
-                error: deliveryError,
+                error: deliveryError.underlyingError,
                 conversationId,
                 messageId: failedMessage._id,
-                user: 'customer',
+                user: appUser,
               },
             },
             auth,
@@ -318,7 +340,7 @@ exports.handler = async (event) => {
           log.error('Error sending message-delivery-error', logContext, err);
         }
 
-        if (platform === 'messenger' && (deliveryError.underlyingError.code === 190
+        if (channelSubType === 'facebook' && (deliveryError.underlyingError.code === 190
           || deliveryError.underlyingError.code === 102)) {
           try {
             await sendBannerNotification({
@@ -338,9 +360,9 @@ exports.handler = async (event) => {
           }
         } else {
           let message;
-          if (platform === 'messenger') {
+          if (channelSubType === 'facebook') {
             message = deliveryError.underlyingError.message;
-          } else if (platform === 'whatsapp') {
+          } else if (channelSubType === 'whatsapp') {
             message = deliveryError.message;
           } else {
             message = '';
@@ -351,7 +373,7 @@ exports.handler = async (event) => {
               cxAuth: auth,
               notification: 'failed-smooch-message',
               message,
-              source: platform === 'messenger' ? 'facebook' : platform,
+              source: channelSubType,
             });
           } catch (error) {
             log.error('Error sending banner notification for failed smooch message');

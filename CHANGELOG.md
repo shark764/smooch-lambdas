@@ -1,3 +1,6 @@
+# 1.48.2
+* CXV1-27115 - Fixed flow responses sent from rich text and failure cases from smooch webhook to fix collect message banner response
+
 # 1.48.1
 * CXV1-27115 - Added banner notification for failed facebook messages and other smooch message failure. Fix collect message and postbacks. Added channel-sub-type and artifact-sub-type.
 

@@ -132,8 +132,6 @@ exports[`smooch-action-send-rich-message throws a warning when there existing co
 
 exports[`smooch-action-send-rich-message throws a warning when there existing collect actions for web 1`] = `"smooch-action-send-rich-message successful"`;
 
-exports[`smooch-action-send-rich-message throws a warning when there is a error sending an error response 1`] = `"Error sending smooch message and error response to customer"`;
-
 exports[`smooch-action-send-rich-message throws a warning when there is no interaction for web 1`] = `"smooch-action-send-rich-message successful"`;
 
 exports[`smooch-action-send-rich-message throws a warning when there is old interaction id for web 1`] = `"smooch-action-send-rich-message successful"`;
@@ -141,5 +139,3 @@ exports[`smooch-action-send-rich-message throws a warning when there is old inte
 exports[`smooch-action-send-rich-message throws an error when there is a problem retrieving cx credentials 1`] = `"Error retrieving cx credentials"`;
 
 exports[`smooch-action-send-rich-message throws an error when there is a problem retrieving digital channels credentials 1`] = `"Error retrieving digital channels credentials"`;
-
-exports[`smooch-action-send-rich-message throws an error when there is a problem sending smooch message to customer 1`] = `"Error sending smooch message to customer"`;
