@@ -7,7 +7,6 @@
   "dependencies": {
     "alonzo": "9.0.5",
     "axios": "^0.21.1",
-    "edn-data": "^0.2.0",
     "joi": "^17.4.0",
     "sunshine-conversations-client": "^9.4.3",
     "uuid": "^8.3.2"

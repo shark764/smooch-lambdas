@@ -1,3 +1,6 @@
+# 1.48.3
+* no-jira - Added new triggers to create smooch app, removed EDN to JSON converter, rich text changes for flow
+
 # 1.48.2
 * CXV1-27115 - Fixed flow responses sent from rich text and failure cases from smooch webhook to fix collect message banner response
 

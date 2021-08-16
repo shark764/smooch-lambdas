@@ -388,34 +388,35 @@ exports.handler = async (event) => {
       if (hasInteractionItem) {
         const { actionId } = postbacks[0].message.metadata;
         const { subId } = postbacks[0].message.metadata;
-        let pendingActions;
-        const pendingAction = collectActions.find(
-          (action) => action.actionId === actionId,
-        );
-        if (pendingAction) {
-          pendingActions = collectActions.filter(
-            (action) => action.actionId !== actionId,
+        if (collectActions.length > 0 && actionId !== undefined && subId !== undefined) {
+          let pendingActions;
+          const pendingAction = collectActions.find(
+            (action) => action.actionId === actionId,
           );
-          await exports.setCollectActions({
-            collectAction: pendingActions,
-            userId: logContext.smoochUserId,
-            logContext,
-          });
+          if (pendingAction) {
+            pendingActions = collectActions.filter(
+              (action) => action.actionId !== actionId,
+            );
+            await exports.setCollectActions({
+              collectAction: pendingActions,
+              userId: logContext.smoochUserId,
+              logContext,
+            });
+          }
+          try {
+            await exports.sendFlowActionResponse({
+              logContext, actionId, subId, response: postbacks[0].message, success: true,
+            });
+          } catch (error) {
+            log.error('Error sending flow response', logContext, error);
+            throw error;
+          }
         }
         const response = {
           conversationId,
           postback: postbacks[0].action,
-          user: 'customer',
+          user: appUser,
         };
-        try {
-          await exports.sendFlowActionResponse({
-            logContext, actionId, subId, response: postbacks[0].message, success: true,
-          });
-        } catch (error) {
-          log.error('Error sending flow response', logContext, error);
-          throw error;
-        }
-
         try {
           await axios({
             method: 'post',

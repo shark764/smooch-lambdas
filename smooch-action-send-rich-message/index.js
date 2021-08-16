@@ -3,7 +3,6 @@ const SunshineConversationsClient = require('sunshine-conversations-client');
 const Joi = require('joi');
 const AWS = require('aws-sdk');
 const axios = require('axios');
-const ednData = require('edn-data');
 const { sendMessageToParticipants } = require('./resources/commonFunctions');
 
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -17,10 +16,10 @@ const {
   SMOOCH_API_URL,
 } = process.env;
 
-const actionSchema = Joi.array().items(Joi.object({
+const actionSchema = Joi.object({
   type: Joi.string().valid('link', 'locationRequest', 'postback', 'reply').required(),
   text: Joi.string().required(),
-  metadata: Joi.any(),
+  metadata: Joi.object(),
 }).when(Joi.object({ type: Joi.string().valid('link') }).unknown(), {
   then: Joi.object({
     uri: Joi.string().required(),
@@ -35,12 +34,12 @@ const actionSchema = Joi.array().items(Joi.object({
     payload: Joi.string().required(),
     iconUrl: Joi.string(),
   }),
-}));
+});
 
-const carouselActionSchema = Joi.array().items(Joi.object({
+const carouselActionSchema = Joi.object({
   type: Joi.string().valid('link', 'postback').required(),
   text: Joi.string().required(),
-  metadata: Joi.any(),
+  metadata: Joi.object(),
 }).when(Joi.object({ type: Joi.string().valid('link') }).unknown(), {
   then: Joi.object({
     uri: Joi.string().required(),
@@ -50,14 +49,14 @@ const carouselActionSchema = Joi.array().items(Joi.object({
   then: Joi.object({
     payload: Joi.string().required(),
   }),
-}));
+});
 
 const messageSchema = Joi.object({
   type: Joi.string().valid('text', 'image', 'file', 'form', 'carousel', 'list', 'location').required(),
 }).when(Joi.object({ type: Joi.string().valid('text') }).unknown(), {
   then: Joi.object({
-    text: Joi.string(),
-    actions: actionSchema,
+    actions: Joi.array().items(actionSchema).min(1),
+    text: Joi.any().when('actions', { is: Joi.exist(), then: Joi.string(), otherwise: Joi.string().required() }),
   }),
 }).when(Joi.object({ type: Joi.string().valid('form') }).unknown(), {
   then: Joi.object({
@@ -72,23 +71,23 @@ const messageSchema = Joi.object({
       text: Joi.string(),
       email: Joi.string(),
       options: Joi.array().items(Joi.object({
-        label: Joi.string(),
-        name: Joi.string(),
-      })),
+        label: Joi.string().min(1).max(128),
+        name: Joi.string().min(1).max(128),
+      })).max(100),
     })).required(),
   }),
 }).when(Joi.object({ type: Joi.string().valid('image') }).unknown(), {
   then: Joi.object({
     mediaUrl: Joi.string().required(),
-    altText: Joi.string(),
-    text: Joi.string(),
-    actions: actionSchema,
+    altText: Joi.string().max(128),
+    actions: Joi.array().items(actionSchema).min(1),
+    text: Joi.any().when('actions', { is: Joi.exist(), then: Joi.string(), otherwise: Joi.string().required() }),
   }),
 })
   .when(Joi.object({ type: Joi.string().valid('file') }).unknown(), {
     then: Joi.object({
       mediaUrl: Joi.string().required(),
-      altText: Joi.string(),
+      altText: Joi.string().max(128),
       text: Joi.string(),
     }),
   })
@@ -110,20 +109,22 @@ const messageSchema = Joi.object({
         imageAspectRatio: Joi.string().valid('horizontal', 'square'),
       }),
       items: Joi.array().items(Joi.object({
-        title: Joi.string().required(),
-        description: Joi.string(),
-        mediaUrl: Joi.string(),
-        mediaType: Joi.string(),
+        title: Joi.string().min(1).max(128).required(),
+        description: Joi.string().max(128),
+        mediaUrl: Joi.string().max(2048),
+        mediaType: Joi.string().max(128),
         altText: Joi.string(),
         size: Joi.string().valid('compact', 'large'),
-        actions: carouselActionSchema.required(),
-        metadata: Joi.any(),
-      })),
+        actions: Joi.array().items(carouselActionSchema).min(1).max(3)
+          .required(),
+        metadata: Joi.object(),
+      })).min(1).max(10)
+        .required(),
     }),
   })
   .when(Joi.object({ type: Joi.string().valid('list') }).unknown(), {
     then: Joi.object({
-      actions: carouselActionSchema,
+      actions: Joi.array().items(carouselActionSchema).min(1).max(10),
       items: Joi.array().items(Joi.object({
         title: Joi.string().required(),
         description: Joi.string(),
@@ -131,11 +132,20 @@ const messageSchema = Joi.object({
         mediaType: Joi.string(),
         altText: Joi.string(),
         size: Joi.string().valid('compact', 'large'),
-        actions: carouselActionSchema.required(),
-        metadata: Joi.any(),
-      })),
+        actions: Joi.array().items(carouselActionSchema).min(1).max(3)
+          .required(),
+        metadata: Joi.object(),
+      })).min(1).max(10)
+        .required(),
     }),
   });
+
+// Removing any null values and empty arrays in JSON object
+function removeEmptyElements(obj) {
+  return Object.fromEntries(Object.entries(obj)
+    .filter(([, v]) => (Array.isArray(v) ? v.length !== 0 : v !== null)));
+}
+
 exports.handler = async (event) => {
   const {
     body,
@@ -155,10 +165,10 @@ exports.handler = async (event) => {
     source,
     'conversation-id': conversationId,
   } = metadata;
-  const { from, message: ednMessage, 'wait-for-response': waitForResponse } = parameters;
-  const message = ednData.parseEDNString(ednMessage, { mapAs: 'object', keywordAs: 'string' });
-  const { type: messageType } = message;
 
+  const { from, message: receivedMessage, 'wait-for-response': waitForResponse } = parameters;
+  const { type: messageType } = receivedMessage;
+  let message = receivedMessage;
   const logContext = {
     tenantId,
     interactionId,
@@ -190,7 +200,8 @@ exports.handler = async (event) => {
   }
 
   try {
-    await messageSchema.validateAsync(message, { abortEarly: false });
+    message = await messageSchema.validateAsync(removeEmptyElements(receivedMessage),
+      { abortEarly: false, stripUnknown: true });
   } catch (error) {
     const errMsg = 'Error: invalid message value(s).';
     const validationMessage = error.details

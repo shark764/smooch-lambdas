@@ -108,6 +108,8 @@ Array [
         "message:appUser",
         "conversation:read",
         "typing:appUser",
+        "message:delivery:failure",
+        "postback",
       ],
     },
   ],

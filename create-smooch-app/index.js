@@ -264,7 +264,7 @@ exports.handler = async (event) => {
   const webhookUrl = `https://${REGION_PREFIX}-${ENVIRONMENT}-smooch-gateway.${DOMAIN}/webhook?tenantId=${tenantId}`;
   let webhook;
   try {
-    webhook = await smooch.webhooks.create(newAppId, { target: webhookUrl, triggers: ['message:appUser', 'conversation:read', 'typing:appUser'], includeClient: true });
+    webhook = await smooch.webhooks.create(newAppId, { target: webhookUrl, triggers: ['message:appUser', 'conversation:read', 'typing:appUser', 'message:delivery:failure', 'postback'], includeClient: true });
   } catch (error) {
     const errMsg = 'An Error has occurred trying to create webhooks';
 
