@@ -1,13 +1,47 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`create-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to SmoochCore 1`] = `
+exports[`create-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to axios smooch api call 1`] = `
 Array [
   Array [
     Object {
-      "keyId": "id",
-      "scope": "app",
-      "secret": "secret",
-      "serviceUrl": "mock-smooch-api-url",
+      "auth": Object {
+        "password": "secret",
+        "username": "id",
+      },
+      "data": Object {
+        "actionColor": "e5711b",
+        "backgroundImageUrl": "url",
+        "brandColor": "1be54c",
+        "businessIconUrl": undefined,
+        "businessName": "business-name",
+        "buttonHeight": "50",
+        "buttonIconUrl": "50",
+        "buttonWidth": "50",
+        "conversationColor": "cde51b",
+        "displayStyle": "tab",
+        "fixedIntroPane": true,
+        "integrationOrder": Array [],
+        "originWhitelist": Array [
+          "url1",
+          "url2",
+        ],
+        "prechatCapture": Object {
+          "enabled": true,
+          "fields": Array [
+            Object {
+              "label": "Name",
+              "maxSize": 128,
+              "minSize": 1,
+              "name": "name",
+              "placeholder": "",
+              "type": "text",
+            },
+          ],
+        },
+        "type": "web",
+      },
+      "method": "post",
+      "url": "mock-smooch-api-url/v2/apps/5e31c81640a22c000f5d7f28/integrations",
     },
   ],
 ]
@@ -54,46 +88,6 @@ Array [
   Array [
     Object {
       "SecretId": "us-east-1-dev-smooch-app",
-    },
-  ],
-]
-`;
-
-exports[`create-smooch-web-integration Everthing is successful Walkthrough passes in the correct arguments to smooch.integrations.create() 1`] = `
-Array [
-  Array [
-    "5e31c81640a22c000f5d7f28",
-    Object {
-      "actionColor": "e5711b",
-      "backgroundImageUrl": "url",
-      "brandColor": "1be54c",
-      "businessIconUrl": undefined,
-      "businessName": "business-name",
-      "buttonHeight": "50",
-      "buttonIconUrl": "50",
-      "buttonWidth": "50",
-      "conversationColor": "cde51b",
-      "displayStyle": "tab",
-      "fixedIntroPane": true,
-      "integrationOrder": Array [],
-      "originWhitelist": Array [
-        "url1",
-        "url2",
-      ],
-      "prechatCapture": Object {
-        "enabled": true,
-        "fields": Array [
-          Object {
-            "label": "Name",
-            "maxSize": 128,
-            "minSize": 1,
-            "name": "name",
-            "placeholder": "",
-            "type": "text",
-          },
-        ],
-      },
-      "type": "web",
     },
   ],
 ]
@@ -178,6 +172,15 @@ Object {
 }
 `;
 
+exports[`create-smooch-web-integration sends back status 500 when fails to parse credentials 1`] = `
+Object {
+  "body": Object {
+    "message": "Failed to parse smooch credentials or credentials are empty",
+  },
+  "status": 500,
+}
+`;
+
 exports[`create-smooch-web-integration sends back status 500 when there is a error creating web integration for tenant 1`] = `
 Object {
   "body": Object {
@@ -202,15 +205,6 @@ Object {
   "body": Object {
     "error": [TypeError: docClient.update(...).promise is not a function],
     "message": "An Error has occurred trying to save a record in DynamoDB for tenant",
-  },
-  "status": 500,
-}
-`;
-
-exports[`create-smooch-web-integration sends back status 500 when there is a error validating digital channels credentials 1`] = `
-Object {
-  "body": Object {
-    "message": "An Error has occurred trying to validate digital channels credentials",
   },
   "status": 500,
 }

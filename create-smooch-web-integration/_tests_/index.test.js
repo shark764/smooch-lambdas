@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 const { lambda: { api: { validateTenantPermissions } } } = require('alonzo');
 
 jest.mock('alonzo');
@@ -19,17 +18,19 @@ const mockGetSecretValue = jest.fn()
 
 const mockCreate = jest.fn()
   .mockImplementation(() => ({
-    integration: {
-      _id: '667802d8-2260-436c-958a-2ee0f71f73f1',
-      type: 'web',
-      integrationOrder: 'integration-order',
-      displayName: 'display-name',
-      status: 'done',
-      originWhitelist: ['url1', 'url2'],
-      whitelistedUrls: [],
-      prechatCapture: {
-        fields: [{ name: 'name' }],
-        enabled: true,
+    data: {
+      integration: {
+        id: '667802d8-2260-436c-958a-2ee0f71f73f1',
+        type: 'web',
+        integrationOrder: 'integration-order',
+        displayName: 'display-name',
+        status: 'done',
+        originWhitelist: ['url1', 'url2'],
+        whitelistedUrls: [],
+        prechatCapture: {
+          fields: [{ name: 'name' }],
+          enabled: true,
+        },
       },
     },
   }));
@@ -74,12 +75,6 @@ const event = {
   body: mockBody,
 };
 
-const mockSmoochCore = jest.fn(() => ({
-  integrations: {
-    create: mockCreate,
-  },
-}));
-
 jest.mock('aws-sdk', () => ({
   config: {
     update: jest.fn(),
@@ -90,7 +85,7 @@ jest.mock('aws-sdk', () => ({
   },
 }));
 
-jest.mock('smooch-core', () => mockSmoochCore);
+jest.mock('axios', () => mockCreate);
 
 const { handler } = require('../index');
 
@@ -106,14 +101,16 @@ describe('create-smooch-web-integration', () => {
         },
       };
       await handler(mockEvent);
-      expect(mockCreate.mock.calls[0][1].prechatCapture.fields).toEqual(expect.arrayContaining([{
-        type: 'email',
-        name: 'email',
-        label: 'Email',
-        placeholder: '',
-        minSize: 1,
-        maxSize: 128,
-      }]));
+      expect(mockCreate.mock.calls[0][0].data.prechatCapture.fields).toEqual(
+        expect.arrayContaining([{
+          type: 'email',
+          name: 'email',
+          label: 'Email',
+          placeholder: '',
+          minSize: 1,
+          maxSize: 128,
+        }]),
+      );
     });
 
     it("when prechatCapture is equal to 'none'", async () => {
@@ -129,7 +126,7 @@ describe('create-smooch-web-integration', () => {
       expect(result).toMatchSnapshot();
     });
 
-    it('when whitelistedUrls are not provided', async () => {
+    it('when whitelistedUrls are passed to smooch as null when passed in body as empty array', async () => {
       jest.clearAllMocks();
       const mockEvent = {
         ...event,
@@ -139,24 +136,27 @@ describe('create-smooch-web-integration', () => {
         },
       };
       await handler(mockEvent);
-      expect(mockCreate.mock.calls[0][1].originWhitelist).toEqual(null);
+      expect(mockCreate.mock.calls[0][0].data.originWhitelist).toEqual(null);
     });
 
     it('when brandColor, conversationColor, actionColor are provided', async () => {
       mockCreate.mockImplementationOnce(() => ({
-        integration: {
-          _id: '667802d8-2260-436c-958a-2ee0f71f73f1',
-          brandColor: 'e51b1b',
-          conversationColor: '2de51b',
-          actionColor: '1b1be5',
-          type: 'web',
-          integrationOrder: 'integration-order',
-          displayName: 'display-name',
-          status: 'done',
-          originWhitelist: ['url1', 'url2'],
-          whitelistedUrls: [],
-          prechatCapture: {
-            fields: [{ name: 'name' }],
+        data: {
+          integration: {
+            id: '667802d8-2260-436c-958a-2ee0f71f73f1',
+            brandColor: 'e51b1b',
+            conversationColor: '2de51b',
+            actionColor: '1b1be5',
+            type: 'web',
+            integrationOrder: 'integration-order',
+            displayName: 'display-name',
+            status: 'done',
+            originWhitelist: ['url1', 'url2'],
+            whitelistedUrls: [],
+            prechatCapture: {
+              fields: [{ name: 'name' }],
+              enabled: true,
+            },
           },
         },
       }));
@@ -188,11 +188,7 @@ describe('create-smooch-web-integration', () => {
         expect(mockGetSecretValue.mock.calls).toMatchSnapshot();
       });
 
-      it('passes in the correct arguments to SmoochCore', async () => {
-        expect(mockSmoochCore.mock.calls).toMatchSnapshot();
-      });
-
-      it('passes in the correct arguments to smooch.integrations.create()', async () => {
+      it('passes in the correct arguments to axios smooch api call', async () => {
         expect(mockCreate.mock.calls).toMatchSnapshot();
       });
 
@@ -243,10 +239,10 @@ describe('create-smooch-web-integration', () => {
     expect(result).toMatchSnapshot();
   });
 
-  it('sends back status 500 when there is a error validating digital channels credentials', async () => {
-    mockSmoochCore.mockImplementationOnce(() => {
-      throw new Error('SmoochCore');
-    });
+  it('sends back status 500 when fails to parse credentials', async () => {
+    mockGetSecretValue.mockImplementationOnce(() => ({
+      promise: () => ({}),
+    }));
     const result = await handler(event);
     expect(result).toMatchSnapshot();
   });

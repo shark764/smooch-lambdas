@@ -11,7 +11,7 @@ const {
   },
 } = require('alonzo');
 const string = require('serenova-js-utils/strings');
-const SmoochCore = require('smooch-core');
+const axios = require('axios');
 
 const docClient = new AWS.DynamoDB.DocumentClient();
 const secretsClient = new AWS.SecretsManager();
@@ -161,19 +161,11 @@ exports.handler = async (event) => {
     };
   }
 
-  const { appId } = body;
-  let smooch;
+  let appKeys;
   try {
-    const appKeys = JSON.parse(appSecrets.SecretString);
-    smooch = new SmoochCore({
-      keyId: appKeys[`${appId}-id`],
-      secret: appKeys[`${appId}-secret`],
-      scope: 'app',
-      serviceUrl: SMOOCH_API_URL,
-    });
+    appKeys = JSON.parse(appSecrets.SecretString);
   } catch (error) {
-    const errMsg = 'An Error has occurred trying to validate digital channels credentials';
-
+    const errMsg = 'Failed to parse smooch credentials or credentials are empty';
     log.error(errMsg, logContext, error);
 
     return {
@@ -182,36 +174,40 @@ exports.handler = async (event) => {
     };
   }
 
-  /**
-   * Getting smooch integration
-   */
-
+  const { appId } = body;
   let smoochIntegration;
   try {
-    const { integration } = await smooch.integrations.create(appId, {
-      type: 'web',
-      brandColor: body.brandColor,
-      // Set originWhitelist to undefined if array is empty
-      originWhitelist: body.whitelistedUrls && body.whitelistedUrls.length === 0
-        ? null
-        : body.whitelistedUrls,
-      businessName: body.businessName,
-      businessIconUrl: body.businessIconUrl,
-      fixedIntroPane: body.fixedIntroPane,
-      integrationOrder: [],
-      prechatCapture: body.prechatCapture === 'none'
-        ? { enabled: false }
-        : { enabled: true, fields: defaultPrechatCapture },
-      conversationColor: body.conversationColor,
-      backgroundImageUrl: body.backgroundImageUrl,
-      actionColor: body.actionColor,
-      displayStyle: body.displayStyle,
-      buttonWidth: body.buttonWidth,
-      buttonHeight: body.buttonHeight,
-      buttonIconUrl: body.buttonIconUrl,
+    const { data } = await axios({
+      method: 'post',
+      url: `${SMOOCH_API_URL}/v2/apps/${appId}/integrations`,
+      auth: {
+        username: appKeys[`${appId}-id`],
+        password: appKeys[`${appId}-secret`],
+      },
+      data: {
+        type: 'web',
+        brandColor: body.brandColor,
+        // Set originWhitelist to undefined if array is empty
+        originWhitelist: body.whitelistedUrls && body.whitelistedUrls.length === 0
+          ? null
+          : body.whitelistedUrls,
+        businessName: body.businessName,
+        businessIconUrl: body.businessIconUrl,
+        fixedIntroPane: body.fixedIntroPane,
+        integrationOrder: [],
+        prechatCapture: body.prechatCapture === 'none'
+          ? { enabled: false }
+          : { enabled: true, fields: defaultPrechatCapture },
+        conversationColor: body.conversationColor,
+        backgroundImageUrl: body.backgroundImageUrl,
+        actionColor: body.actionColor,
+        displayStyle: body.displayStyle,
+        buttonWidth: body.buttonWidth,
+        buttonHeight: body.buttonHeight,
+        buttonIconUrl: body.buttonIconUrl,
+      },
     });
-
-    smoochIntegration = integration;
+    smoochIntegration = data.integration;
   } catch (error) {
     const errMsg = 'An Error has occurred trying to create a web integration for tenant';
 
@@ -222,6 +218,8 @@ exports.handler = async (event) => {
       body: { message: errMsg, error },
     };
   }
+
+  log.debug('Created smooch web integration', { ...logContext, smoochIntegration });
 
   /**
    * Setting app records in dynamo
@@ -271,7 +269,7 @@ exports.handler = async (event) => {
 
   const updateParams = {
     TableName: `${REGION_PREFIX}-${ENVIRONMENT}-smooch`,
-    Key: { 'tenant-id': tenantId, id: smoochIntegration._id },
+    Key: { 'tenant-id': tenantId, id: smoochIntegration.id },
     UpdateExpression: updateExpression,
     ExpressionAttributeNames: expressionAttributeNames,
     ExpressionAttributeValues: expressionAttributeValues,
@@ -309,7 +307,7 @@ exports.handler = async (event) => {
 
   delete dynamoValue.type;
   delete smoochIntegration.integrationOrder;
-  delete smoochIntegration._id;
+  delete smoochIntegration.id;
   delete smoochIntegration.displayName;
   delete smoochIntegration.status;
   delete smoochIntegration.type;

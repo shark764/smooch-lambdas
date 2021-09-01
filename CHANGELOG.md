@@ -1,3 +1,6 @@
+# 1.49.0
+* CXV1-27349 - Use V2 sunshine API to create web integrations to allow multiple web integrations on the same app.
+
 # 1.48.3
 * no-jira - Added new triggers to create smooch app, removed EDN to JSON converter, rich text changes for flow
 
